@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -56,6 +55,13 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Declare the global window property for TypeScript
+declare global {
+  interface Window {
+    openResourceSidebar: () => void;
+  }
+}
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -335,12 +341,5 @@ const App = () => {
     </QueryClientProvider>
   );
 };
-
-// Add a global type definition for the openResourceSidebar function
-declare global {
-  interface Window {
-    openResourceSidebar: () => void;
-  }
-}
 
 export default App;
