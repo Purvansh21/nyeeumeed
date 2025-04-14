@@ -25,16 +25,9 @@ const LandingPage = () => {
             loop 
             playsInline
           >
-            <source 
-              src="/idk.mp4" 
-              type="video/mp4" 
-            />
+            <source src="/idk.mp4" type="video/mp4" />
             {/* Fallback image in case video doesn't load */}
-            <img 
-              src="https://images.unsplash.com/photo-1593113598332-cd59c5a3ca0e?q=80&w=2070&auto=format&fit=crop" 
-              alt="Community service" 
-              className="w-full h-full object-cover"
-            />
+           
           </video>
         </div>
         
