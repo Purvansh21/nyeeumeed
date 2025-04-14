@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { AuthContextType, User, UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/use-toast";
@@ -266,6 +267,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       
       if (Object.keys(updateData).length > 0) {
+        console.log(`Updating profile for user ${userId}:`, updateData);
         const { error } = await supabase
           .from('profiles')
           .update(updateData)
@@ -274,8 +276,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (error) throw error;
       }
       
+      // Handle specific role changes
       if (roleChanged && data.role) {
         try {
+          // 1. First, remove the user from the old role table
           const oldRoleTable = getTableNameForRole(currentProfile.role as UserRole);
           console.log(`Deleting user ${userId} from ${oldRoleTable}`);
           
@@ -286,11 +290,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             
           if (deleteError) {
             console.error(`Error deleting from ${oldRoleTable}:`, deleteError);
+            // Continue despite error to ensure we at least try to insert into new role table
             await new Promise(resolve => setTimeout(resolve, 800));
           }
           
+          // 2. Then add to the new role table
           const newRoleTable = getTableNameForRole(data.role);
           
+          // Prepare user data for the new role table
           const userData = {
             id: userId,
             full_name: data.fullName || currentProfile.full_name,
@@ -303,6 +310,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           
           console.log(`Adding user ${userId} to ${newRoleTable}`, userData);
           
+          // 3. Check if the user already exists in the new role table
           const { data: existingEntry, error: checkError } = await supabase
             .from(newRoleTable)
             .select('id')
@@ -313,7 +321,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             console.error(`Error checking for existing entry in ${newRoleTable}:`, checkError);
           }
           
+          // 4. Either update or insert based on whether the user already exists
           if (existingEntry) {
+            console.log(`User ${userId} already exists in ${newRoleTable}, updating...`);
             const { error: updateError } = await supabase
               .from(newRoleTable)
               .update(userData)
@@ -324,6 +334,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               throw updateError;
             }
           } else {
+            console.log(`User ${userId} does not exist in ${newRoleTable}, inserting...`);
             const { error: insertError } = await supabase
               .from(newRoleTable)
               .insert(userData);
@@ -338,11 +349,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           throw error;
         }
       } else if (data.isActive !== undefined || data.fullName !== undefined || data.contactInfo !== undefined) {
+        // If only updating active status, name, or contact info (not changing role)
         try {
           const roleTable = getTableNameForRole(currentProfile.role as UserRole);
           
           const roleTableUpdateData: any = {};
-          if (data.isActive !== undefined) roleTableUpdateData.is_active = data.isActive;
+          if (data.isActive !== undefined) {
+            roleTableUpdateData.is_active = data.isActive;
+            console.log(`Updating is_active to ${data.isActive} in ${roleTable} for user ${userId}`);
+          }
           if (data.fullName !== undefined) roleTableUpdateData.full_name = data.fullName;
           if (data.contactInfo !== undefined) roleTableUpdateData.contact_info = data.contactInfo;
           
@@ -354,13 +369,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               
             if (roleUpdateError) {
               console.error(`Error updating ${roleTable}:`, roleUpdateError);
+              throw roleUpdateError;
             }
           }
         } catch (error) {
           console.error('Error updating role-specific table:', error);
+          throw error;
         }
       }
       
+      // Update local user state if the current user is being updated
       if (user?.id === userId) {
         const { data: updatedProfile, error: fetchError } = await supabase
           .from('profiles')

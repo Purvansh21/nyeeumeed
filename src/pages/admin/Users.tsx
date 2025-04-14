@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -150,20 +151,23 @@ const UserManagement = () => {
   // Handle user activation/deactivation
   const toggleUserStatus = async (userId: string, newActiveStatus: boolean) => {
     try {
+      console.log(`Toggling user ${userId} to ${newActiveStatus ? 'active' : 'inactive'}`);
+      
       // Update user status directly on the profiles table
       await updateUserProfile(userId, { isActive: newActiveStatus });
       
-      // Update local state to reflect the changes immediately
+      // Update local state immediately to reflect the changes
       setUsers(prevUsers => 
         prevUsers.map(user => 
           user.id === userId ? { ...user, isActive: newActiveStatus } : user
         )
       );
       
-      // Add a small delay before refreshing to ensure database changes are reflected
+      // Always do a full refresh after a short delay to ensure database changes are reflected
       setTimeout(() => {
+        console.log("Refreshing user list after status change");
         fetchUsers();
-      }, 500);
+      }, 1000);
       
       toast({
         title: newActiveStatus ? "User activated" : "User deactivated",
@@ -192,19 +196,20 @@ const UserManagement = () => {
       
       await updateUserProfile(userId, updates);
       
-      // After successful update, update local state
+      // After successful update, update local state immediately
       setUsers(prevUsers => 
         prevUsers.map(u => 
           u.id === userId ? { ...u, ...updates } : u
         )
       );
       
-      // If this was a role change or status change, fetch fresh data after a delay
+      // Always do a full refresh after a role change or status change
       if (updates.role || updates.isActive !== undefined) {
-        // Small delay to allow the backend to fully process the changes
+        // Use a longer delay to ensure the backend has fully processed the changes
         setTimeout(() => {
+          console.log("Refreshing user list after profile update");
           fetchUsers();
-        }, 500);
+        }, 1500);
       }
       
       toast({

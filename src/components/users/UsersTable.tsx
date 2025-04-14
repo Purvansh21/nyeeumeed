@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { User, UserRole } from "@/types/auth";
 import { getRoleDisplayName } from "@/utils/permissions";
 import { Badge } from "@/components/ui/badge";
@@ -119,10 +120,12 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
     
     try {
       setProcessingId(userId);
+      
+      // Call the toggleUserStatus function from props
       await toggleUserStatus(userId, newStatus);
       
-      // No immediate local state update here, we'll let the parent component
-      // handle the state update after the API call completes
+      // We don't update local state here because the parent component will handle it
+      // This ensures the state is always in sync with the database
       
       toast({
         title: newStatus ? "User activated" : "User deactivated",
