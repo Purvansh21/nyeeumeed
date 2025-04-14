@@ -7,7 +7,7 @@ export interface Announcement {
   title: string;
   message: string;
   date: string;
-  status: string;
+  status: "active" | "scheduled" | "expired";
   created_at: string;
 }
 
@@ -34,6 +34,7 @@ export async function fetchAnnouncements(): Promise<Announcement[]> {
 
 export async function createAnnouncement(announcement: Omit<Announcement, 'id' | 'created_at'>): Promise<Announcement | null> {
   try {
+    console.log("Creating announcement:", announcement);
     const { data, error } = await supabase
       .from('announcements')
       .insert(announcement)
@@ -42,6 +43,7 @@ export async function createAnnouncement(announcement: Omit<Announcement, 'id' |
     
     if (error) throw error;
     
+    console.log("Announcement created successfully:", data);
     toast({
       title: "Success",
       description: "Announcement created successfully"
@@ -61,6 +63,7 @@ export async function createAnnouncement(announcement: Omit<Announcement, 'id' |
 
 export async function updateAnnouncement(id: number, announcement: Partial<Omit<Announcement, 'id' | 'created_at'>>): Promise<Announcement | null> {
   try {
+    console.log(`Updating announcement ${id}:`, announcement);
     const { data, error } = await supabase
       .from('announcements')
       .update(announcement)
@@ -70,6 +73,7 @@ export async function updateAnnouncement(id: number, announcement: Partial<Omit<
     
     if (error) throw error;
     
+    console.log("Announcement updated successfully:", data);
     toast({
       title: "Success",
       description: "Announcement updated successfully"
@@ -89,6 +93,7 @@ export async function updateAnnouncement(id: number, announcement: Partial<Omit<
 
 export async function deleteAnnouncement(id: number): Promise<boolean> {
   try {
+    console.log(`Deleting announcement ${id}`);
     const { error } = await supabase
       .from('announcements')
       .delete()
@@ -96,6 +101,7 @@ export async function deleteAnnouncement(id: number): Promise<boolean> {
     
     if (error) throw error;
     
+    console.log("Announcement deleted successfully");
     toast({
       title: "Success",
       description: "Announcement deleted successfully"

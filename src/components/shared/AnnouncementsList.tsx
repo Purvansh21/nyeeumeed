@@ -1,28 +1,45 @@
 
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircleIcon, BellIcon, CalendarIcon, InfoIcon, MegaphoneIcon } from "lucide-react";
+import { AlertCircleIcon, BellIcon, CalendarIcon, MegaphoneIcon } from "lucide-react";
 import { fetchAnnouncements } from "@/services/announcementService";
+import { useQuery } from "@tanstack/react-query";
+import { Announcement } from "@/services/announcementService";
 
 interface AnnouncementsListProps {
   limit?: number;
   showTitle?: boolean;
+  customAnnouncements?: Announcement[];
+  isLoading?: boolean;
+  error?: Error | null;
 }
 
 const AnnouncementsList: React.FC<AnnouncementsListProps> = ({ 
   limit, 
-  showTitle = true 
+  showTitle = true,
+  customAnnouncements,
+  isLoading: propIsLoading,
+  error: propError
 }) => {
-  const { data: announcements, isLoading, error } = useQuery({
+  const { 
+    data: fetchedAnnouncements, 
+    isLoading: queryIsLoading, 
+    error: queryError 
+  } = useQuery({
     queryKey: ["announcements"],
     queryFn: fetchAnnouncements,
+    // Skip query if custom announcements are provided
+    enabled: !customAnnouncements,
   });
 
-  console.log("Announcements data:", announcements);
+  const isLoading = propIsLoading !== undefined ? propIsLoading : queryIsLoading;
+  const error = propError !== undefined ? propError : queryError;
+  const announcements = customAnnouncements || fetchedAnnouncements;
+
+  console.log("AnnouncementsList data:", announcements);
 
   if (isLoading) {
     return (
@@ -95,14 +112,30 @@ const AnnouncementsList: React.FC<AnnouncementsListProps> = ({
       )}
       <CardContent className="space-y-4">
         {displayAnnouncements?.map((announcement) => (
-          <div key={announcement.id} className="border rounded-md p-4 hover:bg-gray-50 transition-colors">
+          <div 
+            key={announcement.id} 
+            className={`border rounded-md p-4 hover:bg-gray-50 transition-colors ${
+              announcement.status === 'active' ? 'border-l-4 border-l-green-500' : 
+              announcement.status === 'scheduled' ? 'border-l-4 border-l-blue-500' : ''
+            }`}
+          >
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold flex items-center">
                 <MegaphoneIcon className="h-5 w-5 mr-2 text-primary" />
                 {announcement.title}
               </h3>
-              <Badge variant={announcement.status === 'active' ? 'default' : 'secondary'}>
-                {announcement.status === 'active' ? 'Active' : 'Archived'}
+              <Badge 
+                variant={
+                  announcement.status === 'active' ? 'default' : 
+                  announcement.status === 'scheduled' ? 'secondary' : 'outline'
+                }
+                className={
+                  announcement.status === 'active' ? 'bg-green-500' : 
+                  announcement.status === 'scheduled' ? 'bg-blue-500 text-white' : ''
+                }
+              >
+                {announcement.status === 'active' ? 'Active' : 
+                 announcement.status === 'scheduled' ? 'Scheduled' : 'Expired'}
               </Badge>
             </div>
             
