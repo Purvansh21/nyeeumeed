@@ -13,10 +13,12 @@ import ResourceLibrary from "@/components/beneficiary/ResourceLibrary";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Activity, CheckCircle, Clock } from "lucide-react";
+import { Activity, CheckCircle, Clock, LineChart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const BeneficiaryDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -87,6 +89,18 @@ const BeneficiaryDashboard = () => {
           <TabsContent value="overview" className="space-y-4">
             <BeneficiaryStats refreshKey={refreshKey} />
 
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Recent Activities</h2>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/beneficiary/tracking")}
+                className="flex items-center gap-2"
+              >
+                <LineChart className="h-4 w-4" />
+                <span>Service Tracking</span>
+              </Button>
+            </div>
+
             <ServiceRequestList 
               onNewRequest={() => setActiveTab("services")}
               refreshKey={refreshKey}
@@ -113,6 +127,17 @@ const BeneficiaryDashboard = () => {
           </TabsContent>
           
           <TabsContent value="services" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">My Service Requests</h2>
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/beneficiary/tracking")}
+                className="flex items-center gap-2"
+              >
+                <LineChart className="h-4 w-4" />
+                <span>Service Tracking</span>
+              </Button>
+            </div>
             <ServiceRequestList 
               onNewRequest={() => setActiveTab("services")}
               refreshKey={refreshKey}
