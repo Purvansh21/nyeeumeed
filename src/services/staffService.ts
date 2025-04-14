@@ -6,7 +6,9 @@ import {
   Resource,
   ResourceAllocation,
   StaffTask,
-  Report
+  Report,
+  Appointment,
+  ServiceRequest
 } from "@/types/staff";
 import { User } from "@/types/auth";
 
@@ -600,6 +602,158 @@ export async function fetchReportById(id: string): Promise<Report | null> {
     } : null;
   } catch (error: any) {
     console.error("Error fetching report:", error.message);
+    return null;
+  }
+}
+
+// Appointments Management
+export async function fetchAppointments(): Promise<Appointment[]> {
+  try {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select(`
+        *,
+        beneficiary:beneficiary_id(id, full_name, contact_info),
+        staff:staff_id(id, full_name)
+      `)
+      .order('date', { ascending: true });
+    
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error: any) {
+    console.error("Error fetching appointments:", error.message);
+    return [];
+  }
+}
+
+export async function updateAppointment(id: string, appointment: Partial<Appointment>): Promise<Appointment | null> {
+  try {
+    const { data, error } = await supabase
+      .from('appointments')
+      .update(appointment)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    toast({
+      title: "Success",
+      description: "Appointment updated successfully"
+    });
+    
+    return data;
+  } catch (error: any) {
+    console.error("Error updating appointment:", error.message);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error.message || "Failed to update appointment"
+    });
+    return null;
+  }
+}
+
+export async function createAppointment(appointment: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>): Promise<Appointment | null> {
+  try {
+    const { data, error } = await supabase
+      .from('appointments')
+      .insert(appointment)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    toast({
+      title: "Success",
+      description: "Appointment created successfully"
+    });
+    
+    return data;
+  } catch (error: any) {
+    console.error("Error creating appointment:", error.message);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error.message || "Failed to create appointment"
+    });
+    return null;
+  }
+}
+
+// Service Requests Management
+export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
+  try {
+    const { data, error } = await supabase
+      .from('service_requests')
+      .select(`
+        *,
+        beneficiary:beneficiary_id(id, full_name, contact_info),
+        staff:assigned_staff(id, full_name)
+      `)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error: any) {
+    console.error("Error fetching service requests:", error.message);
+    return [];
+  }
+}
+
+export async function updateServiceRequest(id: string, request: Partial<ServiceRequest>): Promise<ServiceRequest | null> {
+  try {
+    const { data, error } = await supabase
+      .from('service_requests')
+      .update(request)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    toast({
+      title: "Success",
+      description: "Service request updated successfully"
+    });
+    
+    return data;
+  } catch (error: any) {
+    console.error("Error updating service request:", error.message);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error.message || "Failed to update service request"
+    });
+    return null;
+  }
+}
+
+export async function createServiceRequest(request: Omit<ServiceRequest, 'id' | 'created_at' | 'updated_at'>): Promise<ServiceRequest | null> {
+  try {
+    const { data, error } = await supabase
+      .from('service_requests')
+      .insert(request)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    toast({
+      title: "Success",
+      description: "Service request created successfully"
+    });
+    
+    return data;
+  } catch (error: any) {
+    console.error("Error creating service request:", error.message);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error.message || "Failed to create service request"
+    });
     return null;
   }
 }

@@ -30,6 +30,8 @@ import ResourcesManagement from "./pages/staff/Resources";
 import TasksManagement from "./pages/staff/Tasks";
 import StaffReports from "./pages/staff/Reports";
 import UrgentRequestsPage from "./pages/staff/UrgentRequests";
+import StaffAppointments from "./pages/staff/Appointments";
+import StaffServiceRequests from "./pages/staff/ServiceRequests";
 
 // Volunteer Pages
 import VolunteerDashboard from "./pages/volunteer/Index";
@@ -248,6 +250,22 @@ const App = () => {
               element={
                 <RouteGuard>
                   <UrgentRequestsPage />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/staff/appointments"
+              element={
+                <RouteGuard>
+                  <StaffAppointments />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/staff/service-requests"
+              element={
+                <RouteGuard>
+                  <StaffServiceRequests />
                 </RouteGuard>
               }
             />

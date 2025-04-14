@@ -103,6 +103,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         label: "Tasks",
         path: "/staff/tasks"
       }, {
+        icon: Calendar,
+        label: "Appointments",
+        path: "/staff/appointments"
+      }, {
+        icon: FileText,
+        label: "Service Requests",
+        path: "/staff/service-requests"
+      }, {
         icon: BellRing,
         label: "Urgent Requests",
         path: "/staff/urgent-requests"
