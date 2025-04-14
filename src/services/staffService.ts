@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { 
@@ -649,25 +648,31 @@ export async function fetchAppointments(): Promise<Appointment[]> {
       // Add the relations if they exist and are valid objects (not error objects)
       if (appointment.beneficiary && 
           typeof appointment.beneficiary === 'object' && 
-          !('error' in appointment.beneficiary) && 
-          'id' in appointment.beneficiary) {
-        const beneficiary = appointment.beneficiary;
-        transformedAppointment.beneficiary = {
-          id: beneficiary.id,
-          full_name: beneficiary.full_name,
-          contact_info: beneficiary.contact_info
-        };
+          !('error' in appointment.beneficiary)) {
+        // Type assertion after validation to tell TypeScript it's safe
+        const beneficiaryData = appointment.beneficiary as { id: string; full_name: string; contact_info: string | null };
+        
+        if ('id' in beneficiaryData) {
+          transformedAppointment.beneficiary = {
+            id: beneficiaryData.id,
+            full_name: beneficiaryData.full_name,
+            contact_info: beneficiaryData.contact_info
+          };
+        }
       }
       
       if (appointment.staff && 
           typeof appointment.staff === 'object' && 
-          !('error' in appointment.staff) && 
-          'id' in appointment.staff) {
-        const staff = appointment.staff;
-        transformedAppointment.staff = {
-          id: staff.id,
-          full_name: staff.full_name
-        };
+          !('error' in appointment.staff)) {
+        // Type assertion after validation to tell TypeScript it's safe
+        const staffData = appointment.staff as { id: string; full_name: string };
+        
+        if ('id' in staffData) {
+          transformedAppointment.staff = {
+            id: staffData.id,
+            full_name: staffData.full_name
+          };
+        }
       }
       
       return transformedAppointment;
@@ -768,25 +773,31 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
       // Add the relations if they exist and are valid objects (not error objects)
       if (request.beneficiary && 
           typeof request.beneficiary === 'object' && 
-          !('error' in request.beneficiary) && 
-          'id' in request.beneficiary) {
-        const beneficiary = request.beneficiary;
-        transformedRequest.beneficiary = {
-          id: beneficiary.id,
-          full_name: beneficiary.full_name,
-          contact_info: beneficiary.contact_info
-        };
+          !('error' in request.beneficiary)) {
+        // Type assertion after validation to tell TypeScript it's safe
+        const beneficiaryData = request.beneficiary as { id: string; full_name: string; contact_info: string | null };
+        
+        if ('id' in beneficiaryData) {
+          transformedRequest.beneficiary = {
+            id: beneficiaryData.id,
+            full_name: beneficiaryData.full_name,
+            contact_info: beneficiaryData.contact_info
+          };
+        }
       }
       
       if (request.staff && 
           typeof request.staff === 'object' && 
-          !('error' in request.staff) && 
-          'id' in request.staff) {
-        const staff = request.staff;
-        transformedRequest.staff = {
-          id: staff.id,
-          full_name: staff.full_name
-        };
+          !('error' in request.staff)) {
+        // Type assertion after validation to tell TypeScript it's safe
+        const staffData = request.staff as { id: string; full_name: string };
+        
+        if ('id' in staffData) {
+          transformedRequest.staff = {
+            id: staffData.id,
+            full_name: staffData.full_name
+          };
+        }
       }
       
       return transformedRequest;
