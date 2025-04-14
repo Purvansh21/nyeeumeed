@@ -30,6 +30,11 @@ import StaffReports from "./pages/staff/Reports";
 
 // Volunteer Pages
 import VolunteerDashboard from "./pages/volunteer/Index";
+import VolunteerSchedule from "./pages/volunteer/Schedule";
+import VolunteerOpportunities from "./pages/volunteer/Opportunities";
+import VolunteerBeneficiaries from "./pages/volunteer/Beneficiaries";
+import VolunteerResources from "./pages/volunteer/Resources";
+import VolunteerAchievements from "./pages/volunteer/Achievements";
 
 // Beneficiary Pages
 import BeneficiaryDashboard from "./pages/beneficiary/Index";
@@ -218,7 +223,7 @@ const App = () => {
               path="/volunteer/schedule"
               element={
                 <RouteGuard>
-                  <VolunteerDashboard />
+                  <VolunteerSchedule />
                 </RouteGuard>
               }
             />
@@ -226,7 +231,15 @@ const App = () => {
               path="/volunteer/opportunities"
               element={
                 <RouteGuard>
-                  <VolunteerDashboard />
+                  <VolunteerOpportunities />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/volunteer/beneficiaries"
+              element={
+                <RouteGuard>
+                  <VolunteerBeneficiaries />
                 </RouteGuard>
               }
             />
@@ -234,7 +247,7 @@ const App = () => {
               path="/volunteer/resources"
               element={
                 <RouteGuard>
-                  <VolunteerDashboard />
+                  <VolunteerResources />
                 </RouteGuard>
               }
             />
@@ -242,7 +255,7 @@ const App = () => {
               path="/volunteer/achievements"
               element={
                 <RouteGuard>
-                  <VolunteerDashboard />
+                  <VolunteerAchievements />
                 </RouteGuard>
               }
             />
