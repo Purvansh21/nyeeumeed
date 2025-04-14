@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -113,27 +112,16 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
         next_step: request.next_step,
         created_at: request.created_at,
         updated_at: request.updated_at,
+        verification_status: request.verification_status as 'unverified' | 'verified' | 'rejected' | null,
+        verification_notes: request.verification_notes,
+        verification_date: request.verification_date,
+        verified_by: request.verified_by
       };
-      
-      if (request.beneficiary_id) {
-        const { data: beneficiaryData } = await supabase
-          .from('beneficiary_users')
-          .select('id, full_name, contact_info')
-          .eq('id', request.beneficiary_id)
-          .maybeSingle();
-          
-        if (beneficiaryData) {
-          // Use correct property assignment without using 'beneficiary'
-          transformedRequest.beneficiary_id = beneficiaryData.id;
-          // We can store the beneficiary name for display purpose if needed
-          // but we need to modify the interface to include this
-        }
-      }
       
       if (request.assigned_staff) {
         const { data: staffData } = await supabase
           .from('staff_users')
-          .select('id, full_name')
+          .select('full_name')
           .eq('id', request.assigned_staff)
           .maybeSingle();
           
@@ -246,7 +234,7 @@ export async function fetchUrgentServiceRequests(): Promise<ServiceRequest[]> {
         next_step: request.next_step,
         created_at: request.created_at,
         updated_at: request.updated_at,
-        verification_status: request.verification_status,
+        verification_status: request.verification_status as 'unverified' | 'verified' | 'rejected' | null,
         verification_notes: request.verification_notes,
         verification_date: request.verification_date,
         verified_by: request.verified_by
@@ -344,21 +332,6 @@ export async function fetchAppointments(): Promise<Appointment[]> {
         created_at: appointment.created_at,
         updated_at: appointment.updated_at,
       };
-      
-      if (appointment.beneficiary_id) {
-        const { data: beneficiaryData } = await supabase
-          .from('beneficiary_users')
-          .select('id, full_name, contact_info')
-          .eq('id', appointment.beneficiary_id)
-          .maybeSingle();
-          
-        if (beneficiaryData) {
-          // Use correct property assignment without using 'beneficiary'
-          transformedAppointment.beneficiary_id = beneficiaryData.id;
-          // We can store the beneficiary name for display purpose if needed
-          // but we need to modify the interface to include this
-        }
-      }
       
       if (appointment.staff_id) {
         const { data: staffData } = await supabase
