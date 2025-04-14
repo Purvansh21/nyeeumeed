@@ -18,17 +18,7 @@ const LandingPage = () => {
         {/* Video Background */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-black/40 z-10"></div>
-          <video 
-            className="absolute w-full h-full object-cover"
-            autoPlay 
-            muted 
-            loop 
-            playsInline
-          >
-            <source 
-              src="https://cdn.coverr.co/videos/coverr-community-volunteers-planting-trees-5584/1080p.mp4" 
-              type="video/mp4" 
-            />
+          <video src="/idk.mp4" autoplay muted loop></video>
             {/* Fallback image in case video doesn't load */}
             <img 
               src="https://images.unsplash.com/photo-1593113598332-cd59c5a3ca0e?q=80&w=2070&auto=format&fit=crop" 
