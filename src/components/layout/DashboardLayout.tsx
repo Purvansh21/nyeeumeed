@@ -237,11 +237,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </div>}
           </div>
           {!isMinimized ? <div className="flex gap-2 mt-2">
-              <Button variant="outline" size="sm" className="w-full bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={() => navigate(`/${user.role}/profile`)}>
+              <Button variant="outline" size="sm" className="w-full bg-secondary text-white hover:bg-secondary/90 hover:text-white" onClick={() => navigate(`/${user.role}/profile`)}>
                 <User className="h-4 w-4 mr-2" />
                 Profile
               </Button>
-              <Button variant="outline" size="sm" className="w-full bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLogout}>
+              <Button variant="outline" size="sm" className="w-full bg-secondary text-white hover:bg-secondary/90 hover:text-white" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </Button>
@@ -249,7 +249,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <div className="flex flex-col items-center gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" className="bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={() => navigate(`/${user.role}/profile`)}>
+                    <Button variant="outline" size="icon" className="bg-secondary text-white hover:bg-secondary/90 hover:text-white" onClick={() => navigate(`/${user.role}/profile`)}>
                       <User className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -258,7 +258,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" className="bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={handleLogout}>
+                    <Button variant="outline" size="icon" className="bg-secondary text-white hover:bg-secondary/90 hover:text-white" onClick={handleLogout}>
                       <LogOut className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
