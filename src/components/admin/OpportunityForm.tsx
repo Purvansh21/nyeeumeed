@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,7 +23,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 
-// Add onSuccess to the props interface for OpportunityForm
 export interface OpportunityFormProps {
   onSuccess: () => void;
 }
@@ -51,8 +49,9 @@ const opportunityFormSchema = z.object({
   endTime: z.string().min(1, {
     message: "End time is required.",
   }),
-  // Convert the string to a number during validation
-  spotsAvailable: z.string().transform((val) => parseInt(val, 10)),
+  spotsAvailable: z.coerce.number().int().positive({
+    message: "Spots must be a positive number.",
+  }),
 });
 
 type OpportunityFormValues = z.infer<typeof opportunityFormSchema>;
@@ -72,7 +71,7 @@ const OpportunityForm = ({ onSuccess }: OpportunityFormProps) => {
       date: new Date(),
       startTime: "09:00",
       endTime: "17:00",
-      spotsAvailable: "10",
+      spotsAvailable: 10,
     },
   });
 
@@ -80,10 +79,8 @@ const OpportunityForm = ({ onSuccess }: OpportunityFormProps) => {
     try {
       setIsSubmitting(true);
 
-      // Format the date to ISO string
       const isoDate = data.date.toISOString();
       
-      // Create a properly formatted object that matches the expected type
       const opportunityData = {
         title: data.title,
         description: data.description,
