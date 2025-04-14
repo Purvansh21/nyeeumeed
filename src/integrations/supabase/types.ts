@@ -9,6 +9,72 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          last_login_at: string | null
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          is_active?: boolean
+          last_login_at?: string | null
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          last_login_at?: string | null
+        }
+        Relationships: []
+      }
+      beneficiary_users: {
+        Row: {
+          assistance_history: Json | null
+          contact_info: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          last_login_at: string | null
+          needs: string | null
+        }
+        Insert: {
+          assistance_history?: Json | null
+          contact_info?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          is_active?: boolean
+          last_login_at?: string | null
+          needs?: string | null
+        }
+        Update: {
+          assistance_history?: Json | null
+          contact_info?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          last_login_at?: string | null
+          needs?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           additional_info: Json | null
@@ -39,6 +105,78 @@ export type Database = {
           is_active?: boolean
           last_login_at?: string | null
           role?: string
+        }
+        Relationships: []
+      }
+      staff_users: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          department: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          last_login_at: string | null
+          position: string | null
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          department?: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active?: boolean
+          last_login_at?: string | null
+          position?: string | null
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          department?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          last_login_at?: string | null
+          position?: string | null
+        }
+        Relationships: []
+      }
+      volunteer_users: {
+        Row: {
+          availability: string | null
+          contact_info: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          last_login_at: string | null
+          skills: string[] | null
+        }
+        Insert: {
+          availability?: string | null
+          contact_info?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          is_active?: boolean
+          last_login_at?: string | null
+          skills?: string[] | null
+        }
+        Update: {
+          availability?: string | null
+          contact_info?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          last_login_at?: string | null
+          skills?: string[] | null
         }
         Relationships: []
       }

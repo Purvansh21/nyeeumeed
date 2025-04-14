@@ -4,7 +4,7 @@ import { User, UserRole } from "@/types/auth";
 import { getRoleDisplayName } from "@/utils/permissions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, User as UserIcon, UserX } from "lucide-react";
+import { Edit, User as UserIcon, UserX, Briefcase, Heart, Shield, Users } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -21,11 +21,6 @@ interface UsersTableProps {
 }
 
 const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus }) => {
-  // Get role badge styling
-  const getRoleBadgeClass = (role: UserRole) => {
-    return `role-badge role-badge-${role}`;
-  };
-
   // If no users found for this role/filter
   if (users.length === 0) {
     return (
@@ -34,6 +29,22 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus }) => {
       </div>
     );
   }
+
+  // Get role icon based on user role
+  const getRoleIcon = (role: UserRole) => {
+    switch (role) {
+      case "admin":
+        return <Shield className="h-4 w-4" />;
+      case "staff":
+        return <Briefcase className="h-4 w-4" />;
+      case "volunteer":
+        return <Heart className="h-4 w-4" />;
+      case "beneficiary":
+        return <Users className="h-4 w-4" />;
+      default:
+        return <UserIcon className="h-4 w-4" />;
+    }
+  };
 
   return (
     <div className="rounded-md border">
@@ -52,8 +63,8 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus }) => {
             <TableRow key={user.id}>
               <TableCell>
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <UserIcon className="h-4 w-4 text-primary" />
+                  <div className={`rounded-full p-2 ${getRoleBgColor(user.role)}`}>
+                    {getRoleIcon(user.role)}
                   </div>
                   <div>
                     <div className="font-medium">{user.fullName}</div>
@@ -96,6 +107,22 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus }) => {
       </Table>
     </div>
   );
+};
+
+// Get role icon background color
+const getRoleBgColor = (role: UserRole) => {
+  switch (role) {
+    case "admin":
+      return "bg-purple-100";
+    case "staff":
+      return "bg-blue-100";
+    case "volunteer":
+      return "bg-green-100";
+    case "beneficiary":
+      return "bg-amber-100";
+    default:
+      return "bg-gray-100";
+  }
 };
 
 // Create a reusable component for role badges
