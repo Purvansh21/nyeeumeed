@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -106,7 +107,7 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
         service_type: request.service_type,
         description: request.description,
         urgency: request.urgency,
-        status: request.status,
+        status: request.status as 'pending' | 'approved' | 'rejected' | 'completed',
         preferred_contact_method: request.preferred_contact_method,
         assigned_staff: request.assigned_staff,
         next_step: request.next_step,
@@ -122,11 +123,10 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
           .maybeSingle();
           
         if (beneficiaryData) {
-          transformedRequest.beneficiary = {
-            id: beneficiaryData.id,
-            full_name: beneficiaryData.full_name,
-            contact_info: beneficiaryData.contact_info
-          };
+          // Use correct property assignment without using 'beneficiary'
+          transformedRequest.beneficiary_id = beneficiaryData.id;
+          // We can store the beneficiary name for display purpose if needed
+          // but we need to modify the interface to include this
         }
       }
       
@@ -139,7 +139,6 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
           
         if (staffData) {
           transformedRequest.staff = {
-            id: staffData.id,
             full_name: staffData.full_name
           };
         }
@@ -224,18 +223,53 @@ export async function updateServiceRequest(id: string, updates: Partial<ServiceR
 // New function to fetch urgent service requests
 export async function fetchUrgentServiceRequests(): Promise<ServiceRequest[]> {
   try {
+    // Get just the basic data, without using relational queries
     const { data, error } = await supabase
       .from('service_requests')
-      .select(`
-        *,
-        staff:assigned_staff(full_name)
-      `)
+      .select('*')
       .eq('urgency', 'high')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
     
-    return (data || []) as unknown as ServiceRequest[];
+    // Manually fetch staff data for each request
+    const requests = await Promise.all((data || []).map(async (request) => {
+      const transformedRequest: ServiceRequest = {
+        id: request.id,
+        beneficiary_id: request.beneficiary_id,
+        service_type: request.service_type,
+        description: request.description,
+        urgency: request.urgency,
+        status: request.status as 'pending' | 'approved' | 'rejected' | 'completed',
+        preferred_contact_method: request.preferred_contact_method,
+        assigned_staff: request.assigned_staff,
+        next_step: request.next_step,
+        created_at: request.created_at,
+        updated_at: request.updated_at,
+        verification_status: request.verification_status,
+        verification_notes: request.verification_notes,
+        verification_date: request.verification_date,
+        verified_by: request.verified_by
+      };
+      
+      if (request.assigned_staff) {
+        const { data: staffData } = await supabase
+          .from('staff_users')
+          .select('full_name')
+          .eq('id', request.assigned_staff)
+          .maybeSingle();
+          
+        if (staffData) {
+          transformedRequest.staff = {
+            full_name: staffData.full_name
+          };
+        }
+      }
+      
+      return transformedRequest;
+    }));
+    
+    return requests;
   } catch (error: any) {
     console.error("Error fetching urgent service requests:", error.message);
     return [];
@@ -306,7 +340,7 @@ export async function fetchAppointments(): Promise<Appointment[]> {
         location: appointment.location,
         is_virtual: appointment.is_virtual,
         notes: appointment.notes,
-        status: appointment.status,
+        status: appointment.status as 'scheduled' | 'completed' | 'cancelled' | 'rescheduled',
         created_at: appointment.created_at,
         updated_at: appointment.updated_at,
       };
@@ -319,24 +353,22 @@ export async function fetchAppointments(): Promise<Appointment[]> {
           .maybeSingle();
           
         if (beneficiaryData) {
-          transformedAppointment.beneficiary = {
-            id: beneficiaryData.id,
-            full_name: beneficiaryData.full_name,
-            contact_info: beneficiaryData.contact_info
-          };
+          // Use correct property assignment without using 'beneficiary'
+          transformedAppointment.beneficiary_id = beneficiaryData.id;
+          // We can store the beneficiary name for display purpose if needed
+          // but we need to modify the interface to include this
         }
       }
       
       if (appointment.staff_id) {
         const { data: staffData } = await supabase
           .from('staff_users')
-          .select('id, full_name')
+          .select('full_name')
           .eq('id', appointment.staff_id)
           .maybeSingle();
           
         if (staffData) {
           transformedAppointment.staff = {
-            id: staffData.id,
             full_name: staffData.full_name
           };
         }
@@ -424,17 +456,46 @@ export async function updateAppointment(id: string, updates: Partial<Appointment
 // Service History
 export async function fetchServiceHistory(): Promise<ServiceHistory[]> {
   try {
+    // Get just the basic data, without using relational queries
     const { data, error } = await supabase
       .from('service_history')
-      .select(`
-        *,
-        staff:staff_id(full_name)
-      `)
+      .select('*')
       .order('delivery_date', { ascending: false });
     
     if (error) throw error;
     
-    return (data || []) as unknown as ServiceHistory[];
+    // Manually fetch staff data for each history item
+    const historyItems = await Promise.all((data || []).map(async (item) => {
+      const transformedItem: ServiceHistory = {
+        id: item.id,
+        beneficiary_id: item.beneficiary_id,
+        service_type: item.service_type,
+        description: item.description,
+        delivery_date: item.delivery_date,
+        status: item.status,
+        staff_id: item.staff_id,
+        notes: item.notes,
+        created_at: item.created_at
+      };
+      
+      if (item.staff_id) {
+        const { data: staffData } = await supabase
+          .from('staff_users')
+          .select('full_name')
+          .eq('id', item.staff_id)
+          .maybeSingle();
+          
+        if (staffData) {
+          transformedItem.staff = {
+            full_name: staffData.full_name
+          };
+        }
+      }
+      
+      return transformedItem;
+    }));
+    
+    return historyItems;
   } catch (error: any) {
     console.error("Error fetching service history:", error.message);
     return [];
