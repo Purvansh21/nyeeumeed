@@ -15,6 +15,9 @@ export interface ServiceRequest {
   next_step: string | null;
   assigned_staff: string | null;
   preferred_contact_method: string | null;
+  staff?: {
+    full_name: string;
+  } | null;
 }
 
 export interface NewServiceRequest {
@@ -41,7 +44,7 @@ export interface Appointment {
   updated_at: string;
   staff?: {
     full_name: string;
-  };
+  } | null;
 }
 
 export interface NewAppointment {
@@ -67,7 +70,7 @@ export interface ServiceHistory {
   created_at: string;
   staff?: {
     full_name: string;
-  };
+  } | null;
 }
 
 // Resource Types
@@ -95,7 +98,9 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // Cast the data to ensure TypeScript compatibility
+    return (data || []) as ServiceRequest[];
   } catch (error: any) {
     console.error("Error fetching service requests:", error.message);
     return [];
@@ -128,7 +133,8 @@ export async function createServiceRequest(request: NewServiceRequest): Promise<
       description: "Your service request has been submitted"
     });
     
-    return data;
+    // Cast the data to ensure TypeScript compatibility
+    return data as ServiceRequest;
   } catch (error: any) {
     console.error("Error creating service request:", error.message);
     toast({
@@ -156,7 +162,8 @@ export async function updateServiceRequest(id: string, updates: Partial<ServiceR
       description: "Service request updated successfully"
     });
     
-    return data;
+    // Cast the data to ensure TypeScript compatibility
+    return data as ServiceRequest;
   } catch (error: any) {
     console.error("Error updating service request:", error.message);
     toast({
@@ -180,7 +187,9 @@ export async function fetchAppointments(): Promise<Appointment[]> {
       .order('date', { ascending: true });
     
     if (error) throw error;
-    return data || [];
+    
+    // Cast the data to ensure TypeScript compatibility
+    return (data || []) as Appointment[];
   } catch (error: any) {
     console.error("Error fetching appointments:", error.message);
     return [];
@@ -216,7 +225,8 @@ export async function createAppointment(appointment: NewAppointment): Promise<Ap
       description: "Your appointment has been scheduled"
     });
     
-    return data;
+    // Cast the data to ensure TypeScript compatibility
+    return data as Appointment;
   } catch (error: any) {
     console.error("Error creating appointment:", error.message);
     toast({
@@ -244,7 +254,8 @@ export async function updateAppointment(id: string, updates: Partial<Appointment
       description: "Appointment updated successfully"
     });
     
-    return data;
+    // Cast the data to ensure TypeScript compatibility
+    return data as Appointment;
   } catch (error: any) {
     console.error("Error updating appointment:", error.message);
     toast({
@@ -268,7 +279,9 @@ export async function fetchServiceHistory(): Promise<ServiceHistory[]> {
       .order('delivery_date', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // Cast the data to ensure TypeScript compatibility
+    return (data || []) as ServiceHistory[];
   } catch (error: any) {
     console.error("Error fetching service history:", error.message);
     return [];
