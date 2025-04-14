@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { format, parseISO } from "date-fns";
+import { getVolunteerOpportunities, getVolunteerRegistrations, registerForOpportunity } from "@/services/volunteerService";
+import { VolunteerOpportunity, VolunteerRegistration } from "@/types/volunteer";
 
 const VolunteerOpportunities = () => {
   const { user } = useAuth();
@@ -17,76 +20,129 @@ const VolunteerOpportunities = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [opportunities, setOpportunities] = useState<VolunteerOpportunity[]>([]);
+  const [registrations, setRegistrations] = useState<VolunteerRegistration[]>([]);
 
-  // Mock data for opportunities
-  const opportunities = [
-    { 
-      id: 1, 
-      title: "Community Food Distribution", 
-      date: "Apr 22, 2025", 
-      time: "10:00 AM - 2:00 PM",
-      location: "Community Center", 
-      spotsLeft: 3,
-      isSignedUp: true,
-      category: "Food",
-      description: "Help distribute food packages to families in need."
-    },
-    { 
-      id: 2, 
-      title: "Children's Education Workshop", 
-      date: "Apr 28, 2025", 
-      time: "3:00 PM - 6:00 PM",
-      location: "Public Library", 
-      spotsLeft: 5,
-      isSignedUp: false,
-      category: "Education",
-      description: "Assist in teaching basic subjects to disadvantaged children."
-    },
-    { 
-      id: 3, 
-      title: "Elderly Care Visit", 
-      date: "May 5, 2025", 
-      time: "9:00 AM - 12:00 PM",
-      location: "Sunshine Senior Home", 
-      spotsLeft: 2,
-      isSignedUp: false,
-      category: "Healthcare",
-      description: "Provide companionship and assistance to elderly residents."
-    },
-    { 
-      id: 4, 
-      title: "Environmental Cleanup", 
-      date: "May 12, 2025", 
-      time: "8:00 AM - 11:00 AM",
-      location: "Riverside Park", 
-      spotsLeft: 8,
-      isSignedUp: false,
-      category: "Environment",
-      description: "Help clean up trash and plant trees in the local park."
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+      
+      try {
+        const [opportunitiesData, registrationsData] = await Promise.all([
+          getVolunteerOpportunities(),
+          getVolunteerRegistrations(user.id)
+        ]);
+        
+        setOpportunities(opportunitiesData);
+        setRegistrations(registrationsData);
+      } catch (error) {
+        console.error("Error fetching volunteer opportunities:", error);
+        toast({
+          variant: "destructive",
+          title: "Failed to load opportunities",
+          description: "There was an error loading volunteer opportunities. Please try again."
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [user, toast]);
 
+  const isRegistered = (opportunityId: string) => {
+    return registrations.some(r => 
+      r.opportunity_id === opportunityId && r.status === 'registered'
+    );
+  };
+
+  const getRegistrationId = (opportunityId: string) => {
+    const registration = registrations.find(r => 
+      r.opportunity_id === opportunityId && r.status === 'registered'
+    );
+    return registration?.id;
+  };
+
+  const handleSignUp = async (opportunityId: string) => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Authentication required",
+        description: "Please login to sign up for volunteer opportunities."
+      });
+      return;
+    }
+    
+    const success = await registerForOpportunity(opportunityId, user.id);
+    
+    if (success) {
+      // Update local state
+      setRegistrations(prev => [
+        ...prev,
+        {
+          id: Math.random().toString(), // Temporary ID until refresh
+          volunteer_id: user.id,
+          opportunity_id: opportunityId,
+          status: 'registered',
+          registered_at: new Date().toISOString()
+        }
+      ]);
+      
+      // Update opportunity spots
+      setOpportunities(prev => 
+        prev.map(o => {
+          if (o.id === opportunityId) {
+            const newSpotsFilled = o.spots_filled + 1;
+            return {
+              ...o,
+              spots_filled: newSpotsFilled,
+              status: newSpotsFilled >= o.spots_available ? 'full' : 'active'
+            };
+          }
+          return o;
+        })
+      );
+    }
+  };
+
+  const formatDateFromISO = (isoString: string) => {
+    try {
+      return format(parseISO(isoString), "MMM dd, yyyy");
+    } catch (e) {
+      return isoString;
+    }
+  };
+
+  const formatTimeFromISO = (isoString: string) => {
+    try {
+      return format(parseISO(isoString), "h:mm a");
+    } catch (e) {
+      return isoString;
+    }
+  };
+
+  const formatTimeRange = (start: string, end: string) => {
+    try {
+      return `${formatTimeFromISO(start)} - ${formatTimeFromISO(end)}`;
+    } catch (e) {
+      return `${start} - ${end}`;
+    }
+  };
+
+  // Filter opportunities for active ones that are in the future
   const filteredOpportunities = opportunities.filter(opportunity => {
+    // Only show active opportunities
+    if (opportunity.status !== 'active' && opportunity.status !== 'full') return false;
+    
+    // Only show future opportunities
+    const opportunityDate = new Date(opportunity.date);
+    if (opportunityDate < new Date()) return false;
+    
     const matchesSearch = opportunity.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           opportunity.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === "all" || opportunity.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
-
-  useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleSignUp = (opportunityId: number) => {
-    toast({
-      title: "Registration successful",
-      description: "You've been signed up for this volunteer opportunity.",
-    });
-  };
 
   if (isLoading) {
     return (
@@ -104,6 +160,9 @@ const VolunteerOpportunities = () => {
       </DashboardLayout>
     );
   }
+
+  // Get unique categories from opportunities
+  const categories = [...new Set(opportunities.map(o => o.category))];
 
   return (
     <DashboardLayout>
@@ -144,10 +203,9 @@ const VolunteerOpportunities = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="Food">Food</SelectItem>
-                    <SelectItem value="Education">Education</SelectItem>
-                    <SelectItem value="Healthcare">Healthcare</SelectItem>
-                    <SelectItem value="Environment">Environment</SelectItem>
+                    {categories.map(category => (
+                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -156,50 +214,52 @@ const VolunteerOpportunities = () => {
           <CardContent>
             {filteredOpportunities.length > 0 ? (
               <div className="space-y-4">
-                {filteredOpportunities.map((event) => (
-                  <div key={event.id} className="rounded-md border hover:border-primary/50 transition-colors">
+                {filteredOpportunities.map((opportunity) => (
+                  <div key={opportunity.id} className="rounded-md border hover:border-primary/50 transition-colors">
                     <div className="p-4">
                       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                         <div>
                           <div className="flex items-center gap-2">
-                            <h3 className="font-semibold">{event.title}</h3>
-                            {event.isSignedUp && (
+                            <h3 className="font-semibold">{opportunity.title}</h3>
+                            {isRegistered(opportunity.id) && (
                               <Badge variant="outline" className="bg-green-500/10 text-green-700 border-green-500/30">
                                 Registered
                               </Badge>
                             )}
                           </div>
                           <p className="text-sm mt-1">
-                            {event.description}
+                            {opportunity.description}
                           </p>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-3">
                             <div className="flex items-center gap-1">
                               <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="text-sm">{event.date}</span>
+                              <span className="text-sm">{formatDateFromISO(opportunity.date)}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="text-sm">{event.time}</span>
+                              <span className="text-sm">
+                                {formatTimeRange(opportunity.start_time, opportunity.end_time)}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1">
                               <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="text-sm">{event.location}</span>
+                              <span className="text-sm">{opportunity.location}</span>
                             </div>
                           </div>
-                          <Badge className="mt-2" variant="secondary">{event.category}</Badge>
+                          <Badge className="mt-2" variant="secondary">{opportunity.category}</Badge>
                         </div>
                         <div className="flex md:flex-col items-center gap-3">
                           <Badge variant="outline" className="rounded-full">
                             <Users className="h-3 w-3 mr-1" />
-                            {event.spotsLeft} spots left
+                            {opportunity.spots_available - opportunity.spots_filled} spots left
                           </Badge>
                           <Button 
-                            variant={event.isSignedUp ? "outline" : "default"}
-                            className={event.isSignedUp ? "bg-green-500/10 text-green-700 hover:text-green-700 hover:bg-green-500/20 border-green-500/30" : ""}
-                            onClick={() => handleSignUp(event.id)}
-                            disabled={event.isSignedUp}
+                            variant={isRegistered(opportunity.id) ? "outline" : "default"}
+                            className={isRegistered(opportunity.id) ? "bg-green-500/10 text-green-700 hover:text-green-700 hover:bg-green-500/20 border-green-500/30" : ""}
+                            onClick={() => handleSignUp(opportunity.id)}
+                            disabled={isRegistered(opportunity.id) || opportunity.spots_filled >= opportunity.spots_available}
                           >
-                            {event.isSignedUp ? "Registered" : "Sign Up"}
+                            {isRegistered(opportunity.id) ? "Registered" : "Sign Up"}
                           </Button>
                         </div>
                       </div>
