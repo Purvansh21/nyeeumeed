@@ -13,13 +13,17 @@ import { VolunteerRegistration } from "@/types/volunteer";
 import { format } from "date-fns";
 import { logVolunteerHours } from "@/services/volunteerService";
 import { useToast } from "@/hooks/use-toast";
+import { numericSchema } from "@/utils/formValidation";
 
 const FormSchema = z.object({
   eventId: z.string().min(1, { message: "Please select an event" }),
   date: z.string().min(1, { message: "Please select a date" }),
-  hours: z.string().min(1, { message: "Please enter hours worked" }),
+  hours: numericSchema.refine(val => {
+    const num = parseFloat(val);
+    return num > 0 && num <= 24;
+  }, { message: "Hours must be between 0.1 and 24" }),
   activityType: z.string().min(1, { message: "Please select an activity type" }),
-  notes: z.string().optional(),
+  notes: z.string().max(500, { message: "Notes cannot exceed 500 characters" }).optional(),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -113,7 +117,7 @@ const LogHoursForm = ({ events, onSuccess }: LogHoursFormProps) => {
               value={form.watch("eventId")}
               onValueChange={(value) => form.setValue("eventId", value)}
             >
-              <SelectTrigger id="eventId">
+              <SelectTrigger id="eventId" className={form.formState.errors.eventId ? "border-destructive" : ""}>
                 <SelectValue placeholder="Select an event" />
               </SelectTrigger>
               <SelectContent>
@@ -132,7 +136,7 @@ const LogHoursForm = ({ events, onSuccess }: LogHoursFormProps) => {
               </SelectContent>
             </Select>
             {form.formState.errors.eventId && (
-              <p className="text-sm text-red-500">{form.formState.errors.eventId.message}</p>
+              <p className="text-sm text-destructive">{form.formState.errors.eventId.message}</p>
             )}
           </div>
 
@@ -143,9 +147,10 @@ const LogHoursForm = ({ events, onSuccess }: LogHoursFormProps) => {
                 id="date" 
                 type="date"
                 {...form.register("date")}
+                className={form.formState.errors.date ? "border-destructive" : ""}
               />
               {form.formState.errors.date && (
-                <p className="text-sm text-red-500">{form.formState.errors.date.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.date.message}</p>
               )}
             </div>
             
@@ -158,9 +163,10 @@ const LogHoursForm = ({ events, onSuccess }: LogHoursFormProps) => {
                 min="0.5"
                 step="0.5"
                 {...form.register("hours")}
+                className={form.formState.errors.hours ? "border-destructive" : ""}
               />
               {form.formState.errors.hours && (
-                <p className="text-sm text-red-500">{form.formState.errors.hours.message}</p>
+                <p className="text-sm text-destructive">{form.formState.errors.hours.message}</p>
               )}
             </div>
           </div>
@@ -171,7 +177,7 @@ const LogHoursForm = ({ events, onSuccess }: LogHoursFormProps) => {
               value={form.watch("activityType")}
               onValueChange={(value) => form.setValue("activityType", value)}
             >
-              <SelectTrigger id="activityType">
+              <SelectTrigger id="activityType" className={form.formState.errors.activityType ? "border-destructive" : ""}>
                 <SelectValue placeholder="Select activity type" />
               </SelectTrigger>
               <SelectContent>
@@ -182,7 +188,7 @@ const LogHoursForm = ({ events, onSuccess }: LogHoursFormProps) => {
               </SelectContent>
             </Select>
             {form.formState.errors.activityType && (
-              <p className="text-sm text-red-500">{form.formState.errors.activityType.message}</p>
+              <p className="text-sm text-destructive">{form.formState.errors.activityType.message}</p>
             )}
           </div>
           
@@ -192,7 +198,11 @@ const LogHoursForm = ({ events, onSuccess }: LogHoursFormProps) => {
               id="notes"
               placeholder="Any additional details about your volunteer work"
               {...form.register("notes")}
+              className={form.formState.errors.notes ? "border-destructive" : ""}
             />
+            {form.formState.errors.notes && (
+              <p className="text-sm text-destructive">{form.formState.errors.notes.message}</p>
+            )}
           </div>
           
           <Button 

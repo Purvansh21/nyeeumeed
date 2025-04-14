@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,12 +11,20 @@ import { Shield, AlertCircle, Info, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/use-toast";
+import { z } from "zod";
+import { emailSchema, passwordSchema } from "@/utils/formValidation";
+
+const loginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, { message: "Password is required" }),
+});
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isCreatingDemoUsers, setIsCreatingDemoUsers] = useState(false);
   const [customRole, setCustomRole] = useState<UserRole>("admin");
   const {
@@ -24,9 +33,33 @@ const Login = () => {
   } = useAuth();
   const navigate = useNavigate();
   
+  const validateForm = (): boolean => {
+    try {
+      loginSchema.parse({ email, password });
+      setValidationErrors({});
+      return true;
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        err.errors.forEach((error) => {
+          if (error.path) {
+            errors[error.path[0]] = error.message;
+          }
+        });
+        setValidationErrors(errors);
+      }
+      return false;
+    }
+  };
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    
+    if (!validateForm()) {
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       await login(email, password);
@@ -129,13 +162,35 @@ const Login = () => {
                 </div>}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="your.email@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="w-full" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="your.email@example.com" 
+                  value={email} 
+                  onChange={e => setEmail(e.target.value)} 
+                  required 
+                  className={`w-full ${validationErrors.email ? 'border-destructive' : ''}`} 
+                />
+                {validationErrors.email && (
+                  <p className="text-sm font-medium text-destructive mt-1">{validationErrors.email}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
                 </div>
-                <Input id="password" type="password" placeholder="Your password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full" />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="Your password" 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                  required 
+                  className={`w-full ${validationErrors.password ? 'border-destructive' : ''}`} 
+                />
+                {validationErrors.password && (
+                  <p className="text-sm font-medium text-destructive mt-1">{validationErrors.password}</p>
+                )}
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">

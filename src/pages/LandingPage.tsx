@@ -128,7 +128,7 @@ const LandingPage = () => {
             <span className="text-lg font-semibold text-primary">NayeeUmeed</span>
           </div>
           <div className="text-sm text-gray-500">
-            © {new Date().getFullYear()} NayeeUmeed. All rights reserved.
+            © {new Date().getFullYear()} NayeeUmeed. All rights reserved. | Powered by <span className="font-medium">MarketinLab</span>
           </div>
         </div>
       </footer>
