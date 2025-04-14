@@ -10,7 +10,6 @@ import { Shield, AlertCircle, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/use-toast";
-
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,25 +17,25 @@ const Login = () => {
   const [error, setError] = useState("");
   const [isCreatingDemoUsers, setIsCreatingDemoUsers] = useState(false);
   const [customRole, setCustomRole] = useState<UserRole>("admin");
-  const { login, user } = useAuth();
+  const {
+    login,
+    user
+  } = useAuth();
   const navigate = useNavigate();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsSubmitting(true);
-
     try {
       await login(email, password);
-      
-      const { data } = await supabase.auth.getSession();
+      const {
+        data
+      } = await supabase.auth.getSession();
       if (data.session) {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.session.user.id)
-          .single();
-          
+        const {
+          data: profile,
+          error
+        } = await supabase.from('profiles').select('role').eq('id', data.session.user.id).single();
         if (!error && profile) {
           navigate(getDashboardRoute(profile.role as UserRole));
         } else {
@@ -54,18 +53,20 @@ const Login = () => {
       setIsSubmitting(false);
     }
   };
-
   const createDemoUsers = async () => {
     setIsCreatingDemoUsers(true);
     try {
-      const demoUsers = [
-        { email: `${customRole}@ngo.org`, password: `${customRole}123`, role: customRole, fullName: `${customRole.charAt(0).toUpperCase() + customRole.slice(1)} User` },
-      ];
-
+      const demoUsers = [{
+        email: `${customRole}@ngo.org`,
+        password: `${customRole}123`,
+        role: customRole,
+        fullName: `${customRole.charAt(0).toUpperCase() + customRole.slice(1)} User`
+      }];
       let createdCount = 0;
-      
       for (const user of demoUsers) {
-        const { error } = await supabase.auth.signUp({
+        const {
+          error
+        } = await supabase.auth.signUp({
           email: user.email,
           password: user.password,
           options: {
@@ -75,32 +76,28 @@ const Login = () => {
             }
           }
         });
-
         if (!error) {
           createdCount++;
           toast({
             title: "Demo user created",
-            description: `${user.fullName} has been created successfully.`,
+            description: `${user.fullName} has been created successfully.`
           });
         } else if (!error.message.includes("already registered")) {
           throw error;
         }
       }
-      
     } catch (err: any) {
       console.error("Error creating demo users:", err);
       toast({
         variant: "destructive",
         title: "Failed to create demo users",
-        description: err.message || "An unexpected error occurred",
+        description: err.message || "An unexpected error occurred"
       });
     } finally {
       setIsCreatingDemoUsers(false);
     }
   };
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-muted to-background p-4 animate-fadeIn">
+  return <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-muted to-background p-4 animate-fadeIn">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
@@ -119,45 +116,23 @@ const Login = () => {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
-              {error && (
-                <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded text-sm flex items-start gap-2">
+              {error && <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded text-sm flex items-start gap-2">
                   <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <div>{error}</div>
-                </div>
-              )}
+                </div>}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your.email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="w-full"
-                />
+                <Input id="email" type="email" placeholder="your.email@example.com" value={email} onChange={e => setEmail(e.target.value)} required className="w-full" />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full"
-                />
+                <Input id="password" type="password" placeholder="Your password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full" />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isSubmitting}
-              >
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Authenticating..." : "Log in"}
               </Button>
             </CardFooter>
@@ -165,39 +140,9 @@ const Login = () => {
         </Card>
         
         <div className="mt-8 text-sm text-muted-foreground">
-          <div className="bg-card p-4 rounded border">
-            <div className="flex items-center gap-2 mb-3 text-foreground">
-              <Info className="h-4 w-4" />
-              <div className="font-medium">Create Custom Demo User</div>
-            </div>
-            
-            <div className="space-y-2 mb-4">
-              <Label>Select Role</Label>
-              <select 
-                value={customRole} 
-                onChange={(e) => setCustomRole(e.target.value as UserRole)} 
-                className="w-full p-2 border rounded"
-              >
-                <option value="admin">Admin</option>
-                <option value="staff">Staff</option>
-                <option value="volunteer">Volunteer</option>
-                <option value="beneficiary">Beneficiary</option>
-              </select>
-            </div>
-
-            <Button
-              onClick={createDemoUsers}
-              variant="outline"
-              className="w-full mb-4"
-              disabled={isCreatingDemoUsers}
-            >
-              {isCreatingDemoUsers ? `Creating ${customRole} User...` : `Create ${customRole} User`}
-            </Button>
-          </div>
+          
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Login;
