@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -55,6 +56,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         { icon: PieChart, label: "Reports", path: "/admin/reports" }, 
         { icon: AlertTriangle, label: "Audit Logs", path: "/admin/audit-logs" },
         { icon: Bell, label: "Announcements", path: "/admin/announcements" },
+        { icon: Briefcase, label: "Volunteer Opportunities", path: "/admin/volunteer-opportunities" },
         { icon: Settings, label: "System Settings", path: "/admin/settings" },
       ],
       staff: [
