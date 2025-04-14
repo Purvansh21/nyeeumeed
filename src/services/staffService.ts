@@ -675,6 +675,51 @@ export async function fetchAppointments(): Promise<Appointment[]> {
   }
 }
 
+export async function updateAppointment(id: string, appointment: Partial<Appointment>): Promise<Appointment | null> {
+  try {
+    const { data, error } = await supabase
+      .from('appointments')
+      .update(appointment)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    toast({
+      title: "Success",
+      description: "Appointment updated successfully"
+    });
+    
+    // Create a properly typed appointment object
+    const transformedAppointment: Appointment = {
+      id: data.id,
+      beneficiary_id: data.beneficiary_id,
+      staff_id: data.staff_id,
+      title: data.title,
+      appointment_type: data.appointment_type,
+      date: data.date,
+      time_slot: data.time_slot,
+      location: data.location,
+      is_virtual: data.is_virtual,
+      notes: data.notes,
+      status: validateAppointmentStatus(data.status),
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    };
+    
+    return transformedAppointment;
+  } catch (error: any) {
+    console.error("Error updating appointment:", error.message);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error.message || "Failed to update appointment"
+    });
+    return null;
+  }
+}
+
 // Add validation functions for service request status and urgency
 function validateServiceRequestStatus(status: string): ServiceRequest['status'] {
   const validStatuses: ServiceRequest['status'][] = ['pending', 'in-progress', 'completed', 'cancelled'];
@@ -744,5 +789,48 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
   } catch (error: any) {
     console.error("Error fetching service requests:", error.message);
     return [];
+  }
+}
+
+export async function updateServiceRequest(id: string, request: Partial<ServiceRequest>): Promise<ServiceRequest | null> {
+  try {
+    const { data, error } = await supabase
+      .from('service_requests')
+      .update(request)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    toast({
+      title: "Success",
+      description: "Service request updated successfully"
+    });
+    
+    // Create a properly typed service request object
+    const transformedRequest: ServiceRequest = {
+      id: data.id,
+      beneficiary_id: data.beneficiary_id,
+      service_type: data.service_type,
+      description: data.description,
+      urgency: validateServiceRequestUrgency(data.urgency),
+      status: validateServiceRequestStatus(data.status),
+      preferred_contact_method: data.preferred_contact_method,
+      assigned_staff: data.assigned_staff,
+      next_step: data.next_step,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    };
+    
+    return transformedRequest;
+  } catch (error: any) {
+    console.error("Error updating service request:", error.message);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error.message || "Failed to update service request"
+    });
+    return null;
   }
 }
