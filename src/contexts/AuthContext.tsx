@@ -30,6 +30,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
             if (error) throw error;
 
+            // Parse additionalInfo as Record<string, any> or default to empty object
+            const additionalInfo = typeof profile?.additional_info === 'object' 
+              ? profile?.additional_info as Record<string, any>
+              : {};
+
             // Set user state with profile data
             setUser({
               id: session.user.id,
@@ -40,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               contactInfo: profile?.contact_info || '',
               createdAt: profile?.created_at || new Date().toISOString(),
               lastLoginAt: profile?.last_login_at || undefined,
-              additionalInfo: profile?.additional_info || {}
+              additionalInfo
             });
           } catch (error) {
             console.error("Error fetching user profile:", error);
@@ -49,6 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // User is signed out
           setUser(null);
         }
+
+        setIsLoading(false);
       }
     );
 
@@ -133,17 +140,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         
       if (error) throw error;
       
-      return data.map(profile => ({
-        id: profile.id,
-        email: '', // Email is not stored in profiles table for security
-        fullName: profile.full_name,
-        role: profile.role as UserRole,
-        isActive: profile.is_active,
-        contactInfo: profile.contact_info || '',
-        createdAt: profile.created_at,
-        lastLoginAt: profile.last_login_at || undefined,
-        additionalInfo: profile.additional_info || {}
-      }));
+      return data.map(profile => {
+        // Parse additionalInfo as Record<string, any> or default to empty object
+        const additionalInfo = typeof profile.additional_info === 'object' 
+          ? profile.additional_info as Record<string, any>
+          : {};
+          
+        return {
+          id: profile.id,
+          email: '', // Email is not stored in profiles table for security
+          fullName: profile.full_name,
+          role: profile.role as UserRole,
+          isActive: profile.is_active,
+          contactInfo: profile.contact_info || '',
+          createdAt: profile.created_at,
+          lastLoginAt: profile.last_login_at || undefined,
+          additionalInfo
+        };
+      });
     } catch (error) {
       console.error("Error fetching users:", error);
       return [];
@@ -161,6 +175,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         
       if (error) throw error;
       
+      // Parse additionalInfo as Record<string, any> or default to empty object
+      const additionalInfo = typeof profile.additional_info === 'object' 
+        ? profile.additional_info as Record<string, any>
+        : {};
+        
       return {
         id: profile.id,
         email: '', // Email is not stored in profiles table for security
@@ -170,7 +189,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         contactInfo: profile.contact_info || '',
         createdAt: profile.created_at,
         lastLoginAt: profile.last_login_at || undefined,
-        additionalInfo: profile.additional_info || {}
+        additionalInfo
       };
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -232,6 +251,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("You don't have permission to update this user");
       }
       
+      // Ensure additionalInfo is a valid object or null
+      const additional_info = data.additionalInfo && typeof data.additionalInfo === 'object' 
+        ? data.additionalInfo 
+        : null;
+      
       // Update profile in database
       const { error } = await supabase
         .from('profiles')
@@ -240,7 +264,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           role: data.role,
           is_active: data.isActive,
           contact_info: data.contactInfo,
-          additional_info: data.additionalInfo
+          additional_info
         })
         .eq('id', userId);
         
@@ -256,13 +280,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           
         if (fetchError) throw fetchError;
         
+        // Parse additionalInfo as Record<string, any> or default to empty object
+        const additionalInfo = typeof updatedProfile.additional_info === 'object' 
+          ? updatedProfile.additional_info as Record<string, any>
+          : {};
+          
         setUser({
           ...user,
           fullName: updatedProfile.full_name,
           role: updatedProfile.role as UserRole,
           isActive: updatedProfile.is_active,
           contactInfo: updatedProfile.contact_info || '',
-          additionalInfo: updatedProfile.additional_info || {}
+          additionalInfo
         });
       }
       

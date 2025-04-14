@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { getDashboardRoute } from "@/utils/permissions";
 import { Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { UserRole } from "@/types/auth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -38,7 +39,7 @@ const Login = () => {
           .single();
           
         if (!error && profile) {
-          navigate(getDashboardRoute(profile.role));
+          navigate(getDashboardRoute(profile.role as UserRole));
         } else {
           // Fallback to admin dashboard if profile fetch fails
           navigate('/admin');
