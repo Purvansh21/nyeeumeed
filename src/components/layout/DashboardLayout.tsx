@@ -101,6 +101,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           isMinimized ? "md:w-20" : "md:w-64"
         )}
       >
+        {/* Sidebar Header with Logo and Toggle Button */}
         <div className="flex items-center justify-between p-6">
           <div className={cn("flex items-center gap-2", isMinimized && "justify-center")}>
             <Shield className="h-6 w-6 text-sidebar-accent" />
@@ -110,7 +111,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             variant="ghost" 
             size="icon" 
             onClick={toggleSidebar}
-            className={cn("text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground", isMinimized && "absolute right-0")}
+            className={cn(
+              "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              isMinimized && "absolute right-0 top-6 -mr-3 bg-sidebar border border-sidebar-border rounded-full shadow-md"
+            )}
           >
             {isMinimized ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
           </Button>
