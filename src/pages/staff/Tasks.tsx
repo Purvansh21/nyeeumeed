@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,7 +50,6 @@ import {
   updateStaffTask
 } from "@/services/staffService";
 
-// Form schema for task
 const taskFormSchema = z.object({
   title: z.string().min(2, {
     message: "Title must be at least 2 characters.",
@@ -94,7 +92,6 @@ const TasksManagement = () => {
     },
   });
 
-  // Fetch tasks and staff users
   useEffect(() => {
     const loadData = async () => {
       setIsLoadingTasks(true);
@@ -110,11 +107,9 @@ const TasksManagement = () => {
     loadData();
   }, [getAllUsers]);
 
-  // Reset form when dialog opens or closes
   useEffect(() => {
     if (isDialogOpen) {
       if (currentTask) {
-        // Edit mode: Pre-fill form with task data
         form.reset({
           title: currentTask.title,
           description: currentTask.description,
@@ -124,7 +119,6 @@ const TasksManagement = () => {
           assigned_to: currentTask.assigned_to
         });
       } else {
-        // Create mode: Reset form to defaults
         form.reset({
           title: "",
           description: "",
@@ -137,23 +131,19 @@ const TasksManagement = () => {
     }
   }, [isDialogOpen, currentTask, form]);
 
-  // Handle form submission
   const onSubmit = async (data: z.infer<typeof taskFormSchema>) => {
     setIsSubmitting(true);
     
     try {
-      // Format the due date if it exists
       const formattedDueDate = data.due_date ? data.due_date.toISOString() : null;
       
       if (currentTask) {
-        // Update existing task
         const updated = await updateStaffTask(currentTask.id, {
           ...data,
           due_date: formattedDueDate
         });
         
         if (updated) {
-          // Refresh tasks list
           const updatedTasks = tasks.map(t => 
             t.id === updated.id ? { 
               ...updated,
@@ -169,7 +159,6 @@ const TasksManagement = () => {
           setTasks(updatedTasks);
         }
       } else {
-        // Create new task with all required fields
         const taskData: Omit<StaffTask, 'id' | 'created_at' | 'updated_at'> = {
           title: data.title,
           description: data.description,
@@ -177,12 +166,11 @@ const TasksManagement = () => {
           status: data.status,
           due_date: formattedDueDate,
           assigned_to: data.assigned_to,
-          created_by: user?.id as string // Staff member creating the task
+          created_by: user?.id as string
         };
         
         const created = await createStaffTask(taskData);
         if (created) {
-          // Find staff member if assigned
           const staffMember = data.assigned_to ? staffUsers.find(s => s.id === data.assigned_to) : undefined;
           
           const newTask = {
@@ -209,19 +197,15 @@ const TasksManagement = () => {
     }
   };
 
-  // Filter tasks based on filters and search query
   const filteredTasks = tasks.filter(task => {
-    // Filter by status
     if (filterStatus !== "all" && task.status !== filterStatus) {
       return false;
     }
     
-    // Filter by priority
     if (filterPriority !== "all" && task.priority !== filterPriority) {
       return false;
     }
     
-    // Filter by assignee
     if (filterAssignee !== "all") {
       if (filterAssignee === "unassigned" && task.assigned_to !== null) {
         return false;
@@ -230,7 +214,6 @@ const TasksManagement = () => {
       }
     }
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
@@ -243,7 +226,6 @@ const TasksManagement = () => {
     return true;
   });
 
-  // Helper for showing status badge
   const getStatusBadge = (status: string) => {
     switch(status) {
       case "pending":
@@ -259,7 +241,6 @@ const TasksManagement = () => {
     }
   };
 
-  // Helper for showing priority badge
   const getPriorityBadge = (priority: string) => {
     switch(priority) {
       case "high":
@@ -272,31 +253,26 @@ const TasksManagement = () => {
         return "bg-muted text-muted-foreground";
     }
   };
-  
-  // Helper to format date
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "No due date";
     return format(parseISO(dateString), "MMM d, yyyy");
   };
 
-  // Handle adding new task
   const handleAddTask = () => {
     setCurrentTask(null);
     setIsDialogOpen(true);
   };
 
-  // Handle editing task
   const handleEditTask = (task: StaffTask) => {
     setCurrentTask(task);
     setIsDialogOpen(true);
   };
 
-  // Handle marking task as completed
   const handleCompleteTask = async (task: StaffTask) => {
     try {
       const updated = await updateStaffTask(task.id, { status: "completed" });
       if (updated) {
-        // Refresh tasks list
         const updatedTasks = tasks.map(t => 
           t.id === updated.id ? { ...updated, staff: task.staff } : t
         );
@@ -317,7 +293,6 @@ const TasksManagement = () => {
     }
   };
 
-  // Clear filters
   const clearFilters = () => {
     setFilterStatus("all");
     setFilterPriority("all");
@@ -325,7 +300,6 @@ const TasksManagement = () => {
     setSearchQuery("");
   };
 
-  // Check if task is overdue
   const isOverdue = (task: StaffTask) => {
     if (!task.due_date || task.status === "completed" || task.status === "cancelled") return false;
     const dueDate = parseISO(task.due_date);
@@ -504,7 +478,6 @@ const TasksManagement = () => {
           </CardContent>
         </Card>
         
-        {/* Add/Edit Task Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
