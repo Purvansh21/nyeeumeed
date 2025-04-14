@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -65,6 +66,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         icon: Briefcase,
         label: "Volunteer Opportunities",
         path: "/admin/volunteer-opportunities"
+      }, {
+        icon: FileText,
+        label: "Training Resources",
+        path: "/admin/training-resources"
       }, {
         icon: Settings,
         label: "System Settings",
@@ -182,15 +187,28 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </ul>
             </TooltipProvider>
 
-            {/* Add Resource Upload Button */}
-            <div className="mt-6">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  
-                </TooltipTrigger>
-                {isMinimized && <TooltipContent side="right">Upload Resource</TooltipContent>}
-              </Tooltip>
-            </div>
+            {/* Add Resource Upload Button - Only for Admins */}
+            {user.role === "admin" && (
+              <div className="mt-6">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      onClick={handleOpenResourceSidebar} 
+                      className={cn(
+                        "w-full flex items-center gap-3 rounded-md text-sidebar-foreground transition-colors",
+                        isMinimized ? "justify-center p-2 h-10 w-10" : "px-3 py-2",
+                        "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )}
+                    >
+                      <FilePlus className="h-5 w-5" />
+                      {!isMinimized && <span>Upload Resource</span>}
+                    </Button>
+                  </TooltipTrigger>
+                  {isMinimized && <TooltipContent side="right">Upload Resource</TooltipContent>}
+                </Tooltip>
+              </div>
+            )}
           </div>
         </nav>
         
@@ -274,13 +292,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     </li>)}
                 </ul>
                 
-                {/* Add Resource Upload Button for Mobile */}
-                <div className="mt-4">
-                  <Button variant="outline" onClick={handleOpenResourceSidebar} className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-accent/10">
-                    <FilePlus className="h-5 w-5" />
-                    <span>Upload Resource</span>
-                  </Button>
-                </div>
+                {/* Add Resource Upload Button for Mobile - Only for Admins */}
+                {user.role === "admin" && (
+                  <div className="mt-4">
+                    <Button variant="outline" onClick={handleOpenResourceSidebar} className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-accent/10">
+                      <FilePlus className="h-5 w-5" />
+                      <span>Upload Resource</span>
+                    </Button>
+                  </div>
+                )}
               </div>
             </nav>
             
