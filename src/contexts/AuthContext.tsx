@@ -240,6 +240,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // Helper function to get table name based on role
+  const getTableNameForRole = (role: UserRole): "admin_users" | "staff_users" | "volunteer_users" | "beneficiary_users" => {
+    switch (role) {
+      case 'admin':
+        return "admin_users";
+      case 'staff':
+        return "staff_users";
+      case 'volunteer':
+        return "volunteer_users";
+      case 'beneficiary':
+        return "beneficiary_users";
+      default:
+        return "beneficiary_users";
+    }
+  };
+
   // Modified function to handle role-specific data
   const updateUserProfile = async (userId: string, data: Partial<User>): Promise<void> => {
     setIsLoading(true);
@@ -290,48 +306,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         
         // Delete from previous role table FIRST to avoid constraint violations
         if (currentProfile.role !== data.role) {
-          if (currentProfile.role === 'admin') {
-            await supabase.from('admin_users').delete().eq('id', userId);
-          } else if (currentProfile.role === 'staff') {
-            await supabase.from('staff_users').delete().eq('id', userId);
-          } else if (currentProfile.role === 'volunteer') {
-            await supabase.from('volunteer_users').delete().eq('id', userId);
-          } else if (currentProfile.role === 'beneficiary') {
-            await supabase.from('beneficiary_users').delete().eq('id', userId);
-          }
+          const oldRoleTable = getTableNameForRole(currentProfile.role as UserRole);
+          await supabase.from(oldRoleTable).delete().eq('id', userId);
         }
         
         // Then insert into new role table after deletion, to prevent key constraint violations
         try {
-          let tableName = '';
-          if (data.role === 'admin') {
-            tableName = 'admin_users';
-          } else if (data.role === 'staff') {
-            tableName = 'staff_users';
-          } else if (data.role === 'volunteer') {
-            tableName = 'volunteer_users';
-          } else if (data.role === 'beneficiary') {
-            tableName = 'beneficiary_users';
-          }
+          const newRoleTable = getTableNameForRole(data.role as UserRole);
           
-          if (tableName) {
-            // First check if the record already exists
-            const { data: existingRecord } = await supabase
-              .from(tableName)
-              .select('id')
-              .eq('id', userId)
-              .maybeSingle();
+          // First check if the record already exists
+          const { data: existingRecord } = await supabase
+            .from(newRoleTable)
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
+            
+          if (!existingRecord) {
+            // Only insert if record doesn't exist
+            const { error: insertError } = await supabase
+              .from(newRoleTable)
+              .insert(userData);
               
-            if (!existingRecord) {
-              // Only insert if record doesn't exist
-              const { error: insertError } = await supabase
-                .from(tableName)
-                .insert(userData);
-                
-              if (insertError) {
-                console.error(`Error inserting into ${tableName}:`, insertError);
-                throw insertError;
-              }
+            if (insertError) {
+              console.error(`Error inserting into ${newRoleTable}:`, insertError);
+              throw insertError;
             }
           }
         } catch (error) {

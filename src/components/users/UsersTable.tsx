@@ -121,6 +121,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
     try {
       setProcessingId(userId);
       await toggleUserStatus(userId, newStatus);
+      
       toast({
         title: newStatus ? "User activated" : "User deactivated",
         description: `The user has been ${newStatus ? "activated" : "deactivated"} successfully.`,
