@@ -7,15 +7,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboardRoute } from "@/utils/permissions";
-import { Shield } from "lucide-react";
+import { Shield, AlertCircle, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/auth";
+import { toast } from "@/components/ui/use-toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [isCreatingDemoUsers, setIsCreatingDemoUsers] = useState(false);
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
@@ -46,9 +48,63 @@ const Login = () => {
         }
       }
     } catch (err: any) {
-      setError(err.message || "Failed to login. Please try again.");
+      console.error("Login error:", err);
+      if (err.message.includes("Invalid login credentials")) {
+        setError("Invalid login credentials. Have you created the demo users yet?");
+      } else {
+        setError(err.message || "Failed to login. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const createDemoUsers = async () => {
+    setIsCreatingDemoUsers(true);
+    try {
+      // Create demo users in Supabase
+      const demoUsers = [
+        { email: "admin@ngo.org", password: "admin123", role: "admin", fullName: "Admin User" },
+        { email: "staff@ngo.org", password: "staff123", role: "staff", fullName: "Staff User" },
+        { email: "volunteer@ngo.org", password: "volunteer123", role: "volunteer", fullName: "Volunteer User" },
+        { email: "beneficiary@example.com", password: "beneficiary123", role: "beneficiary", fullName: "Beneficiary User" }
+      ];
+
+      let createdCount = 0;
+      
+      for (const user of demoUsers) {
+        const { error } = await supabase.auth.signUp({
+          email: user.email,
+          password: user.password,
+          options: {
+            data: {
+              full_name: user.fullName,
+              role: user.role
+            }
+          }
+        });
+
+        if (!error) {
+          createdCount++;
+        } else if (!error.message.includes("already registered")) {
+          throw error;
+        }
+      }
+      
+      toast({
+        title: "Demo users created",
+        description: `${createdCount} demo users have been created successfully.`,
+      });
+      
+    } catch (err: any) {
+      console.error("Error creating demo users:", err);
+      toast({
+        variant: "destructive",
+        title: "Failed to create demo users",
+        description: err.message || "An unexpected error occurred",
+      });
+    } finally {
+      setIsCreatingDemoUsers(false);
     }
   };
 
@@ -73,8 +129,9 @@ const Login = () => {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded text-sm">
-                  {error}
+                <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded text-sm flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                  <div>{error}</div>
                 </div>
               )}
               <div className="space-y-2">
@@ -104,7 +161,7 @@ const Login = () => {
                 />
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex flex-col gap-3">
               <Button 
                 type="submit" 
                 className="w-full" 
@@ -116,28 +173,48 @@ const Login = () => {
           </form>
         </Card>
         
-        <div className="mt-8 text-center text-sm text-muted-foreground">
-          <div className="mb-2">Demo accounts:</div>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-            <div className="bg-card p-2 rounded text-xs">
-              <div className="font-semibold mb-1">Admin</div>
-              <div>admin@ngo.org</div>
-              <div>admin123</div>
+        <div className="mt-8 text-sm text-muted-foreground">
+          <div className="bg-card p-4 rounded border">
+            <div className="flex items-center gap-2 mb-3 text-foreground">
+              <Info className="h-4 w-4" />
+              <div className="font-medium">Demo Accounts</div>
             </div>
-            <div className="bg-card p-2 rounded text-xs">
-              <div className="font-semibold mb-1">Staff</div>
-              <div>staff@ngo.org</div>
-              <div>staff123</div>
+            
+            <div className="space-y-2 mb-4">
+              <p>The demo accounts shown below need to be created before you can use them.</p>
+              <p>Click the button below to create these accounts in your Supabase project.</p>
             </div>
-            <div className="bg-card p-2 rounded text-xs">
-              <div className="font-semibold mb-1">Volunteer</div>
-              <div>volunteer@ngo.org</div>
-              <div>volunteer123</div>
-            </div>
-            <div className="bg-card p-2 rounded text-xs">
-              <div className="font-semibold mb-1">Beneficiary</div>
-              <div>beneficiary@example.com</div>
-              <div>beneficiary123</div>
+
+            <Button
+              onClick={createDemoUsers}
+              variant="outline"
+              className="w-full mb-4"
+              disabled={isCreatingDemoUsers}
+            >
+              {isCreatingDemoUsers ? "Creating Demo Users..." : "Create Demo Users"}
+            </Button>
+            
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+              <div className="bg-card border p-2 rounded text-xs">
+                <div className="font-semibold mb-1">Admin</div>
+                <div>admin@ngo.org</div>
+                <div>admin123</div>
+              </div>
+              <div className="bg-card border p-2 rounded text-xs">
+                <div className="font-semibold mb-1">Staff</div>
+                <div>staff@ngo.org</div>
+                <div>staff123</div>
+              </div>
+              <div className="bg-card border p-2 rounded text-xs">
+                <div className="font-semibold mb-1">Volunteer</div>
+                <div>volunteer@ngo.org</div>
+                <div>volunteer123</div>
+              </div>
+              <div className="bg-card border p-2 rounded text-xs">
+                <div className="font-semibold mb-1">Beneficiary</div>
+                <div>beneficiary@example.com</div>
+                <div>beneficiary123</div>
+              </div>
             </div>
           </div>
         </div>
