@@ -4,8 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { UserRole } from "@/types/auth";
 import { AlertCircle } from "lucide-react";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 const Analytics = () => {
   const { getAllUsers } = useAuth();
@@ -18,12 +18,24 @@ const Analytics = () => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        
+        // Fetch users and handle potential errors
         const users = await getAllUsers();
+        
+        if (!users || users.length === 0) {
+          console.log("No users returned from getAllUsers");
+          setUserRoleData([]);
+          setActiveData([]);
+          setError("No user data available. Please add users to view analytics.");
+          return;
+        }
+        
+        console.log("Users data received:", users.length);
         
         // Prepare role distribution data
         const roleCount: Record<string, number> = {};
         users.forEach(user => {
-          const role = user.role;
+          const role = user.role || "unknown";
           roleCount[role] = (roleCount[role] || 0) + 1;
         });
         
@@ -32,10 +44,12 @@ const Analytics = () => {
           value
         }));
         
+        console.log("Role data prepared:", roleData);
+        
         // Prepare active/inactive data by role
         const activeByRole: Record<string, { active: number, inactive: number }> = {};
         users.forEach(user => {
-          const role = user.role;
+          const role = user.role || "unknown";
           if (!activeByRole[role]) {
             activeByRole[role] = { active: 0, inactive: 0 };
           }
@@ -53,12 +67,17 @@ const Analytics = () => {
           inactive: data.inactive
         }));
         
+        console.log("Active data prepared:", activeData);
+        
         setUserRoleData(roleData);
         setActiveData(activeData);
         setError(null);
       } catch (err) {
         console.error("Error fetching analytics data:", err);
         setError("Failed to load analytics data. Please try again later.");
+        // Set empty arrays to prevent rendering issues
+        setUserRoleData([]);
+        setActiveData([]);
       } finally {
         setIsLoading(false);
       }
@@ -69,6 +88,15 @@ const Analytics = () => {
 
   // Colors for the pie chart
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+  // Fallback charts to display when no data is available but not in error state
+  const emptyRoleData = [
+    { name: "No Data", value: 1 }
+  ];
+  
+  const emptyActiveData = [
+    { name: "No Data", active: 0, inactive: 0 }
+  ];
 
   return (
     <DashboardLayout>
@@ -109,16 +137,16 @@ const Analytics = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={userRoleData}
+                        data={userRoleData.length > 0 ? userRoleData : emptyRoleData}
                         cx="50%"
                         cy="50%"
                         labelLine={true}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {userRoleData.map((entry, index) => (
+                        {(userRoleData.length > 0 ? userRoleData : emptyRoleData).map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -147,7 +175,7 @@ const Analytics = () => {
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={activeData}
+                      data={activeData.length > 0 ? activeData : emptyActiveData}
                       margin={{
                         top: 20,
                         right: 30,
