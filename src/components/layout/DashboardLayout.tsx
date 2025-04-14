@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getRoleDisplayName } from "@/utils/permissions";
 import { 
-  LogOut, Menu, User, Shield, Users, Home, FileText, Settings, AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList, Trophy, FilePlus 
+  LogOut, Menu, User, Shield, Users, Home, FileText, Settings, AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList, Trophy, FilePlus, BellRing 
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -102,6 +102,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         icon: ClipboardList,
         label: "Tasks",
         path: "/staff/tasks"
+      }, {
+        icon: BellRing,
+        label: "Urgent Requests",
+        path: "/staff/urgent-requests"
       }, {
         icon: Activity,
         label: "Reports",
