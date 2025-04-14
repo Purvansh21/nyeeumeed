@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { 
   VolunteerOpportunity, 
@@ -85,10 +84,6 @@ const mockRegistrations = (volunteerId: string): VolunteerRegistration[] => [
 // Opportunities
 export const getVolunteerOpportunities = async (): Promise<VolunteerOpportunity[]> => {
   try {
-    // Use mock data until types are updated
-    return mockOpportunities;
-
-    /* Uncomment when types are updated
     const { data, error } = await supabase
       .from('volunteer_opportunities')
       .select('*')
@@ -100,7 +95,6 @@ export const getVolunteerOpportunities = async (): Promise<VolunteerOpportunity[
     }
     
     return data || [];
-    */
   } catch (error) {
     console.error("Error fetching volunteer opportunities:", error);
     return [];
@@ -109,11 +103,6 @@ export const getVolunteerOpportunities = async (): Promise<VolunteerOpportunity[
 
 export const getVolunteerOpportunity = async (id: string): Promise<VolunteerOpportunity | null> => {
   try {
-    // Use mock data until types are updated
-    const opportunity = mockOpportunities.find(o => o.id === id);
-    return opportunity || null;
-
-    /* Uncomment when types are updated
     const { data, error } = await supabase
       .from('volunteer_opportunities')
       .select('*')
@@ -126,7 +115,6 @@ export const getVolunteerOpportunity = async (id: string): Promise<VolunteerOppo
     }
     
     return data;
-    */
   } catch (error) {
     console.error(`Error fetching volunteer opportunity with ID ${id}:`, error);
     return null;
@@ -136,10 +124,6 @@ export const getVolunteerOpportunity = async (id: string): Promise<VolunteerOppo
 // Registrations
 export const getVolunteerRegistrations = async (volunteerId: string): Promise<VolunteerRegistration[]> => {
   try {
-    // Use mock data until types are updated
-    return mockRegistrations(volunteerId);
-
-    /* Uncomment when types are updated
     const { data, error } = await supabase
       .from('volunteer_registrations')
       .select(`
@@ -155,7 +139,6 @@ export const getVolunteerRegistrations = async (volunteerId: string): Promise<Vo
     }
     
     return data || [];
-    */
   } catch (error) {
     console.error("Error fetching volunteer registrations:", error);
     return [];
@@ -164,15 +147,6 @@ export const getVolunteerRegistrations = async (volunteerId: string): Promise<Vo
 
 export const registerForOpportunity = async (opportunityId: string, volunteerId: string): Promise<boolean> => {
   try {
-    // Mock successful registration
-    toast({
-      title: "Registration successful",
-      description: "You've been signed up for this volunteer opportunity."
-    });
-    
-    return true;
-
-    /* Uncomment when types are updated
     // First, get the opportunity to check if it's full
     const { data: opportunity, error: opportunityError } = await supabase
       .from('volunteer_opportunities')
@@ -239,7 +213,6 @@ export const registerForOpportunity = async (opportunityId: string, volunteerId:
     });
     
     return true;
-    */
   } catch (error: any) {
     console.error("Error registering for opportunity:", error);
     
