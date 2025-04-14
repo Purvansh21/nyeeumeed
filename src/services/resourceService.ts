@@ -92,71 +92,33 @@ export const createTrainingResource = async (data: TrainingResourceData): Promis
     
     let fileUrl = data.url || '';
     
-    // If a file was provided, upload it to storage first
+    // If a file was provided, pretend to upload it and generate a mock URL
     if (data.file) {
       const fileExt = data.file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
-      const filePath = `training_materials/${fileName}`;
       
-      // Upload file to storage
-      console.log("Uploading file to storage:", filePath);
-      
-      try {
-        // Note: This will fail until Supabase storage bucket is set up
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('training_resources')
-          .upload(filePath, data.file);
-          
-        if (uploadError) {
-          console.error("Error uploading file:", uploadError);
-          return false;
-        }
-        
-        if (uploadData) {
-          // Get public URL
-          const { data: urlData } = await supabase.storage
-            .from('training_resources')
-            .getPublicUrl(filePath);
-            
-          fileUrl = urlData.publicUrl;
-        }
-      } catch (error) {
-        console.error("Storage not configured or error uploading:", error);
-        // For now, let's just use a mock URL for testing
-        fileUrl = `https://example.com/files/${fileName}`;
-      }
+      // Just simulate a successful upload and return a fake URL for now
+      fileUrl = `https://example.com/files/${fileName}`;
+      console.log("Mocked file upload URL:", fileUrl);
     }
     
-    // Insert the training material record
-    // Note: This will fail until the table is created
-    try {
-      const { data: resourceData, error: resourceError } = await supabase
-        .from('volunteer_training_materials')
-        .insert({
-          title: data.title,
-          description: data.description,
-          category: data.category,
-          content_type: data.content_type,
-          is_required: data.is_required,
-          url: fileUrl,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-      
-      if (resourceError) {
-        console.error("Error creating training resource:", resourceError);
-        console.log("For now, returning success for demo");
-        return true; // Return true for demo until table is created
-      }
-      
-      return !!resourceData;
-    } catch (error) {
-      console.error("Database not configured for training resources:", error);
-      console.log("For now, returning success for demo");
-      return true; // Return true for demo until table is created
-    }
+    // Create a mock training material in our mock data
+    const newMaterial: VolunteerTrainingMaterial = {
+      id: Math.random().toString(36).substring(2),
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      content_type: data.content_type,
+      is_required: data.is_required,
+      url: fileUrl,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    MOCK_TRAINING_MATERIALS.push(newMaterial);
+    console.log("Mock training material created:", newMaterial);
+    
+    return true;
   } catch (error) {
     console.error("Failed to create training resource:", error);
     return false;
@@ -167,72 +129,16 @@ export const createTrainingResource = async (data: TrainingResourceData): Promis
  * Fetch training materials available to volunteers
  */
 export const getTrainingMaterials = async (): Promise<VolunteerTrainingMaterial[]> => {
-  try {
-    console.log("Fetching training materials");
-    
-    // Try to fetch from Supabase first
-    try {
-      const { data, error } = await supabase
-        .from('volunteer_training_materials')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data && data.length > 0) {
-        return data as VolunteerTrainingMaterial[];
-      }
-    } catch (dbError) {
-      console.error("Failed to fetch from database:", dbError);
-    }
-    
-    // Fall back to mock data
-    console.log("Using mock training material data");
-    return MOCK_TRAINING_MATERIALS;
-  } catch (error) {
-    console.error("Failed to fetch training materials:", error);
-    // Return mock data for now to prevent UI breaking
-    return MOCK_TRAINING_MATERIALS;
-  }
+  console.log("Getting training materials (using mock data)");
+  return MOCK_TRAINING_MATERIALS;
 };
 
 /**
  * Fetch a volunteer's training progress
  */
 export const getTrainingProgress = async (volunteerId: string): Promise<VolunteerTrainingProgress[]> => {
-  try {
-    console.log("Fetching training progress for volunteer:", volunteerId);
-    
-    // Try to fetch from Supabase first
-    try {
-      const { data, error } = await supabase
-        .from('volunteer_training_progress')
-        .select(`
-          *,
-          material:volunteer_training_materials(*)
-        `)
-        .eq('volunteer_id', volunteerId);
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data && data.length > 0) {
-        return data as unknown as VolunteerTrainingProgress[];
-      }
-    } catch (dbError) {
-      console.error("Failed to fetch progress from database:", dbError);
-    }
-    
-    // Fall back to mock data
-    console.log("Using mock training progress data");
-    return MOCK_TRAINING_PROGRESS;
-  } catch (error) {
-    console.error("Failed to fetch training progress:", error);
-    return MOCK_TRAINING_PROGRESS;
-  }
+  console.log("Getting training progress for volunteer:", volunteerId, "(using mock data)");
+  return MOCK_TRAINING_PROGRESS;
 };
 
 /**
@@ -247,44 +153,47 @@ export const updateTrainingProgress = async (
   try {
     console.log(`Updating training progress for volunteer ${volunteerId}, material ${materialId}`);
     
-    // Prepare the update data
-    const updateData: any = {
-      status,
-      updated_at: new Date().toISOString()
-    };
+    // Find the progress item in our mock data
+    const progressIndex = MOCK_TRAINING_PROGRESS.findIndex(
+      p => p.volunteer_id === volunteerId && p.material_id === materialId
+    );
     
-    if (status === 'in_progress' && !updateData.started_at) {
-      updateData.started_at = new Date().toISOString();
-    }
-    
-    if (status === 'completed') {
-      updateData.completed_at = new Date().toISOString();
-      if (score !== undefined) {
-        updateData.score = score;
-      }
-    }
-    
-    // Try to update in Supabase
-    try {
-      const { data, error } = await supabase
-        .from('volunteer_training_progress')
-        .upsert({
-          volunteer_id: volunteerId,
-          material_id: materialId,
-          ...updateData
-        })
-        .select();
+    // Update or create the progress item
+    if (progressIndex >= 0) {
+      MOCK_TRAINING_PROGRESS[progressIndex] = {
+        ...MOCK_TRAINING_PROGRESS[progressIndex],
+        status,
+        ...(status === 'in_progress' && !MOCK_TRAINING_PROGRESS[progressIndex].started_at 
+          ? { started_at: new Date().toISOString() } 
+          : {}),
+        ...(status === 'completed' 
+          ? { 
+              completed_at: new Date().toISOString(),
+              ...(score !== undefined ? { score } : {}) 
+            } 
+          : {})
+      };
+    } else {
+      // Create a new progress entry
+      const newProgress: VolunteerTrainingProgress = {
+        id: Math.random().toString(36).substring(2),
+        volunteer_id: volunteerId,
+        material_id: materialId,
+        status,
+        ...(status === 'in_progress' ? { started_at: new Date().toISOString() } : {}),
+        ...(status === 'completed' 
+          ? { 
+              completed_at: new Date().toISOString(),
+              ...(score !== undefined ? { score } : {}) 
+            } 
+          : {}),
+        material: MOCK_TRAINING_MATERIALS.find(m => m.id === materialId)
+      };
       
-      if (error) {
-        throw error;
-      }
-      
-      return !!data;
-    } catch (dbError) {
-      console.error("Failed to update progress in database:", dbError);
-      // For demo, pretend it succeeded
-      return true;
+      MOCK_TRAINING_PROGRESS.push(newProgress);
     }
+    
+    return true;
   } catch (error) {
     console.error("Failed to update training progress:", error);
     return false;
@@ -298,27 +207,13 @@ export const downloadResource = async (resourceId: string): Promise<string> => {
   try {
     console.log(`Downloading resource ${resourceId}`);
     
-    // Try to get from Supabase first
-    try {
-      const { data, error } = await supabase
-        .from('volunteer_training_materials')
-        .select('url')
-        .eq('id', resourceId)
-        .single();
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data && data.url) {
-        return data.url;
-      }
-    } catch (dbError) {
-      console.error("Failed to get resource URL from database:", dbError);
+    // Find the resource in our mock data
+    const resource = MOCK_TRAINING_MATERIALS.find(r => r.id === resourceId);
+    
+    if (resource && resource.url) {
+      return resource.url;
     }
     
-    // In a real implementation, this would generate a download URL or handle file access
-    // For now, just log it and return a mock URL
     return "https://example.com/download/resource";
   } catch (error) {
     console.error("Failed to download resource:", error);

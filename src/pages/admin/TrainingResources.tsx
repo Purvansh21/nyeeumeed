@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { BookOpen, FileText, Search, Edit, Trash2, Download, FileUp } from "lucide-react";
-import { DataTable } from "@/components/ui/data-table";
 import ResourceUploadForm from "@/components/admin/ResourceUploadForm";
 import { VolunteerTrainingMaterial } from "@/types/volunteer";
 import { getTrainingMaterials } from "@/services/resourceService";

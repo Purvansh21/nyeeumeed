@@ -1,30 +1,37 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import * as z from "zod";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { FileUploader } from "@/components/admin/FileUploader";
-import { useToast } from "@/hooks/use-toast";
 import { createTrainingResource } from "@/services/resourceService";
+import { useToast } from "@/hooks/use-toast";
 
-const formSchema = z.object({
-  title: z.string().min(2, { message: "Title must be at least 2 characters" }),
-  description: z.string().min(10, { message: "Description must be at least 10 characters" }),
-  category: z.string().min(2, { message: "Category is required" }),
-  contentType: z.enum(["document", "video", "link", "interactive"]),
-  isRequired: z.boolean().default(false),
-  file: z.any().optional(),
-  externalUrl: z.string().url({ message: "Please enter a valid URL" }).optional(),
+const resourceFormSchema = z.object({
+  title: z.string().min(2, "Title must be at least 2 characters"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  category: z.string().min(2, "Category is required"),
+  content_type: z.enum(["document", "video", "interactive"]),
+  is_required: z.boolean().default(false),
+  url: z.string().url().optional().or(z.literal("")),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type ResourceFormValues = z.infer<typeof resourceFormSchema>;
 
 interface ResourceUploadFormProps {
   onSuccess: () => void;
@@ -32,68 +39,68 @@ interface ResourceUploadFormProps {
 
 const ResourceUploadForm = ({ onSuccess }: ResourceUploadFormProps) => {
   const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
-  const [fileToUpload, setFileToUpload] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<ResourceFormValues>({
+    resolver: zodResolver(resourceFormSchema),
     defaultValues: {
       title: "",
       description: "",
       category: "",
-      contentType: "document",
-      isRequired: false,
-      externalUrl: "",
+      content_type: "document",
+      is_required: false,
+      url: "",
     },
   });
   
-  const contentType = form.watch("contentType");
-  
   const handleFileSelected = (file: File) => {
-    setFileToUpload(file);
+    setSelectedFile(file);
   };
   
-  const onSubmit = async (values: FormValues) => {
+  const onSubmit = async (data: ResourceFormValues) => {
     try {
-      setIsUploading(true);
+      setIsSubmitting(true);
       
-      // Create the training resource
-      const resourceData = {
-        title: values.title,
-        description: values.description,
-        category: values.category,
-        content_type: values.contentType,
-        is_required: values.isRequired,
-        url: values.contentType === "link" ? values.externalUrl : "",
-        file: fileToUpload
-      };
-      
-      const result = await createTrainingResource(resourceData);
-      
-      if (result) {
+      // If no file was uploaded and no URL was provided, show an error
+      if (!selectedFile && !data.url) {
         toast({
-          title: "Resource Created",
-          description: "Training resource has been successfully created",
+          variant: "destructive",
+          title: "Missing resource file",
+          description: "Please upload a file or provide a URL to the resource.",
+        });
+        return;
+      }
+      
+      const success = await createTrainingResource({
+        ...data,
+        file: selectedFile,
+      });
+      
+      if (success) {
+        toast({
+          title: "Resource created",
+          description: "The training resource has been successfully created.",
         });
         form.reset();
-        setFileToUpload(null);
+        setSelectedFile(null);
         onSuccess();
       } else {
         toast({
           variant: "destructive",
           title: "Failed to create resource",
-          description: "There was an error creating the training resource",
+          description: "There was an error creating the training resource.",
         });
       }
     } catch (error) {
-      console.error("Error creating training resource:", error);
+      console.error("Error creating resource:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "An unexpected error occurred",
+        description: "An unexpected error occurred. Please try again.",
       });
     } finally {
-      setIsUploading(false);
+      setIsSubmitting(false);
     }
   };
   
@@ -102,104 +109,163 @@ const ResourceUploadForm = ({ onSuccess }: ResourceUploadFormProps) => {
       <CardHeader>
         <CardTitle>Upload Training Resource</CardTitle>
         <CardDescription>
-          Create a new training resource for volunteers
+          Add new training materials for volunteers
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid gap-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              placeholder="Resource Title"
-              {...form.register("title")}
-            />
-            {form.formState.errors.title && (
-              <p className="text-sm text-red-500">{form.formState.errors.title.message}</p>
-            )}
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Provide a detailed description of this resource"
-              {...form.register("description")}
-            />
-            {form.formState.errors.description && (
-              <p className="text-sm text-red-500">{form.formState.errors.description.message}</p>
-            )}
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="category">Category</Label>
-            <Input
-              id="category" 
-              placeholder="e.g., Orientation, Safety, Ethics"
-              {...form.register("category")}
-            />
-            {form.formState.errors.category && (
-              <p className="text-sm text-red-500">{form.formState.errors.category.message}</p>
-            )}
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="contentType">Content Type</Label>
-            <Select
-              onValueChange={(value) => form.setValue("contentType", value as any)}
-              defaultValue={form.watch("contentType")}
-            >
-              <SelectTrigger id="contentType">
-                <SelectValue placeholder="Select content type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="document">Document</SelectItem>
-                <SelectItem value="video">Video</SelectItem>
-                <SelectItem value="link">External Link</SelectItem>
-                <SelectItem value="interactive">Interactive Content</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {contentType === "link" ? (
-            <div className="grid gap-2">
-              <Label htmlFor="externalUrl">External URL</Label>
-              <Input
-                id="externalUrl"
-                placeholder="https://example.com/resource"
-                {...form.register("externalUrl")}
-              />
-              {form.formState.errors.externalUrl && (
-                <p className="text-sm text-red-500">{form.formState.errors.externalUrl.message}</p>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Resource Title</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="Enter resource title" 
+                      {...field} 
+                      disabled={isSubmitting} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Enter resource description" 
+                      {...field} 
+                      className="min-h-[100px]" 
+                      disabled={isSubmitting} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., orientation, safety, communication" 
+                        {...field} 
+                        disabled={isSubmitting} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="content_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Content Type</FormLabel>
+                    <Select 
+                      disabled={isSubmitting}
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select content type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="document">Document</SelectItem>
+                        <SelectItem value="video">Video</SelectItem>
+                        <SelectItem value="interactive">Interactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      What type of content is this resource?
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          ) : (
-            <div className="grid gap-2">
-              <Label>Upload File</Label>
-              <FileUploader onFileSelected={handleFileSelected} />
-              {fileToUpload && (
-                <p className="text-sm text-muted-foreground">
-                  Selected file: {fileToUpload.name} ({Math.round(fileToUpload.size / 1024)} KB)
+            
+            <FormField
+              control={form.control}
+              name="url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Resource URL (Optional)</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="https://example.com/resource" 
+                      {...field} 
+                      disabled={isSubmitting} 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    If the resource is hosted elsewhere, enter the URL here.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="is_required"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      Required Training
+                    </FormLabel>
+                    <FormDescription>
+                      Mark this resource as required for volunteers.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            
+            <div className="space-y-2">
+              <FormLabel>Upload File</FormLabel>
+              <FileUploader
+                onFileSelected={handleFileSelected}
+                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.mp4,.mp3,.zip"
+                maxSizeMB={10}
+              />
+              {selectedFile && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Selected file: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
                 </p>
               )}
             </div>
-          )}
-          
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isRequired"
-              checked={form.watch("isRequired")}
-              onCheckedChange={(checked) => form.setValue("isRequired", checked)}
-            />
-            <Label htmlFor="isRequired" className="cursor-pointer">
-              Required for volunteers
-            </Label>
-          </div>
-          
-          <Button type="submit" disabled={isUploading}>
-            {isUploading ? "Uploading..." : "Create Resource"}
-          </Button>
-        </form>
+            
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? "Uploading..." : "Upload Resource"}
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

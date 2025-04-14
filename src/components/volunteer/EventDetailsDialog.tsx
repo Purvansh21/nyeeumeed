@@ -47,6 +47,20 @@ const EventDetailsDialog = ({
 
   const isUpcoming = new Date(event.opportunity.start_time) > new Date() && event.status === 'registered';
 
+  // Helper function to determine badge variant
+  const getBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'registered':
+        return 'outline';
+      case 'completed':
+        return 'secondary'; // Changed from 'success' to 'secondary'
+      case 'cancelled':
+        return 'destructive';
+      default:
+        return 'secondary';
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -105,11 +119,7 @@ const EventDetailsDialog = ({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
-              <Badge variant={
-                event.status === 'registered' ? 'outline' : 
-                event.status === 'completed' ? 'success' : 
-                event.status === 'cancelled' ? 'destructive' : 'secondary'
-              }>
+              <Badge variant={getBadgeVariant(event.status)}>
                 {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
               </Badge>
             </div>
