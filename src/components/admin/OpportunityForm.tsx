@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,12 +47,14 @@ interface OpportunityFormProps {
   onSuccess: () => void;
 }
 
+type FormValues = z.infer<typeof FormSchema>;
+
 const OpportunityForm: React.FC<OpportunityFormProps> = ({ onSuccess }) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [date, setDate] = useState<Date | undefined>(new Date());
 
-  const form = useForm<z.infer<typeof FormSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       title: "",
@@ -69,7 +72,7 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onSuccess }) => {
   const { watch } = form;
   const watchedStatus = watch("status");
 
-  const onSubmit: SubmitHandler<z.infer<typeof FormSchema>> = async (values) => {
+  const onSubmit: SubmitHandler<FormValues> = async (values) => {
     try {
       if (!user) {
         toast({
@@ -81,8 +84,15 @@ const OpportunityForm: React.FC<OpportunityFormProps> = ({ onSuccess }) => {
       }
 
       const newOpportunity = {
-        ...values,
+        title: values.title,
+        description: values.description,
+        category: values.category,
         date: values.date.toISOString().split('T')[0],
+        start_time: values.start_time,
+        end_time: values.end_time,
+        location: values.location,
+        spots_available: values.spots_available,
+        status: values.status,
         created_by: user.id
       };
 
