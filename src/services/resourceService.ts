@@ -1,5 +1,18 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { VolunteerTrainingMaterial } from "@/types/volunteer";
+
+// Define the VolunteerTrainingProgress type that was missing
+interface VolunteerTrainingProgress {
+  id: string;
+  volunteer_id: string;
+  material_id: string;
+  status: 'not_started' | 'in_progress' | 'completed';
+  started_at?: string;
+  completed_at?: string;
+  score?: number;
+  material?: VolunteerTrainingMaterial;
+}
 
 // Mock data for development, used as fallback
 const MOCK_TRAINING_MATERIALS: VolunteerTrainingMaterial[] = [
