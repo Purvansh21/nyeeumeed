@@ -215,6 +215,38 @@ const App = () => {
               }
             />
             <Route
+              path="/volunteer/schedule"
+              element={
+                <RouteGuard>
+                  <VolunteerDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/volunteer/opportunities"
+              element={
+                <RouteGuard>
+                  <VolunteerDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/volunteer/resources"
+              element={
+                <RouteGuard>
+                  <VolunteerDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/volunteer/achievements"
+              element={
+                <RouteGuard>
+                  <VolunteerDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
               path="/volunteer/profile"
               element={
                 <RouteGuard>

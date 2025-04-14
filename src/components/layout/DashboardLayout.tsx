@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +7,7 @@ import { getRoleDisplayName } from "@/utils/permissions";
 import { 
   LogOut, Menu, User, Shield, Users, Home, FileText, Settings, 
   AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, 
-  Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList
+  Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList, Trophy
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -26,7 +25,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
-  // Get user's initials for the avatar
   const getInitials = () => {
     if (!user?.fullName) return "U";
     return user.fullName
@@ -37,18 +35,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       .substring(0, 2);
   };
 
-  // Handle logout
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  // Toggle sidebar minimized state
   const toggleSidebar = () => {
     setIsMinimized(!isMinimized);
   };
 
-  // Get navigation items based on user role
   const getNavItems = () => {
     if (!user) return [];
 
@@ -75,6 +70,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         { icon: Calendar, label: "My Schedule", path: "/volunteer/schedule" },
         { icon: Briefcase, label: "Opportunities", path: "/volunteer/opportunities" },
         { icon: FileText, label: "Resources", path: "/volunteer/resources" },
+        { icon: Trophy, label: "Achievements", path: "/volunteer/achievements" },
       ],
       beneficiary: [
         { icon: Home, label: "Dashboard", path: "/beneficiary" },
@@ -87,7 +83,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     return roleBasedLinks[user.role] || [];
   };
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileOpen(false);
   }, [location.pathname]);
@@ -100,14 +95,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   
   return (
     <div className="flex h-screen bg-background">
-      {/* Desktop Sidebar */}
       <aside 
         className={cn(
           "hidden md:flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out",
           isMinimized ? "md:w-20" : "md:w-64"
         )}
       >
-        {/* Sidebar Header with Logo and Toggle Button */}
         <div className="flex items-center justify-between p-6">
           <div className={cn("flex items-center gap-2", isMinimized && "justify-center")}>
             <Shield className="h-6 w-6 text-sidebar-accent" />
@@ -234,7 +227,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </div>
       </aside>
 
-      {/* Mobile Header & Sidebar */}
       <div className="md:hidden flex items-center justify-between w-full p-4 border-b border-border">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
@@ -319,10 +311,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </Sheet>
       </div>
 
-      {/* Main Content */}
       <main className={cn(
         "flex-1 overflow-auto",
-        isMinimized ? "md:ml-20" : "md:ml-0" // Adjust content when sidebar is minimized for desktop
+        isMinimized ? "md:ml-20" : "md:ml-0"
       )}>
         <div className="container mx-auto py-6 px-4 md:px-6">{children}</div>
       </main>
