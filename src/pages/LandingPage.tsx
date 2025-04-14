@@ -26,7 +26,7 @@ const LandingPage = () => {
             playsInline
           >
             <source 
-              src="https://cdn.coverr.co/videos/coverr-community-volunteers-planting-trees-5584/1080p.mp4" 
+              src="/idk.mp4" 
               type="video/mp4" 
             />
             {/* Fallback image in case video doesn't load */}
