@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,22 +8,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircleIcon, AlertCircleIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/use-toast";
-import { fetchUrgentServiceRequests, verifyServiceRequest } from "@/services/beneficiaryService";
-import { fetchUrgentRequests, verifyUrgentRequest } from "@/services/urgentRequestService";
+import { fetchUrgentRequests, verifyUrgentRequest, UrgentRequest } from "@/services/urgentRequestService";
 
 const UrgentRequestsList: React.FC = () => {
   const { user } = useAuth();
   
   const { data: urgentRequests, isLoading, error, refetch } = useQuery({
-    queryKey: ["urgent-service-requests"],
-    queryFn: fetchUrgentServiceRequests,
+    queryKey: ["urgent-requests"],
+    queryFn: fetchUrgentRequests,
   });
 
   const handleVerifyRequest = async (id: string, verified: boolean) => {
     if (!user) return;
     
     try {
-      const result = await verifyServiceRequest(
+      const result = await verifyUrgentRequest(
         id,
         {
           verification_status: verified ? 'verified' : 'rejected',
@@ -106,40 +106,38 @@ const UrgentRequestsList: React.FC = () => {
           urgentRequests.map((request) => (
             <div key={request.id} className="border rounded-md p-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">{request.service_type}</h3>
-                <Badge className="bg-red-500 text-white">{request.urgency.toUpperCase()}</Badge>
+                <h3 className="text-lg font-semibold">{request.service_request?.service_type || "Urgent Request"}</h3>
+                <Badge className="bg-red-500 text-white">{request.priority.toUpperCase()}</Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 Requested on {new Date(request.created_at).toLocaleDateString()}
               </p>
-              <p className="mt-2">{request.description}</p>
+              <p className="mt-2">{request.service_request?.description || "No description provided"}</p>
               
               {/* Verification Status */}
-              {request.verification_status && (
-                <div className="mt-2">
-                  <Badge className={
-                    request.verification_status === 'verified' 
-                      ? 'bg-green-100 text-green-800' 
-                      : request.verification_status === 'rejected'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }>
-                    {request.verification_status === 'verified' 
-                      ? 'Verified' 
-                      : request.verification_status === 'rejected'
-                      ? 'Rejected'
-                      : 'Pending Verification'}
-                  </Badge>
-                  
-                  {request.verification_notes && (
-                    <p className="text-sm mt-1 italic">{request.verification_notes}</p>
-                  )}
-                </div>
-              )}
+              <div className="mt-2">
+                <Badge className={
+                  request.verification_status === 'verified' 
+                    ? 'bg-green-100 text-green-800' 
+                    : request.verification_status === 'rejected'
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-yellow-100 text-yellow-800'
+                }>
+                  {request.verification_status === 'verified' 
+                    ? 'Verified' 
+                    : request.verification_status === 'rejected'
+                    ? 'Rejected'
+                    : 'Pending Verification'}
+                </Badge>
+                
+                {request.verification_notes && (
+                  <p className="text-sm mt-1 italic">{request.verification_notes}</p>
+                )}
+              </div>
               
               <div className="mt-4 flex justify-between items-center">
                 <div className="text-sm text-muted-foreground">
-                  Contact: {request.preferred_contact_method || "Not specified"}
+                  Contact: {request.service_request?.preferred_contact_method || "Not specified"}
                 </div>
                 
                 {/* Only show verification buttons if not already verified or rejected */}

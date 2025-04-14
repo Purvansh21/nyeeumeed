@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/components/layout/DashboardLayout";
+import SharedDashboardLayout from "@/components/layout/SharedDashboardLayout";
 import ServiceRequestList from "@/components/beneficiary/ServiceRequestList";
 import ServiceRequestForm from "@/components/beneficiary/ServiceRequestForm";
 
@@ -14,7 +14,7 @@ const BeneficiaryServices = () => {
   };
 
   return (
-    <DashboardLayout>
+    <SharedDashboardLayout showAnnouncements={false}>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">My Services</h1>
@@ -38,7 +38,7 @@ const BeneficiaryServices = () => {
           <ServiceRequestForm onSuccess={handleRefresh} />
         </div>
       </div>
-    </DashboardLayout>
+    </SharedDashboardLayout>
   );
 };
 

@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { createUrgentRequest } from "./urgentRequestService";
 
 // Service Request Types
 export interface ServiceRequest {
@@ -163,6 +164,13 @@ export async function createServiceRequest(request: NewServiceRequest): Promise<
     
     if (error) throw error;
     
+    if (request.urgency === 'urgent' && data) {
+      const responseNeededBy = new Date();
+      responseNeededBy.setDate(responseNeededBy.getDate() + 7);
+      
+      await createUrgentRequest(data.id, 'high', responseNeededBy);
+    }
+    
     toast({
       title: "Success",
       description: "Your service request has been submitted"
@@ -211,7 +219,6 @@ export async function updateServiceRequest(id: string, updates: Partial<ServiceR
 // New function to fetch urgent service requests
 export async function fetchUrgentServiceRequests(): Promise<ServiceRequest[]> {
   try {
-    // Get just the basic data, without using relational queries
     const { data, error } = await supabase
       .from('service_requests')
       .select('*')
@@ -220,7 +227,6 @@ export async function fetchUrgentServiceRequests(): Promise<ServiceRequest[]> {
     
     if (error) throw error;
     
-    // Manually fetch staff data for each request
     const requests = await Promise.all((data || []).map(async (request) => {
       const transformedRequest: ServiceRequest = {
         id: request.id,
@@ -429,7 +435,6 @@ export async function updateAppointment(id: string, updates: Partial<Appointment
 // Service History
 export async function fetchServiceHistory(): Promise<ServiceHistory[]> {
   try {
-    // Get just the basic data, without using relational queries
     const { data, error } = await supabase
       .from('service_history')
       .select('*')
@@ -437,7 +442,6 @@ export async function fetchServiceHistory(): Promise<ServiceHistory[]> {
     
     if (error) throw error;
     
-    // Manually fetch staff data for each history item
     const historyItems = await Promise.all((data || []).map(async (item) => {
       const transformedItem: ServiceHistory = {
         id: item.id,
