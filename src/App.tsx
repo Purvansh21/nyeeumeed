@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -40,6 +41,9 @@ import VolunteerAchievements from "./pages/volunteer/Achievements";
 
 // Beneficiary Pages
 import BeneficiaryDashboard from "./pages/beneficiary/Index";
+import BeneficiaryServices from "./pages/beneficiary/Services";
+import BeneficiaryAppointments from "./pages/beneficiary/Appointments";
+import BeneficiaryResources from "./pages/beneficiary/Resources";
 
 // Shared Pages
 import Profile from "./pages/shared/Profile";
@@ -311,6 +315,30 @@ const App = () => {
               element={
                 <RouteGuard>
                   <BeneficiaryDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/beneficiary/services"
+              element={
+                <RouteGuard>
+                  <BeneficiaryServices />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/beneficiary/appointments"
+              element={
+                <RouteGuard>
+                  <BeneficiaryAppointments />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/beneficiary/resources"
+              element={
+                <RouteGuard>
+                  <BeneficiaryResources />
                 </RouteGuard>
               }
             />

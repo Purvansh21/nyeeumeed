@@ -66,6 +66,54 @@ export type Database = {
         }
         Relationships: []
       }
+      appointments: {
+        Row: {
+          appointment_type: string
+          beneficiary_id: string
+          created_at: string
+          date: string
+          id: string
+          is_virtual: boolean
+          location: string | null
+          notes: string | null
+          staff_id: string | null
+          status: string
+          time_slot: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_type: string
+          beneficiary_id: string
+          created_at?: string
+          date: string
+          id?: string
+          is_virtual?: boolean
+          location?: string | null
+          notes?: string | null
+          staff_id?: string | null
+          status?: string
+          time_slot: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_type?: string
+          beneficiary_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          is_virtual?: boolean
+          location?: string | null
+          notes?: string | null
+          staff_id?: string | null
+          status?: string
+          time_slot?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       beneficiary_needs: {
         Row: {
           assigned_to: string | null
@@ -113,6 +161,50 @@ export type Database = {
             columns: ["beneficiary_id"]
             isOneToOne: false
             referencedRelation: "beneficiary_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      beneficiary_resources: {
+        Row: {
+          accessed_at: string
+          beneficiary_id: string
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          resource_id: string | null
+          title: string
+          url: string | null
+        }
+        Insert: {
+          accessed_at?: string
+          beneficiary_id: string
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          resource_id?: string | null
+          title: string
+          url?: string | null
+        }
+        Update: {
+          accessed_at?: string
+          beneficiary_id?: string
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          resource_id?: string | null
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beneficiary_resources_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
             referencedColumns: ["id"]
           },
         ]
@@ -307,6 +399,84 @@ export type Database = {
           quantity?: number
           unit?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      service_history: {
+        Row: {
+          beneficiary_id: string
+          created_at: string
+          delivery_date: string
+          description: string | null
+          id: string
+          notes: string | null
+          service_type: string
+          staff_id: string | null
+          status: string
+        }
+        Insert: {
+          beneficiary_id: string
+          created_at?: string
+          delivery_date: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          service_type: string
+          staff_id?: string | null
+          status?: string
+        }
+        Update: {
+          beneficiary_id?: string
+          created_at?: string
+          delivery_date?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          service_type?: string
+          staff_id?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      service_requests: {
+        Row: {
+          assigned_staff: string | null
+          beneficiary_id: string
+          created_at: string
+          description: string | null
+          id: string
+          next_step: string | null
+          preferred_contact_method: string | null
+          service_type: string
+          status: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          assigned_staff?: string | null
+          beneficiary_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          next_step?: string | null
+          preferred_contact_method?: string | null
+          service_type: string
+          status?: string
+          updated_at?: string
+          urgency: string
+        }
+        Update: {
+          assigned_staff?: string | null
+          beneficiary_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          next_step?: string | null
+          preferred_contact_method?: string | null
+          service_type?: string
+          status?: string
+          updated_at?: string
+          urgency?: string
         }
         Relationships: []
       }
