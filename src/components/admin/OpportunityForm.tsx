@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -50,6 +51,7 @@ const opportunityFormSchema = z.object({
   endTime: z.string().min(1, {
     message: "End time is required.",
   }),
+  // Convert the string to a number during validation
   spotsAvailable: z.string().transform((val) => parseInt(val, 10)),
 });
 
@@ -80,12 +82,22 @@ const OpportunityForm = ({ onSuccess }: OpportunityFormProps) => {
 
       // Format the date to ISO string
       const isoDate = data.date.toISOString();
-
-      const success = await createVolunteerOpportunity({
-        ...data,
+      
+      // Create a properly formatted object that matches the expected type
+      const opportunityData = {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        location: data.location,
         date: isoDate,
-        created_by: user?.id,
-      });
+        start_time: `${isoDate.split('T')[0]}T${data.startTime}:00Z`,
+        end_time: `${isoDate.split('T')[0]}T${data.endTime}:00Z`,
+        spots_available: data.spotsAvailable,
+        status: 'active' as 'active' | 'cancelled' | 'completed' | 'full',
+        created_by: user?.id
+      };
+
+      const success = await createVolunteerOpportunity(opportunityData);
 
       if (success) {
         toast({
