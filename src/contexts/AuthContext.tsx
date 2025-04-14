@@ -248,7 +248,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!previousRole || previousRole === newRole) return;
       
       // Delete from previous role table
-      let tableName = '';
+      let tableName: "admin_users" | "staff_users" | "volunteer_users" | "beneficiary_users" | null = null;
+      
       switch (previousRole) {
         case 'admin':
           tableName = 'admin_users';
