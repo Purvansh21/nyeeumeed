@@ -6,8 +6,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import { Calendar, Download, FileDown, Filter, PieChart, TrendingUp, Users } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon, Download, FileDown, Filter, PieChart, TrendingUp, Users } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Mock data for reports
 const userActivityData = [
@@ -38,21 +46,106 @@ const savedReports = [
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const { toast } = useToast();
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
+  const [filterType, setFilterType] = useState<string>("all");
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exportFormat, setExportFormat] = useState<string>("csv");
+  const [exportOptions, setExportOptions] = useState({
+    includeCharts: true,
+    includeSummary: true,
+    includeRawData: true
+  });
   
   const handleExportReport = (reportId: number, reportName: string) => {
-    // In a real app, this would trigger a report export
+    // Simulate report export
     toast({
       title: "Exporting report",
       description: `${reportName} is being prepared for download.`,
     });
+    
+    // In a real app, this would trigger a download
+    setTimeout(() => {
+      toast({
+        title: "Export complete",
+        description: `${reportName} has been downloaded.`,
+      });
+    }, 1500);
   };
   
   const handleRunReport = (reportId: number, reportName: string) => {
-    // In a real app, this would run the report with fresh data
+    // Simulate running the report
     toast({
       title: "Running report",
       description: `${reportName} is being generated with the latest data.`,
     });
+    
+    // In a real app, this would refresh the report data
+    setTimeout(() => {
+      toast({
+        title: "Report updated",
+        description: `${reportName} has been refreshed with the latest data.`,
+      });
+    }, 1500);
+  };
+  
+  const handleDateRangeSet = () => {
+    if (date && endDate) {
+      toast({
+        title: "Date range set",
+        description: `Reports filtered from ${format(date, "PPP")} to ${format(endDate, "PPP")}`,
+      });
+      
+      // In a real app, this would trigger a refresh of the reports with the new date range
+    }
+  };
+  
+  const handleFilterApply = () => {
+    toast({
+      title: "Filters applied",
+      description: `Reports filtered by type: ${filterType}`,
+    });
+    
+    setShowFilterDialog(false);
+    // In a real app, this would filter the reports
+  };
+  
+  const handleExport = () => {
+    const options = [];
+    if (exportOptions.includeCharts) options.push("charts");
+    if (exportOptions.includeSummary) options.push("summary");
+    if (exportOptions.includeRawData) options.push("raw data");
+    
+    toast({
+      title: `Exporting as ${exportFormat.toUpperCase()}`,
+      description: `Export includes ${options.join(", ")}`,
+    });
+    
+    setShowExportDialog(false);
+    
+    // In a real app, this would trigger a download
+    setTimeout(() => {
+      toast({
+        title: "Export complete",
+        description: "Your report has been downloaded.",
+      });
+    }, 1500);
+  };
+
+  const handleChartExport = (chartName: string) => {
+    toast({
+      title: "Exporting chart",
+      description: `${chartName} is being prepared as CSV.`,
+    });
+    
+    // In a real app, this would trigger a download
+    setTimeout(() => {
+      toast({
+        title: "Chart exported",
+        description: `${chartName} has been downloaded as CSV.`,
+      });
+    }, 1000);
   };
 
   return (
@@ -66,7 +159,7 @@ const Reports = () => {
         </div>
 
         <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab}>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center flex-wrap gap-2">
             <TabsList>
               <TabsTrigger value="dashboard">
                 <TrendingUp className="mr-2 h-4 w-4" />
@@ -77,19 +170,174 @@ const Reports = () => {
                 Saved Reports
               </TabsTrigger>
             </TabsList>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Calendar className="mr-2 h-4 w-4" />
-                Set Date Range
-              </Button>
-              <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" />
-                Filters
-              </Button>
-              <Button variant="default" size="sm">
-                <FileDown className="mr-2 h-4 w-4" />
-                Export
-              </Button>
+            <div className="flex gap-2 flex-wrap">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP") : "Set start date"}
+                    {endDate && date ? ` - ${format(endDate, "PPP")}` : ""}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <div className="p-3 border-b">
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Start Date</h4>
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        initialFocus
+                      />
+                    </div>
+                    <div className="space-y-2 mt-4">
+                      <h4 className="font-medium">End Date</h4>
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={setEndDate}
+                        initialFocus
+                        disabled={(day) => 
+                          date ? day < date : false
+                        }
+                      />
+                    </div>
+                    <div className="flex justify-end mt-4">
+                      <Button size="sm" onClick={handleDateRangeSet}>Apply Range</Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              
+              <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Filter className="mr-2 h-4 w-4" />
+                    Filters
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Filter Reports</DialogTitle>
+                    <DialogDescription>
+                      Choose criteria to filter your reports
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="report-type">Report Type</Label>
+                      <Select 
+                        value={filterType} 
+                        onValueChange={setFilterType}
+                      >
+                        <SelectTrigger id="report-type">
+                          <SelectValue placeholder="Select report type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Reports</SelectItem>
+                          <SelectItem value="user">User Activity</SelectItem>
+                          <SelectItem value="service">Service Metrics</SelectItem>
+                          <SelectItem value="financial">Financial</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowFilterDialog(false)}>Cancel</Button>
+                    <Button onClick={handleFilterApply}>Apply Filters</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog open={showExportDialog} onOpenChange={setShowExportDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="default" size="sm">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Export
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Export Report</DialogTitle>
+                    <DialogDescription>
+                      Choose export format and options
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="export-format">Export Format</Label>
+                      <Select 
+                        value={exportFormat} 
+                        onValueChange={setExportFormat}
+                      >
+                        <SelectTrigger id="export-format">
+                          <SelectValue placeholder="Select format" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="csv">CSV</SelectItem>
+                          <SelectItem value="pdf">PDF</SelectItem>
+                          <SelectItem value="excel">Excel</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Export Options</Label>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="include-charts" 
+                            checked={exportOptions.includeCharts}
+                            onCheckedChange={(checked) => 
+                              setExportOptions({...exportOptions, includeCharts: !!checked})
+                            }
+                          />
+                          <label
+                            htmlFor="include-charts"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Include charts
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="include-summary" 
+                            checked={exportOptions.includeSummary}
+                            onCheckedChange={(checked) => 
+                              setExportOptions({...exportOptions, includeSummary: !!checked})
+                            }
+                          />
+                          <label
+                            htmlFor="include-summary"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Include summary
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="include-raw" 
+                            checked={exportOptions.includeRawData}
+                            onCheckedChange={(checked) => 
+                              setExportOptions({...exportOptions, includeRawData: !!checked})
+                            }
+                          />
+                          <label
+                            htmlFor="include-raw"
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Include raw data
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setShowExportDialog(false)}>Cancel</Button>
+                    <Button onClick={handleExport}>Export</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
@@ -125,7 +373,11 @@ const Reports = () => {
                 </CardContent>
                 <CardFooter className="flex justify-between">
                   <Button variant="ghost" size="sm">View Details</Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleChartExport("User Growth")}
+                  >
                     <Download className="mr-2 h-4 w-4" />
                     Download CSV
                   </Button>
@@ -162,7 +414,11 @@ const Reports = () => {
                 </CardContent>
                 <CardFooter className="flex justify-between">
                   <Button variant="ghost" size="sm">View Details</Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleChartExport("Service Delivery")}
+                  >
                     <Download className="mr-2 h-4 w-4" />
                     Download CSV
                   </Button>
@@ -189,7 +445,7 @@ const Reports = () => {
                   <Card>
                     <CardContent className="p-6">
                       <div className="flex flex-col items-center text-center">
-                        <Calendar className="h-8 w-8 text-primary mb-2" />
+                        <CalendarIcon className="h-8 w-8 text-primary mb-2" />
                         <h3 className="text-xl font-bold">125</h3>
                         <p className="text-sm text-muted-foreground">Services Delivered</p>
                       </div>

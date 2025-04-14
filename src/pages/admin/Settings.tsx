@@ -1,54 +1,54 @@
 
 import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
-import { Save, RefreshCw, Shield } from "lucide-react";
+import { Save, RefreshCw, Megaphone, Bell, Trash2, Plus, Check, X } from "lucide-react";
+
+// Mock announcements data
+const mockAnnouncements = [
+  { id: 1, title: "System Maintenance", message: "The system will be down for maintenance on Sunday from 2-4 AM.", status: "active", date: "2025-04-20" },
+  { id: 2, title: "New Feature Release", message: "We've added new volunteer management features!", status: "active", date: "2025-04-10" },
+  { id: 3, title: "Holiday Schedule", message: "Modified operating hours during upcoming holidays.", status: "scheduled", date: "2025-05-15" },
+  { id: 4, title: "Training Session", message: "Mandatory training for all staff members.", status: "expired", date: "2025-03-25" },
+];
 
 const Settings = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("announcements");
+  const [announcements, setAnnouncements] = useState(mockAnnouncements);
+  const [showNewAnnouncementForm, setShowNewAnnouncementForm] = useState(false);
+  const [editingAnnouncement, setEditingAnnouncement] = useState<number | null>(null);
 
-  // System settings form
-  const systemForm = useForm({
-    defaultValues: {
-      enableRegistration: true,
-      requireEmailVerification: true,
-      systemName: "NGO Operations Hub",
-      systemDescription: "Authentication & Access Control System",
-    }
-  });
-
-  // Notifications settings form
+  // Notification settings form
   const notificationForm = useForm({
     defaultValues: {
       enableEmailNotifications: true,
-      notificationFromEmail: "noreply@ngo.org",
-      emailFooter: "This is an automated message from the NGO Operations Hub. Please do not reply to this email.",
+      enableSystemNotifications: true,
+      dailyDigest: false,
+      notifyNewUsers: true,
+      notifySystemUpdates: true,
+      notifySecurityAlerts: true,
     }
   });
 
-  const handleSystemSubmit = (data: any) => {
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log("System settings saved:", data);
-      
-      toast({
-        title: "Settings saved",
-        description: "System settings have been updated successfully.",
-      });
-      
-      setIsSubmitting(false);
-    }, 1000);
-  };
+  // Announcement form
+  const announcementForm = useForm({
+    defaultValues: {
+      title: "",
+      message: "",
+      status: "active",
+      date: new Date().toISOString().split('T')[0],
+    }
+  });
 
   const handleNotificationSubmit = (data: any) => {
     setIsSubmitting(true);
@@ -66,136 +66,307 @@ const Settings = () => {
     }, 1000);
   };
 
+  const handleAddAnnouncement = (data: any) => {
+    setIsSubmitting(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      if (editingAnnouncement !== null) {
+        // Update existing announcement
+        setAnnouncements(announcements.map(a => 
+          a.id === editingAnnouncement ? { ...a, ...data } : a
+        ));
+        
+        toast({
+          title: "Announcement updated",
+          description: "The announcement has been updated successfully.",
+        });
+        
+        setEditingAnnouncement(null);
+      } else {
+        // Add new announcement
+        setAnnouncements([
+          { id: Date.now(), ...data },
+          ...announcements,
+        ]);
+        
+        toast({
+          title: "Announcement created",
+          description: "A new announcement has been created successfully.",
+        });
+      }
+      
+      setShowNewAnnouncementForm(false);
+      announcementForm.reset({
+        title: "",
+        message: "",
+        status: "active",
+        date: new Date().toISOString().split('T')[0],
+      });
+      
+      setIsSubmitting(false);
+    }, 1000);
+  };
+
+  const deleteAnnouncement = (id: number) => {
+    setAnnouncements(announcements.filter(a => a.id !== id));
+    
+    toast({
+      title: "Announcement deleted",
+      description: "The announcement has been removed successfully.",
+    });
+  };
+
+  const editAnnouncement = (announcement: any) => {
+    announcementForm.reset({
+      title: announcement.title,
+      message: announcement.message,
+      status: announcement.status,
+      date: announcement.date,
+    });
+    
+    setEditingAnnouncement(announcement.id);
+    setShowNewAnnouncementForm(true);
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">System Settings</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Announcements & Notifications</h1>
             <p className="text-muted-foreground">
-              Configure global settings for the application
+              Manage system announcements and notification preferences
             </p>
           </div>
         </div>
 
-        <Tabs defaultValue="system" className="w-full">
+        <Tabs defaultValue="announcements" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 md:w-auto">
-            <TabsTrigger value="system">System</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="announcements">
+              <Megaphone className="mr-2 h-4 w-4" />
+              Announcements
+            </TabsTrigger>
+            <TabsTrigger value="notifications">
+              <Bell className="mr-2 h-4 w-4" />
+              Notifications
+            </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="system" className="mt-6">
+          <TabsContent value="announcements" className="mt-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  System Configuration
-                </CardTitle>
-                <CardDescription>
-                  Manage core system settings and behavior
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Megaphone className="h-5 w-5" />
+                    System Announcements
+                  </CardTitle>
+                  <CardDescription>
+                    Create and manage announcements for all users
+                  </CardDescription>
+                </div>
+                <Button 
+                  onClick={() => {
+                    announcementForm.reset({
+                      title: "",
+                      message: "",
+                      status: "active",
+                      date: new Date().toISOString().split('T')[0],
+                    });
+                    setEditingAnnouncement(null);
+                    setShowNewAnnouncementForm(!showNewAnnouncementForm);
+                  }}
+                >
+                  {showNewAnnouncementForm ? (
+                    <>
+                      <X className="mr-2 h-4 w-4" />
+                      Cancel
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" />
+                      New Announcement
+                    </>
+                  )}
+                </Button>
               </CardHeader>
               <CardContent>
-                <Form {...systemForm}>
-                  <form onSubmit={systemForm.handleSubmit(handleSystemSubmit)} className="space-y-6">
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FormField
-                        control={systemForm.control}
-                        name="systemName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>System Name</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Enter system name" />
-                            </FormControl>
-                            <FormDescription>
-                              The name displayed throughout the application
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={systemForm.control}
-                        name="systemDescription"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>System Description</FormLabel>
-                            <FormControl>
-                              <Input {...field} placeholder="Enter system description" />
-                            </FormControl>
-                            <FormDescription>
-                              Brief description of the system's purpose
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <FormField
-                        control={systemForm.control}
-                        name="enableRegistration"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                            <div className="space-y-0.5">
-                              <FormLabel>Enable Registration</FormLabel>
-                              <FormDescription>
-                                Allow new users to register accounts
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={systemForm.control}
-                        name="requireEmailVerification"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                            <div className="space-y-0.5">
-                              <FormLabel>Require Email Verification</FormLabel>
-                              <FormDescription>
-                                Users must verify email before login
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    
-                    <div className="flex justify-end space-x-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => systemForm.reset()}
-                      >
-                        <RefreshCw className="mr-2 h-4 w-4" />
-                        Reset
-                      </Button>
-                      <Button type="submit" disabled={isSubmitting}>
-                        <Save className="mr-2 h-4 w-4" />
-                        {isSubmitting ? "Saving..." : "Save Changes"}
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
+                {showNewAnnouncementForm && (
+                  <Card className="mb-6 border-dashed">
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        {editingAnnouncement !== null ? "Edit Announcement" : "Create New Announcement"}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Form {...announcementForm}>
+                        <form onSubmit={announcementForm.handleSubmit(handleAddAnnouncement)} className="space-y-4">
+                          <div className="grid gap-4 md:grid-cols-2">
+                            <FormField
+                              control={announcementForm.control}
+                              name="title"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Announcement Title</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} placeholder="Enter title" />
+                                  </FormControl>
+                                  <FormDescription>
+                                    A short, descriptive title
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={announcementForm.control}
+                              name="date"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Display Date</FormLabel>
+                                  <FormControl>
+                                    <Input type="date" {...field} />
+                                  </FormControl>
+                                  <FormDescription>
+                                    When this announcement will be displayed
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <FormField
+                            control={announcementForm.control}
+                            name="message"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Announcement Message</FormLabel>
+                                <FormControl>
+                                  <Textarea {...field} placeholder="Enter announcement message" rows={3} />
+                                </FormControl>
+                                <FormDescription>
+                                  The full announcement text that will be displayed to users
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={announcementForm.control}
+                            name="status"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Status</FormLabel>
+                                <FormControl>
+                                  <select
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    {...field}
+                                  >
+                                    <option value="active">Active</option>
+                                    <option value="scheduled">Scheduled</option>
+                                    <option value="expired">Expired</option>
+                                  </select>
+                                </FormControl>
+                                <FormDescription>
+                                  Active announcements are visible to all users
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <div className="flex justify-end space-x-4">
+                            <Button 
+                              type="button" 
+                              variant="outline"
+                              onClick={() => {
+                                announcementForm.reset();
+                                setShowNewAnnouncementForm(false);
+                                setEditingAnnouncement(null);
+                              }}
+                            >
+                              <X className="mr-2 h-4 w-4" />
+                              Cancel
+                            </Button>
+                            <Button type="submit" disabled={isSubmitting}>
+                              <Save className="mr-2 h-4 w-4" />
+                              {isSubmitting ? "Saving..." : (editingAnnouncement !== null ? "Update Announcement" : "Save Announcement")}
+                            </Button>
+                          </div>
+                        </form>
+                      </Form>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                <div className="rounded-md border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[250px]">Title</TableHead>
+                        <TableHead className="hidden md:table-cell">Message</TableHead>
+                        <TableHead className="w-[100px]">Status</TableHead>
+                        <TableHead className="w-[100px]">Date</TableHead>
+                        <TableHead className="w-[120px] text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {announcements.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
+                            No announcements available. Create your first announcement.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        announcements.map((announcement) => (
+                          <TableRow key={announcement.id}>
+                            <TableCell className="font-medium">{announcement.title}</TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {announcement.message.length > 60 
+                                ? `${announcement.message.substring(0, 60)}...` 
+                                : announcement.message}
+                            </TableCell>
+                            <TableCell>
+                              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                announcement.status === 'active' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : announcement.status === 'scheduled' 
+                                    ? 'bg-blue-100 text-blue-800' 
+                                    : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {announcement.status.charAt(0).toUpperCase() + announcement.status.slice(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>{announcement.date}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => editAnnouncement(announcement)}
+                                >
+                                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M11.8536 1.14645C11.6583 0.951184 11.3417 0.951184 11.1465 1.14645L3.71455 8.57836C3.62459 8.66832 3.55263 8.77461 3.50251 8.89155L2.04044 12.303C1.9599 12.491 2.00189 12.709 2.14646 12.8536C2.29103 12.9981 2.50905 13.0401 2.69697 12.9596L6.10847 11.4975C6.2254 11.4474 6.3317 11.3754 6.42166 11.2855L13.8536 3.85355C14.0488 3.65829 14.0488 3.34171 13.8536 3.14645L11.8536 1.14645ZM4.42166 9.28547L11.5 2.20711L12.7929 3.5L5.71455 10.5784L4.21924 11.2192L3.78081 10.7808L4.42166 9.28547Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
+                                  </svg>
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => deleteAnnouncement(announcement.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -203,7 +374,10 @@ const Settings = () => {
           <TabsContent value="notifications" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Notification Settings</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Notification Settings
+                </CardTitle>
                 <CardDescription>
                   Configure system-wide notification preferences
                 </CardDescription>
@@ -211,61 +385,147 @@ const Settings = () => {
               <CardContent>
                 <Form {...notificationForm}>
                   <form onSubmit={notificationForm.handleSubmit(handleNotificationSubmit)} className="space-y-6">
-                    <FormField
-                      control={notificationForm.control}
-                      name="enableEmailNotifications"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                          <div className="space-y-0.5">
-                            <FormLabel>Email Notifications</FormLabel>
-                            <FormDescription>
-                              Enable system email notifications
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Notification Channels</h3>
+                      
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <FormField
+                          control={notificationForm.control}
+                          name="enableEmailNotifications"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                              <div className="space-y-0.5">
+                                <FormLabel>Email Notifications</FormLabel>
+                                <FormDescription>
+                                  Send notifications via email
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={notificationForm.control}
+                          name="enableSystemNotifications"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                              <div className="space-y-0.5">
+                                <FormLabel>In-App Notifications</FormLabel>
+                                <FormDescription>
+                                  Show notifications in the application
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      
+                      <FormField
+                        control={notificationForm.control}
+                        name="dailyDigest"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                              <FormLabel>Daily Digest</FormLabel>
+                              <FormDescription>
+                                Send a daily summary instead of individual notifications
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     
-                    <FormField
-                      control={notificationForm.control}
-                      name="notificationFromEmail"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Notification From Email</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="noreply@example.com" />
-                          </FormControl>
-                          <FormDescription>
-                            The email address that appears in the From field
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={notificationForm.control}
-                      name="emailFooter"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Footer Text</FormLabel>
-                          <FormControl>
-                            <Textarea {...field} placeholder="Enter footer text for all emails" rows={3} />
-                          </FormControl>
-                          <FormDescription>
-                            This text will appear at the bottom of all system emails
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Notification Types</h3>
+                      
+                      <FormField
+                        control={notificationForm.control}
+                        name="notifyNewUsers"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                              <FormLabel>New User Registrations</FormLabel>
+                              <FormDescription>
+                                Notify when new users register
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={notificationForm.control}
+                        name="notifySystemUpdates"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                              <FormLabel>System Updates</FormLabel>
+                              <FormDescription>
+                                Notify about system updates and maintenance
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={notificationForm.control}
+                        name="notifySecurityAlerts"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <div className="space-y-0.5">
+                              <FormLabel>Security Alerts</FormLabel>
+                              <FormDescription>
+                                Notify about security-related events
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                     
                     <div className="flex justify-end space-x-4">
                       <Button
