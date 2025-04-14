@@ -7,12 +7,13 @@ import { validateAppointmentStatus } from "./utils/validationUtils";
 // Appointments Management
 export async function fetchAppointments(): Promise<Appointment[]> {
   try {
+    // Query the database with corrected relationships
     const { data, error } = await supabase
       .from('appointments')
       .select(`
         *,
-        beneficiary:beneficiary_users!beneficiary_id(id, full_name, contact_info),
-        staff:staff_users!staff_id(id, full_name)
+        beneficiary:beneficiary_id(id, full_name, contact_info),
+        staff:staff_id(id, full_name)
       `)
       .order('date', { ascending: true });
     

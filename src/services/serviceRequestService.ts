@@ -7,12 +7,13 @@ import { validateServiceRequestStatus, validateServiceRequestUrgency } from "./u
 // Service Requests Management
 export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
   try {
+    // Query the database with corrected relationships
     const { data, error } = await supabase
       .from('service_requests')
       .select(`
         *,
-        beneficiary:beneficiary_users!beneficiary_id(id, full_name, contact_info),
-        staff:staff_users!assigned_staff(id, full_name)
+        beneficiary:beneficiary_id(id, full_name, contact_info),
+        staff:assigned_staff(id, full_name)
       `)
       .order('created_at', { ascending: false });
     

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -92,6 +93,7 @@ export interface BeneficiaryResource {
 // Service Requests
 export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
   try {
+    // Updated query to use proper relationship syntax
     const { data, error } = await supabase
       .from('service_requests')
       .select(`
@@ -245,6 +247,7 @@ export async function verifyServiceRequest(
 // Appointments
 export async function fetchAppointments(): Promise<Appointment[]> {
   try {
+    // Updated query to use proper relationship syntax
     const { data, error } = await supabase
       .from('appointments')
       .select(`
