@@ -628,7 +628,7 @@ export async function fetchAppointments(): Promise<Appointment[]> {
     
     // Transform the data to match our expected types
     return (data || []).map(appointment => {
-      // Handle the case where beneficiary/staff might have error
+      // Create a base appointment without relations
       const transformedAppointment: Appointment = {
         id: appointment.id,
         beneficiary_id: appointment.beneficiary_id,
@@ -645,8 +645,11 @@ export async function fetchAppointments(): Promise<Appointment[]> {
         updated_at: appointment.updated_at,
       };
       
-      // Add the relations if they exist and are valid
-      if (appointment.beneficiary && typeof appointment.beneficiary === 'object' && !('error' in appointment.beneficiary)) {
+      // Add the relations if they exist and are valid objects (not error objects)
+      if (appointment.beneficiary && 
+          typeof appointment.beneficiary === 'object' && 
+          !('error' in appointment.beneficiary) && 
+          appointment.beneficiary.id) {
         transformedAppointment.beneficiary = {
           id: appointment.beneficiary.id,
           full_name: appointment.beneficiary.full_name,
@@ -654,7 +657,10 @@ export async function fetchAppointments(): Promise<Appointment[]> {
         };
       }
       
-      if (appointment.staff && typeof appointment.staff === 'object' && !('error' in appointment.staff)) {
+      if (appointment.staff && 
+          typeof appointment.staff === 'object' && 
+          !('error' in appointment.staff) && 
+          appointment.staff.id) {
         transformedAppointment.staff = {
           id: appointment.staff.id,
           full_name: appointment.staff.full_name
@@ -666,78 +672,6 @@ export async function fetchAppointments(): Promise<Appointment[]> {
   } catch (error: any) {
     console.error("Error fetching appointments:", error.message);
     return [];
-  }
-}
-
-export async function updateAppointment(id: string, appointment: Partial<Appointment>): Promise<Appointment | null> {
-  try {
-    // Validate status if provided
-    if (appointment.status) {
-      appointment.status = validateAppointmentStatus(appointment.status);
-    }
-    
-    const { data, error } = await supabase
-      .from('appointments')
-      .update(appointment)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    toast({
-      title: "Success",
-      description: "Appointment updated successfully"
-    });
-    
-    return {
-      ...data,
-      status: validateAppointmentStatus(data.status)
-    } as Appointment;
-  } catch (error: any) {
-    console.error("Error updating appointment:", error.message);
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: error.message || "Failed to update appointment"
-    });
-    return null;
-  }
-}
-
-export async function createAppointment(appointment: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>): Promise<Appointment | null> {
-  try {
-    // Validate status
-    const appointmentWithValidStatus = {
-      ...appointment,
-      status: validateAppointmentStatus(appointment.status)
-    };
-    
-    const { data, error } = await supabase
-      .from('appointments')
-      .insert(appointmentWithValidStatus)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    toast({
-      title: "Success",
-      description: "Appointment created successfully"
-    });
-    
-    return {
-      ...data,
-      status: validateAppointmentStatus(data.status)
-    } as Appointment;
-  } catch (error: any) {
-    console.error("Error creating appointment:", error.message);
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: error.message || "Failed to create appointment"
-    });
-    return null;
   }
 }
 
@@ -768,7 +702,7 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
     
     // Transform the data to match our expected types
     return (data || []).map(request => {
-      // Handle the case where beneficiary/staff might have error
+      // Create a base request without relations
       const transformedRequest: ServiceRequest = {
         id: request.id,
         beneficiary_id: request.beneficiary_id,
@@ -783,8 +717,11 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
         updated_at: request.updated_at,
       };
       
-      // Add the relations if they exist and are valid
-      if (request.beneficiary && typeof request.beneficiary === 'object' && !('error' in request.beneficiary)) {
+      // Add the relations if they exist and are valid objects (not error objects)
+      if (request.beneficiary && 
+          typeof request.beneficiary === 'object' && 
+          !('error' in request.beneficiary) && 
+          request.beneficiary.id) {
         transformedRequest.beneficiary = {
           id: request.beneficiary.id,
           full_name: request.beneficiary.full_name,
@@ -792,7 +729,10 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
         };
       }
       
-      if (request.staff && typeof request.staff === 'object' && !('error' in request.staff)) {
+      if (request.staff && 
+          typeof request.staff === 'object' && 
+          !('error' in request.staff) && 
+          request.staff.id) {
         transformedRequest.staff = {
           id: request.staff.id,
           full_name: request.staff.full_name
@@ -804,84 +744,5 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
   } catch (error: any) {
     console.error("Error fetching service requests:", error.message);
     return [];
-  }
-}
-
-export async function updateServiceRequest(id: string, request: Partial<ServiceRequest>): Promise<ServiceRequest | null> {
-  try {
-    // Validate status and urgency if provided
-    if (request.status) {
-      request.status = validateServiceRequestStatus(request.status);
-    }
-    
-    if (request.urgency) {
-      request.urgency = validateServiceRequestUrgency(request.urgency);
-    }
-    
-    const { data, error } = await supabase
-      .from('service_requests')
-      .update(request)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    toast({
-      title: "Success",
-      description: "Service request updated successfully"
-    });
-    
-    return {
-      ...data,
-      status: validateServiceRequestStatus(data.status),
-      urgency: validateServiceRequestUrgency(data.urgency)
-    } as ServiceRequest;
-  } catch (error: any) {
-    console.error("Error updating service request:", error.message);
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: error.message || "Failed to update service request"
-    });
-    return null;
-  }
-}
-
-export async function createServiceRequest(request: Omit<ServiceRequest, 'id' | 'created_at' | 'updated_at'>): Promise<ServiceRequest | null> {
-  try {
-    // Validate status and urgency
-    const requestWithValidProperties = {
-      ...request,
-      status: validateServiceRequestStatus(request.status),
-      urgency: validateServiceRequestUrgency(request.urgency)
-    };
-    
-    const { data, error } = await supabase
-      .from('service_requests')
-      .insert(requestWithValidProperties)
-      .select()
-      .single();
-    
-    if (error) throw error;
-    
-    toast({
-      title: "Success",
-      description: "Service request created successfully"
-    });
-    
-    return {
-      ...data,
-      status: validateServiceRequestStatus(data.status),
-      urgency: validateServiceRequestUrgency(data.urgency)
-    } as ServiceRequest;
-  } catch (error: any) {
-    console.error("Error creating service request:", error.message);
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: error.message || "Failed to create service request"
-    });
-    return null;
   }
 }

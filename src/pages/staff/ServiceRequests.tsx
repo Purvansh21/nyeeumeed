@@ -271,13 +271,13 @@ const StaffServiceRequests = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Select value={statusFilter || ""} onValueChange={(val) => setStatusFilter(val || null)}>
+          <Select value={statusFilter || "all"} onValueChange={(val) => setStatusFilter(val === "all" ? null : val)}>
             <SelectTrigger className="h-10 w-[150px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="in-progress">In Progress</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
@@ -285,13 +285,13 @@ const StaffServiceRequests = () => {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Select value={urgencyFilter || ""} onValueChange={(val) => setUrgencyFilter(val || null)}>
+          <Select value={urgencyFilter || "all"} onValueChange={(val) => setUrgencyFilter(val === "all" ? null : val)}>
             <SelectTrigger className="h-10 w-[150px]">
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="">All Priorities</SelectItem>
+                <SelectItem value="all">All Priorities</SelectItem>
                 <SelectItem value="high">High</SelectItem>
                 <SelectItem value="medium">Medium</SelectItem>
                 <SelectItem value="low">Low</SelectItem>
