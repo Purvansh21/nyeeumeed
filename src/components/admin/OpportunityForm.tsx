@@ -100,7 +100,8 @@ const OpportunityForm = ({ onSuccess }: OpportunityFormProps) => {
         status: values.status,
       };
       
-      const success = await createVolunteerOpportunity(opportunityData, user.id);
+      // Fixed: removed the second argument, as createVolunteerOpportunity now handles user ID internally
+      const success = await createVolunteerOpportunity(opportunityData);
       
       if (success) {
         setIsSuccess(true);

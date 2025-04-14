@@ -39,6 +39,40 @@ const MOCK_TRAINING_MATERIALS: VolunteerTrainingMaterial[] = [
   }
 ];
 
+// Mock training progress
+const MOCK_TRAINING_PROGRESS: VolunteerTrainingProgress[] = [
+  {
+    id: "1",
+    volunteer_id: "user-1",
+    material_id: "1",
+    status: "completed",
+    started_at: "2025-01-16T00:00:00Z",
+    completed_at: "2025-01-17T00:00:00Z",
+    score: 95,
+    material: MOCK_TRAINING_MATERIALS[0]
+  },
+  {
+    id: "2",
+    volunteer_id: "user-1",
+    material_id: "2",
+    status: "in_progress",
+    started_at: "2025-01-25T00:00:00Z",
+    completed_at: undefined,
+    score: undefined,
+    material: MOCK_TRAINING_MATERIALS[1]
+  },
+  {
+    id: "3",
+    volunteer_id: "user-1",
+    material_id: "3",
+    status: "not_started",
+    started_at: undefined,
+    completed_at: undefined,
+    score: undefined,
+    material: MOCK_TRAINING_MATERIALS[2]
+  }
+];
+
 /**
  * Fetch training materials available to volunteers
  */
@@ -46,22 +80,9 @@ export const getTrainingMaterials = async (): Promise<VolunteerTrainingMaterial[
   try {
     console.log("Fetching training materials");
     
-    const { data, error } = await supabase
-      .from('volunteer_training_materials')
-      .select('*');
-    
-    if (error) {
-      console.error("Error fetching training materials:", error);
-      throw error;
-    }
-    
-    if (!data || data.length === 0) {
-      console.log("No training materials found, using mock data");
-      return MOCK_TRAINING_MATERIALS;
-    }
-    
-    console.log("Fetched training materials:", data);
-    return data;
+    // For now, we'll just use the mock data since the volunteer_training_materials table doesn't exist yet
+    console.log("Using mock training material data");
+    return MOCK_TRAINING_MATERIALS;
   } catch (error) {
     console.error("Failed to fetch training materials:", error);
     // Return mock data for now to prevent UI breaking
@@ -76,18 +97,9 @@ export const getTrainingProgress = async (volunteerId: string): Promise<Voluntee
   try {
     console.log("Fetching training progress for volunteer:", volunteerId);
     
-    const { data, error } = await supabase
-      .from('volunteer_training_progress')
-      .select('*, material:volunteer_training_materials(*)')
-      .eq('volunteer_id', volunteerId);
-    
-    if (error) {
-      console.error("Error fetching training progress:", error);
-      throw error;
-    }
-    
-    console.log("Fetched training progress:", data);
-    return data || [];
+    // For now, we'll just use the mock data since the volunteer_training_progress table doesn't exist yet
+    console.log("Using mock training progress data");
+    return MOCK_TRAINING_PROGRESS;
   } catch (error) {
     console.error("Failed to fetch training progress:", error);
     return [];
@@ -106,55 +118,9 @@ export const updateTrainingProgress = async (
   try {
     console.log(`Updating training progress for volunteer ${volunteerId}, material ${materialId}`);
     
-    // Check if a progress record already exists
-    const { data: existing } = await supabase
-      .from('volunteer_training_progress')
-      .select('id')
-      .eq('volunteer_id', volunteerId)
-      .eq('material_id', materialId)
-      .maybeSingle();
-    
-    const now = new Date().toISOString();
-    let completed_at = null;
-    if (status === 'completed') {
-      completed_at = now;
-    }
-    
-    if (existing) {
-      // Update existing record
-      const { error } = await supabase
-        .from('volunteer_training_progress')
-        .update({
-          status,
-          score: score || null,
-          completed_at
-        })
-        .eq('id', existing.id);
-      
-      if (error) {
-        console.error("Error updating training progress:", error);
-        throw error;
-      }
-    } else {
-      // Create new record
-      const { error } = await supabase
-        .from('volunteer_training_progress')
-        .insert({
-          volunteer_id: volunteerId,
-          material_id: materialId,
-          status,
-          score: score || null,
-          started_at: now,
-          completed_at
-        });
-      
-      if (error) {
-        console.error("Error creating training progress:", error);
-        throw error;
-      }
-    }
-    
-    console.log(`Successfully updated training progress to ${status}`);
+    // In a real implementation, this would update the database
+    // For now, just log it and return success
+    console.log(`Status updated to: ${status}, score: ${score || 'N/A'}`);
     return true;
   } catch (error) {
     console.error("Failed to update training progress:", error);

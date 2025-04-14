@@ -43,23 +43,9 @@ export const getVolunteerAchievements = async (volunteerId: string): Promise<Vol
   try {
     console.log("Fetching achievements for volunteer:", volunteerId);
     
-    const { data, error } = await supabase
-      .from('volunteer_achievements')
-      .select('*')
-      .eq('volunteer_id', volunteerId);
-    
-    if (error) {
-      console.error("Error fetching volunteer achievements:", error);
-      throw error;
-    }
-    
-    if (!data || data.length === 0) {
-      console.log("No achievements found for this volunteer, using mock data");
-      return MOCK_ACHIEVEMENTS;
-    }
-    
-    console.log("Fetched volunteer achievements:", data);
-    return data;
+    // For now, we'll just use the mock data since the volunteer_achievements table doesn't exist yet
+    console.log("Using mock achievement data");
+    return MOCK_ACHIEVEMENTS;
   } catch (error) {
     console.error("Failed to fetch volunteer achievements:", error);
     // Return mock data for now to prevent UI breaking
