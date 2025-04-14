@@ -17,7 +17,7 @@ const LandingPage = () => {
       <header className="relative h-screen flex flex-col items-center justify-center text-center px-4 md:px-8">
         {/* Video Background */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute inset-0 bg-black/30 z-10"></div>
+          <div className="absolute inset-0 bg-black/40 z-10"></div>
           <video 
             className="absolute w-full h-full object-cover"
             autoPlay 
@@ -26,12 +26,12 @@ const LandingPage = () => {
             playsInline
           >
             <source 
-              src="https://cdn.coverr.co/videos/coverr-people-helping-to-plant-trees-4584/1080p.mp4" 
+              src="https://cdn.coverr.co/videos/coverr-community-volunteers-planting-trees-5584/1080p.mp4" 
               type="video/mp4" 
             />
             {/* Fallback image in case video doesn't load */}
             <img 
-              src="https://images.unsplash.com/photo-1469571486292-b53601021a68?q=80&w=2070&auto=format&fit=crop" 
+              src="https://images.unsplash.com/photo-1593113598332-cd59c5a3ca0e?q=80&w=2070&auto=format&fit=crop" 
               alt="Community service" 
               className="w-full h-full object-cover"
             />
@@ -78,19 +78,19 @@ const LandingPage = () => {
               icon={<HelpingHand className="h-10 w-10 text-primary" />}
               title="Support Services"
               description="Providing essential support services to those in need, ensuring access to resources and care."
-              image="https://images.unsplash.com/photo-1593113630400-ea4288922497?q=80&w=2070&auto=format&fit=crop"
+              image="https://images.unsplash.com/photo-1501435631935-a98b1f778522?q=80&w=2070&auto=format&fit=crop"
             />
             <FeatureCard 
               icon={<Users className="h-10 w-10 text-primary" />}
               title="Community Building"
               description="Creating connections and fostering community engagement through volunteer opportunities."
-              image="https://images.unsplash.com/photo-1560252829-804f1aedf1be?q=80&w=2069&auto=format&fit=crop"
+              image="https://images.unsplash.com/photo-1593113616828-6f22bca04804?q=80&w=2070&auto=format&fit=crop"
             />
             <FeatureCard 
               icon={<Shield className="h-10 w-10 text-primary" />}
               title="Resource Management"
               description="Efficiently managing and distributing resources to maximize impact and reach."
-              image="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2070&auto=format&fit=crop"
+              image="https://images.unsplash.com/photo-1617450365226-9bf28c04e130?q=80&w=2070&auto=format&fit=crop"
             />
           </div>
         </div>
@@ -100,7 +100,7 @@ const LandingPage = () => {
       <section className="py-20 px-4 md:px-8 bg-primary text-primary-foreground relative">
         <div className="absolute inset-0 opacity-10 z-0">
           <img 
-            src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=2070&auto=format&fit=crop" 
+            src="https://images.unsplash.com/photo-1469571486292-b53601021a68?q=80&w=2070&auto=format&fit=crop" 
             alt="Background pattern" 
             className="w-full h-full object-cover"
           />
