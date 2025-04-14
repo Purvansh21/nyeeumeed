@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { 
@@ -650,10 +651,11 @@ export async function fetchAppointments(): Promise<Appointment[]> {
           typeof appointment.beneficiary === 'object' && 
           !('error' in appointment.beneficiary) && 
           'id' in appointment.beneficiary) {
+        const beneficiary = appointment.beneficiary;
         transformedAppointment.beneficiary = {
-          id: appointment.beneficiary.id,
-          full_name: appointment.beneficiary.full_name,
-          contact_info: appointment.beneficiary.contact_info
+          id: beneficiary.id,
+          full_name: beneficiary.full_name,
+          contact_info: beneficiary.contact_info
         };
       }
       
@@ -661,9 +663,10 @@ export async function fetchAppointments(): Promise<Appointment[]> {
           typeof appointment.staff === 'object' && 
           !('error' in appointment.staff) && 
           'id' in appointment.staff) {
+        const staff = appointment.staff;
         transformedAppointment.staff = {
-          id: appointment.staff.id,
-          full_name: appointment.staff.full_name
+          id: staff.id,
+          full_name: staff.full_name
         };
       }
       
@@ -767,10 +770,11 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
           typeof request.beneficiary === 'object' && 
           !('error' in request.beneficiary) && 
           'id' in request.beneficiary) {
+        const beneficiary = request.beneficiary;
         transformedRequest.beneficiary = {
-          id: request.beneficiary.id,
-          full_name: request.beneficiary.full_name,
-          contact_info: request.beneficiary.contact_info
+          id: beneficiary.id,
+          full_name: beneficiary.full_name,
+          contact_info: beneficiary.contact_info
         };
       }
       
@@ -778,9 +782,10 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
           typeof request.staff === 'object' && 
           !('error' in request.staff) && 
           'id' in request.staff) {
+        const staff = request.staff;
         transformedRequest.staff = {
-          id: request.staff.id,
-          full_name: request.staff.full_name
+          id: staff.id,
+          full_name: staff.full_name
         };
       }
       
