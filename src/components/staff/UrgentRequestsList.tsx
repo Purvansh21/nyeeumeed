@@ -8,7 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircleIcon, AlertCircleIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/use-toast";
-import { fetchUrgentRequests, verifyUrgentRequest, UrgentRequest } from "@/services/urgentRequestService";
+import { fetchUrgentRequests, verifyUrgentRequest, respondToUrgentRequest, UrgentRequest } from "@/services/urgentRequestService";
+import { DataTable } from "@/components/ui/data-table";
 
 const UrgentRequestsList: React.FC = () => {
   const { user } = useAuth();
@@ -44,6 +45,36 @@ const UrgentRequestsList: React.FC = () => {
         variant: "destructive",
         title: "Error",
         description: "Failed to process the request"
+      });
+    }
+  };
+
+  const handleRespondToRequest = async (id: string) => {
+    if (!user) return;
+    
+    try {
+      const result = await respondToUrgentRequest(
+        id,
+        {
+          response_notes: "Issue has been addressed and resolved",
+          responded_by: user.id,
+          status: 'resolved'
+        }
+      );
+      
+      if (result) {
+        toast({
+          title: "Success",
+          description: "Response to urgent request recorded successfully"
+        });
+        refetch();
+      }
+    } catch (error) {
+      console.error("Error responding to request:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to respond to the request"
       });
     }
   };
@@ -161,6 +192,22 @@ const UrgentRequestsList: React.FC = () => {
                       Reject
                     </Button>
                   </div>
+                )}
+                
+                {/* Add respond button for verified requests that aren't resolved yet */}
+                {request.verification_status === 'verified' && request.status !== 'resolved' && (
+                  <Button 
+                    size="sm"
+                    onClick={() => handleRespondToRequest(request.id)}
+                    className="bg-blue-500 hover:bg-blue-600 text-white"
+                  >
+                    Mark as Resolved
+                  </Button>
+                )}
+                
+                {/* Show status for resolved requests */}
+                {request.status === 'resolved' && (
+                  <Badge className="bg-green-500 text-white">Resolved</Badge>
                 )}
               </div>
             </div>
