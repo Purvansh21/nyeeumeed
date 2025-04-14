@@ -11,90 +11,111 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  getVolunteerAchievements, 
+  getMilestoneProgress, 
+  getLeaderboardData,
+  shareAchievement
+} from "@/services/achievementService";
+import { VolunteerAchievement } from "@/types/volunteer";
 
 const VolunteerAchievements = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [yearFilter, setYearFilter] = useState("all");
+  const [achievements, setAchievements] = useState<VolunteerAchievement[]>([]);
+  const [milestoneProgress, setMilestoneProgress] = useState<any>(null);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
 
-  // Mock data for achievements
-  const achievements = [
-    { 
-      id: 1, 
-      title: "Community Champion", 
-      date: "Feb 15, 2025", 
-      year: "2025",
-      description: "Awarded for completing 10 community service events",
-      icon: "Trophy"
-    },
-    { 
-      id: 2, 
-      title: "First Responder", 
-      date: "Mar 5, 2025", 
-      year: "2025",
-      description: "Successfully completed emergency response training",
-      icon: "Star"
-    },
-    { 
-      id: 3, 
-      title: "100 Hours of Service", 
-      date: "Mar 30, 2025", 
-      year: "2025",
-      description: "Reached 100 hours of volunteer service",
-      icon: "Award"
-    },
-    { 
-      id: 4, 
-      title: "Beneficiary Support Excellence", 
-      date: "Apr 10, 2025", 
-      year: "2025",
-      description: "Recognized for exceptional care and support to beneficiaries",
-      icon: "Medal"
-    },
-    { 
-      id: 5, 
-      title: "Team Leadership Award", 
-      date: "Apr 12, 2025", 
-      year: "2025",
-      description: "Successfully led a team of volunteers during a major event",
-      icon: "FileText"
-    },
-    { 
-      id: 6, 
-      title: "Volunteer of the Month", 
-      date: "Dec 15, 2024", 
-      year: "2024",
-      description: "Selected as volunteer of the month for December 2024",
-      icon: "Trophy"
-    },
-  ];
+  useEffect(() => {
+    const loadData = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      
+      setIsLoading(true);
+      try {
+        console.log("Loading achievements data...");
+        const [achievementsData, progressData, leaderboardData] = await Promise.all([
+          getVolunteerAchievements(user.id),
+          getMilestoneProgress(user.id),
+          getLeaderboardData()
+        ]);
+        
+        setAchievements(achievementsData);
+        setMilestoneProgress(progressData);
+        setLeaderboard(leaderboardData);
+        
+        console.log("Achievements data loaded successfully");
+      } catch (error) {
+        console.error("Error loading achievements data:", error);
+        toast({
+          variant: "destructive",
+          title: "Failed to load achievements",
+          description: "There was an error loading your achievements data."
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [user, toast]);
 
   // Filter achievements based on selected year
   const filteredAchievements = yearFilter === "all" 
     ? achievements 
-    : achievements.filter(achievement => achievement.year === yearFilter);
+    : achievements.filter(achievement => {
+        const year = new Date(achievement.date_earned).getFullYear().toString();
+        return year === yearFilter;
+      });
 
-  useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleShareAchievement = (achievementId: number) => {
-    toast({
-      title: "Achievement shared",
-      description: "Your achievement has been shared to your profile.",
-    });
+  const handleShareAchievement = async (achievementId: number | string) => {
+    try {
+      const success = await shareAchievement(achievementId.toString());
+      
+      if (success) {
+        toast({
+          title: "Achievement shared",
+          description: "Your achievement has been shared to your profile.",
+        });
+      } else {
+        throw new Error("Failed to share achievement");
+      }
+    } catch (error) {
+      console.error("Error sharing achievement:", error);
+      toast({
+        variant: "destructive",
+        title: "Share failed",
+        description: "There was an error sharing your achievement."
+      });
+    }
   };
 
-  const handleDownloadCertificate = (achievementId: number) => {
+  const handleDownloadCertificate = (achievementId: number | string) => {
     toast({
       title: "Certificate download started",
       description: "Your achievement certificate is being downloaded.",
     });
+  };
+
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case "Trophy":
+        return <Trophy className="h-8 w-8 text-amber-600" />;
+      case "Star":
+        return <Star className="h-8 w-8 text-amber-600" />;
+      case "Award":
+        return <Award className="h-8 w-8 text-amber-600" />;
+      case "Medal":
+        return <Medal className="h-8 w-8 text-amber-600" />;
+      case "FileText":
+        return <FileText className="h-8 w-8 text-amber-600" />;
+      default:
+        return <Trophy className="h-8 w-8 text-amber-600" />;
+    }
   };
 
   if (isLoading) {
@@ -160,42 +181,57 @@ const VolunteerAchievements = () => {
               <CardContent>
                 {filteredAchievements.length > 0 ? (
                   <div className="space-y-6">
-                    {filteredAchievements.map((achievement) => (
-                      <div key={achievement.id} className="flex flex-col md:flex-row gap-4 p-4 border rounded-md hover:bg-accent/10 transition-colors">
-                        <div className="flex items-center justify-center p-4 bg-amber-50 rounded-full">
-                          {achievement.icon === "Trophy" && <Trophy className="h-8 w-8 text-amber-600" />}
-                          {achievement.icon === "Star" && <Star className="h-8 w-8 text-amber-600" />}
-                          {achievement.icon === "Award" && <Award className="h-8 w-8 text-amber-600" />}
-                          {achievement.icon === "Medal" && <Medal className="h-8 w-8 text-amber-600" />}
-                          {achievement.icon === "FileText" && <FileText className="h-8 w-8 text-amber-600" />}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                            <div>
-                              <h3 className="font-bold text-lg">{achievement.title}</h3>
-                              <div className="flex items-center gap-2 mt-1">
-                                <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                                <p className="text-sm text-muted-foreground">Awarded on {achievement.date}</p>
+                    {filteredAchievements.map((achievement) => {
+                      // Convert date_earned to a display format
+                      const awardDate = new Date(achievement.date_earned);
+                      const displayDate = awardDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      });
+                      
+                      // Determine icon based on badge_name or another property
+                      const iconName = achievement.badge_name.includes('champion') 
+                        ? "Trophy" 
+                        : achievement.badge_name.includes('responder')
+                          ? "Star"
+                          : achievement.badge_name.includes('hours')
+                            ? "Award"
+                            : "Medal";
+                      
+                      return (
+                        <div key={achievement.id} className="flex flex-col md:flex-row gap-4 p-4 border rounded-md hover:bg-accent/10 transition-colors">
+                          <div className="flex items-center justify-center p-4 bg-amber-50 rounded-full">
+                            {getIconComponent(iconName)}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                              <div>
+                                <h3 className="font-bold text-lg">{achievement.title}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                                  <p className="text-sm text-muted-foreground">Awarded on {displayDate}</p>
+                                </div>
                               </div>
+                              <Badge variant="outline" className="mt-2 md:mt-0 w-fit bg-amber-50 text-amber-700 border-amber-200">
+                                {achievement.category.charAt(0).toUpperCase() + achievement.category.slice(1)}
+                              </Badge>
                             </div>
-                            <Badge variant="outline" className="mt-2 md:mt-0 w-fit bg-amber-50 text-amber-700 border-amber-200">
-                              Achievement
-                            </Badge>
-                          </div>
-                          <p className="mt-2">{achievement.description}</p>
-                          <div className="flex flex-wrap gap-2 mt-3">
-                            <Button size="sm" variant="outline" className="h-8" onClick={() => handleShareAchievement(achievement.id)}>
-                              <Share2 className="h-3.5 w-3.5 mr-1.5" />
-                              Share
-                            </Button>
-                            <Button size="sm" variant="outline" className="h-8" onClick={() => handleDownloadCertificate(achievement.id)}>
-                              <Download className="h-3.5 w-3.5 mr-1.5" />
-                              Certificate
-                            </Button>
+                            <p className="mt-2">{achievement.description}</p>
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              <Button size="sm" variant="outline" className="h-8" onClick={() => handleShareAchievement(achievement.id)}>
+                                <Share2 className="h-3.5 w-3.5 mr-1.5" />
+                                Share
+                              </Button>
+                              <Button size="sm" variant="outline" className="h-8" onClick={() => handleDownloadCertificate(achievement.id)}>
+                                <Download className="h-3.5 w-3.5 mr-1.5" />
+                                Certificate
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -219,69 +255,73 @@ const VolunteerAchievements = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="font-medium">Hours of Service</span>
-                      <span className="font-medium">132 / 250 hours</span>
-                    </div>
-                    <Progress value={53} className="h-2" />
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-sm text-muted-foreground">
-                        You're 53% of the way to your 250 hour service award
-                      </p>
-                      <Badge variant="outline" className="bg-blue-500/10 text-blue-700">
-                        118 hours to go
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="font-medium">Events Participated</span>
-                      <span className="font-medium">15 / 25 events</span>
-                    </div>
-                    <Progress value={60} className="h-2" />
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-sm text-muted-foreground">
-                        Participate in 10 more events to receive the Event Excellence award
-                      </p>
-                      <Badge variant="outline" className="bg-blue-500/10 text-blue-700">
-                        10 events to go
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="font-medium">Training Certification</span>
-                      <span className="font-medium">3 / 5 modules</span>
-                    </div>
-                    <Progress value={60} className="h-2" />
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-sm text-muted-foreground">
-                        Complete 2 more training modules to earn your Advanced Volunteer certification
-                      </p>
-                      <Badge variant="outline" className="bg-blue-500/10 text-blue-700">
-                        2 modules to go
-                      </Badge>
-                    </div>
-                  </div>
+                  {milestoneProgress && (
+                    <>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">Hours of Service</span>
+                          <span className="font-medium">{milestoneProgress.hours.current} / {milestoneProgress.hours.target} hours</span>
+                        </div>
+                        <Progress value={milestoneProgress.hours.percentage} className="h-2" />
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-sm text-muted-foreground">
+                            You're {milestoneProgress.hours.percentage}% of the way to your {milestoneProgress.hours.target} hour service award
+                          </p>
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-700">
+                            {milestoneProgress.hours.target - milestoneProgress.hours.current} hours to go
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">Events Participated</span>
+                          <span className="font-medium">{milestoneProgress.events.current} / {milestoneProgress.events.target} events</span>
+                        </div>
+                        <Progress value={milestoneProgress.events.percentage} className="h-2" />
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-sm text-muted-foreground">
+                            Participate in {milestoneProgress.events.target - milestoneProgress.events.current} more events to receive the Event Excellence award
+                          </p>
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-700">
+                            {milestoneProgress.events.target - milestoneProgress.events.current} events to go
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">Training Certification</span>
+                          <span className="font-medium">{milestoneProgress.training.current} / {milestoneProgress.training.target} modules</span>
+                        </div>
+                        <Progress value={milestoneProgress.training.percentage} className="h-2" />
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-sm text-muted-foreground">
+                            Complete {milestoneProgress.training.target - milestoneProgress.training.current} more training modules to earn your Advanced Volunteer certification
+                          </p>
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-700">
+                            {milestoneProgress.training.target - milestoneProgress.training.current} modules to go
+                          </Badge>
+                        </div>
+                      </div>
 
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="font-medium">Consecutive Months Active</span>
-                      <span className="font-medium">6 / 12 months</span>
-                    </div>
-                    <Progress value={50} className="h-2" />
-                    <div className="flex items-center justify-between mt-2">
-                      <p className="text-sm text-muted-foreground">
-                        Stay active for 6 more months to earn the Dedicated Volunteer award
-                      </p>
-                      <Badge variant="outline" className="bg-blue-500/10 text-blue-700">
-                        6 months to go
-                      </Badge>
-                    </div>
-                  </div>
+                      <div>
+                        <div className="flex justify-between mb-2">
+                          <span className="font-medium">Consecutive Months Active</span>
+                          <span className="font-medium">{milestoneProgress.months_active.current} / {milestoneProgress.months_active.target} months</span>
+                        </div>
+                        <Progress value={milestoneProgress.months_active.percentage} className="h-2" />
+                        <div className="flex items-center justify-between mt-2">
+                          <p className="text-sm text-muted-foreground">
+                            Stay active for {milestoneProgress.months_active.target - milestoneProgress.months_active.current} more months to earn the Dedicated Volunteer award
+                          </p>
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-700">
+                            {milestoneProgress.months_active.target - milestoneProgress.months_active.current} months to go
+                          </Badge>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -295,66 +335,54 @@ const VolunteerAchievements = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-4 border rounded-md bg-primary/5">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold">
-                        4
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">You</p>
-                            <Badge variant="outline" className="text-xs">132 hours</Badge>
-                          </div>
-                          <Badge variant="outline" className="bg-primary/10 text-primary">
-                            Top 10%
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="p-3 border rounded-md">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-amber-100 text-amber-800 font-bold">
-                          1
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <p className="font-medium">Sarah Johnson</p>
-                            <Badge variant="outline">210 hours</Badge>
+                  {leaderboard.map(volunteer => {
+                    const isCurrentUser = volunteer.isCurrentUser;
+                    
+                    if (isCurrentUser) {
+                      return (
+                        <div key={volunteer.volunteer_id} className="p-4 border rounded-md bg-primary/5">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground font-bold">
+                              {volunteer.position}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium">You</p>
+                                  <Badge variant="outline" className="text-xs">{volunteer.hours} hours</Badge>
+                                </div>
+                                <Badge variant="outline" className="bg-primary/10 text-primary">
+                                  Top {Math.round((volunteer.position / leaderboard.length) * 100)}%
+                                </Badge>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="p-3 border rounded-md">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-zinc-100 text-zinc-800 font-bold">
-                          2
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <p className="font-medium">Michael Chen</p>
-                            <Badge variant="outline">185 hours</Badge>
+                      );
+                    } else {
+                      // Determine badge style based on position
+                      let positionClass = "bg-zinc-100 text-zinc-800";
+                      if (volunteer.position === 1) positionClass = "bg-amber-100 text-amber-800";
+                      else if (volunteer.position === 2) positionClass = "bg-zinc-100 text-zinc-800";
+                      else if (volunteer.position === 3) positionClass = "bg-amber-50 text-amber-600";
+                      
+                      return (
+                        <div key={volunteer.volunteer_id} className="p-3 border rounded-md">
+                          <div className="flex items-center gap-3">
+                            <div className={`flex items-center justify-center h-8 w-8 rounded-full ${positionClass} font-bold`}>
+                              {volunteer.position}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex justify-between">
+                                <p className="font-medium">{volunteer.name}</p>
+                                <Badge variant="outline">{volunteer.hours} hours</Badge>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="p-3 border rounded-md">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center justify-center h-8 w-8 rounded-full bg-amber-50 text-amber-600 font-bold">
-                          3
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between">
-                            <p className="font-medium">Priya Patel</p>
-                            <Badge variant="outline">156 hours</Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                      );
+                    }
+                  })}
                 </div>
               </CardContent>
             </Card>
