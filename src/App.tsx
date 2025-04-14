@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import RouteGuard from "@/components/layout/RouteGuard";
 import LoadingScreen from "@/components/ui/loading-screen";
+import ResourceSidebar from "@/components/layout/ResourceSidebar";
 
 // Auth Page
 import Login from "./pages/Login";
@@ -58,6 +59,13 @@ const queryClient = new QueryClient({
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
+  const [resourceSidebarOpen, setResourceSidebarOpen] = useState(false);
+
+  // Make the resource sidebar state available globally through context
+  // so it can be opened from any component
+  React.useEffect(() => {
+    window.openResourceSidebar = () => setResourceSidebarOpen(true);
+  }, []);
 
   useEffect(() => {
     // Simulate checking resources and initial load
@@ -77,6 +85,11 @@ const App = () => {
       <AuthProvider>
         <Toaster />
         <Sonner />
+        <ResourceSidebar 
+          isOpen={resourceSidebarOpen} 
+          onClose={() => setResourceSidebarOpen(false)}
+          onSuccess={() => console.log("Resource added successfully")} 
+        />
         <BrowserRouter>
           <Routes>
             <Route
@@ -322,5 +335,12 @@ const App = () => {
     </QueryClientProvider>
   );
 };
+
+// Add a global type definition for the openResourceSidebar function
+declare global {
+  interface Window {
+    openResourceSidebar: () => void;
+  }
+}
 
 export default App;

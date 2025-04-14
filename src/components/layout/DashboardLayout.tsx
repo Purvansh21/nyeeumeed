@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,7 +7,8 @@ import { getRoleDisplayName } from "@/utils/permissions";
 import { 
   LogOut, Menu, User, Shield, Users, Home, FileText, Settings, 
   AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, 
-  Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList, Trophy
+  Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList, Trophy,
+  FilePlus
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -83,6 +83,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     };
 
     return roleBasedLinks[user.role] || [];
+  };
+
+  const handleOpenResourceSidebar = () => {
+    if (typeof window.openResourceSidebar === 'function') {
+      window.openResourceSidebar();
+    }
   };
 
   useEffect(() => {
