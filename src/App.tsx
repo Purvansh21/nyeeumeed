@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import RouteGuard from "@/components/layout/RouteGuard";
+import { useState, useEffect } from "react";
+import LoadingScreen from "@/components/ui/loading-screen";
 
 // Auth Page
 import Login from "./pages/Login";
@@ -30,152 +32,178 @@ import BeneficiaryDashboard from "./pages/beneficiary/Index";
 import Profile from "./pages/shared/Profile";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Configure QueryClient with optimized settings
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route
-            path="/login"
-            element={
-              <RouteGuard>
-                <Login />
-              </RouteGuard>
-            }
-          />
-          
-          {/* Admin Routes */}
-          <Route
-            path="/admin"
-            element={
-              <RouteGuard>
-                <AdminDashboard />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <RouteGuard>
-                <UserManagement />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/admin/analytics"
-            element={
-              <RouteGuard>
-                <Analytics />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/admin/audit-logs"
-            element={
-              <RouteGuard>
-                <AuditLogs />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/admin/reports"
-            element={
-              <RouteGuard>
-                <Reports />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/admin/settings"
-            element={
-              <RouteGuard>
-                <Settings />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/admin/profile"
-            element={
-              <RouteGuard>
-                <Profile />
-              </RouteGuard>
-            }
-          />
-          
-          {/* Staff Routes */}
-          <Route
-            path="/staff"
-            element={
-              <RouteGuard>
-                <StaffDashboard />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/staff/profile"
-            element={
-              <RouteGuard>
-                <Profile />
-              </RouteGuard>
-            }
-          />
-          
-          {/* Volunteer Routes */}
-          <Route
-            path="/volunteer"
-            element={
-              <RouteGuard>
-                <VolunteerDashboard />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/volunteer/profile"
-            element={
-              <RouteGuard>
-                <Profile />
-              </RouteGuard>
-            }
-          />
-          
-          {/* Beneficiary Routes */}
-          <Route
-            path="/beneficiary"
-            element={
-              <RouteGuard>
-                <BeneficiaryDashboard />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path="/beneficiary/profile"
-            element={
-              <RouteGuard>
-                <Profile />
-              </RouteGuard>
-            }
-          />
-          
-          {/* Default Route */}
-          <Route
-            path="/"
-            element={
-              <RouteGuard>
-                <Login />
-              </RouteGuard>
-            }
-          />
-          
-          {/* Catch-all Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate checking resources and initial load
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <RouteGuard>
+                  <Login />
+                </RouteGuard>
+              }
+            />
+            
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <RouteGuard>
+                  <AdminDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <RouteGuard>
+                  <UserManagement />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/admin/analytics"
+              element={
+                <RouteGuard>
+                  <Analytics />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/admin/audit-logs"
+              element={
+                <RouteGuard>
+                  <AuditLogs />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <RouteGuard>
+                  <Reports />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/admin/settings"
+              element={
+                <RouteGuard>
+                  <Settings />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/admin/profile"
+              element={
+                <RouteGuard>
+                  <Profile />
+                </RouteGuard>
+              }
+            />
+            
+            {/* Staff Routes */}
+            <Route
+              path="/staff"
+              element={
+                <RouteGuard>
+                  <StaffDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/staff/profile"
+              element={
+                <RouteGuard>
+                  <Profile />
+                </RouteGuard>
+              }
+            />
+            
+            {/* Volunteer Routes */}
+            <Route
+              path="/volunteer"
+              element={
+                <RouteGuard>
+                  <VolunteerDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/volunteer/profile"
+              element={
+                <RouteGuard>
+                  <Profile />
+                </RouteGuard>
+              }
+            />
+            
+            {/* Beneficiary Routes */}
+            <Route
+              path="/beneficiary"
+              element={
+                <RouteGuard>
+                  <BeneficiaryDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/beneficiary/profile"
+              element={
+                <RouteGuard>
+                  <Profile />
+                </RouteGuard>
+              }
+            />
+            
+            {/* Default Route */}
+            <Route
+              path="/"
+              element={
+                <RouteGuard>
+                  <Login />
+                </RouteGuard>
+              }
+            />
+            
+            {/* Catch-all Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
