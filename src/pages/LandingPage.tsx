@@ -13,27 +13,47 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
-      {/* Hero Section */}
+      {/* Hero Section with Video Background */}
       <header className="relative h-screen flex flex-col items-center justify-center text-center px-4 md:px-8">
-        <div className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-15"
-          style={{ backgroundImage: "url('https://source.unsplash.com/photo-1488590528505-98d2b5aba04b')" }}></div>
+        {/* Video Background */}
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute inset-0 bg-black/30 z-10"></div>
+          <video 
+            className="absolute w-full h-full object-cover"
+            autoPlay 
+            muted 
+            loop 
+            playsInline
+          >
+            <source 
+              src="https://cdn.coverr.co/videos/coverr-people-helping-to-plant-trees-4584/1080p.mp4" 
+              type="video/mp4" 
+            />
+            {/* Fallback image in case video doesn't load */}
+            <img 
+              src="https://images.unsplash.com/photo-1469571486292-b53601021a68?q=80&w=2070&auto=format&fit=crop" 
+              alt="Community service" 
+              className="w-full h-full object-cover"
+            />
+          </video>
+        </div>
         
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto z-10">
           {/* Logo & Name */}
           <div className="mb-8 flex items-center justify-center">
-            <div className="relative">
+            <div className="relative bg-white/90 p-5 rounded-full shadow-lg">
               <Shield className="h-16 w-16 text-primary" />
               <Heart className="h-6 w-6 text-red-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
             </div>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-bold text-primary mb-4">NayeeUmeed</h1>
-          <p className="text-xl md:text-2xl text-gray-600 mb-8">Empowering Communities, Transforming Lives</p>
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-4 drop-shadow-lg">NayeeUmeed</h1>
+          <p className="text-xl md:text-2xl text-white mb-8 drop-shadow-md">Empowering Communities, Transforming Lives</p>
           
           <Button 
             onClick={handleGetStarted} 
             size="lg" 
-            className="px-8 py-6 text-lg rounded-full group"
+            className="px-8 py-6 text-lg rounded-full group bg-white text-primary hover:bg-primary hover:text-white transition-colors"
           >
             Get Started
             <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
@@ -41,8 +61,8 @@ const LandingPage = () => {
         </div>
         
         {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-10">
+          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </div>
@@ -58,27 +78,34 @@ const LandingPage = () => {
               icon={<HelpingHand className="h-10 w-10 text-primary" />}
               title="Support Services"
               description="Providing essential support services to those in need, ensuring access to resources and care."
-              image="https://source.unsplash.com/photo-1649972904349-6e44c42644a7"
+              image="https://images.unsplash.com/photo-1593113630400-ea4288922497?q=80&w=2070&auto=format&fit=crop"
             />
             <FeatureCard 
               icon={<Users className="h-10 w-10 text-primary" />}
               title="Community Building"
               description="Creating connections and fostering community engagement through volunteer opportunities."
-              image="https://source.unsplash.com/photo-1581091226825-a6a2a5aee158"
+              image="https://images.unsplash.com/photo-1560252829-804f1aedf1be?q=80&w=2069&auto=format&fit=crop"
             />
             <FeatureCard 
               icon={<Shield className="h-10 w-10 text-primary" />}
               title="Resource Management"
               description="Efficiently managing and distributing resources to maximize impact and reach."
-              image="https://source.unsplash.com/photo-1486312338219-ce68d2c6f44d"
+              image="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2070&auto=format&fit=crop"
             />
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 md:px-8 bg-primary text-primary-foreground">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="py-20 px-4 md:px-8 bg-primary text-primary-foreground relative">
+        <div className="absolute inset-0 opacity-10 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=2070&auto=format&fit=crop" 
+            alt="Background pattern" 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Join Us Today</h2>
           <p className="text-lg md:text-xl mb-10 opacity-90">Be part of our mission to create positive change and transform lives in communities across the region.</p>
           <Button 
