@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getRoleDisplayName } from "@/utils/permissions";
 import { UserRole, User } from "@/types/auth";
-import { UserPlus, Search, Filter, RefreshCw, User as UserIcon, Edit, UserX } from "lucide-react";
+import { UserPlus, Search, RefreshCw, User as UserIcon, Edit, UserX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +23,6 @@ const UserManagement = () => {
   const { createUser, updateUserProfile } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterRole, setFilterRole] = useState<UserRole | "all">("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newUser, setNewUser] = useState({
     fullName: "",
@@ -175,6 +174,31 @@ const UserManagement = () => {
     }
   };
 
+  // Handle user profile updates
+  const handleUpdateUserProfile = async (userId: string, updates: Partial<User>) => {
+    try {
+      await updateUserProfile(userId, updates);
+      
+      // Update local state
+      setUsers(users.map(user => 
+        user.id === userId ? { ...user, ...updates } : user
+      ));
+      
+      toast({
+        title: "User updated",
+        description: "User information has been updated successfully.",
+      });
+    } catch (error) {
+      console.error("Failed to update user:", error);
+      toast({
+        variant: "destructive",
+        title: "Update failed",
+        description: "Failed to update user information. Please try again.",
+      });
+      throw error; // Re-throw to be caught by the component
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -210,32 +234,12 @@ const UserManagement = () => {
                 />
               </div>
               <div className="flex gap-2">
-                <div className="w-48">
-                  <Select
-                    value={filterRole}
-                    onValueChange={(value) => setFilterRole(value as UserRole | "all")}
-                  >
-                    <SelectTrigger>
-                      <div className="flex items-center gap-2">
-                        <Filter className="h-4 w-4" />
-                        <SelectValue placeholder="Filter by role" />
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Roles</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="staff">Staff</SelectItem>
-                      <SelectItem value="volunteer">Volunteer</SelectItem>
-                      <SelectItem value="beneficiary">Beneficiary</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <Button 
                   variant="outline" 
                   size="icon" 
                   onClick={() => {
                     setSearchTerm("");
-                    setFilterRole("all");
+                    setSelectedTab("all");
                     fetchUsers();
                   }}
                 >
@@ -265,35 +269,40 @@ const UserManagement = () => {
                   <TabsContent value="all">
                     <UsersTable 
                       users={getFilteredUsers("all")} 
-                      toggleUserStatus={toggleUserStatus} 
+                      toggleUserStatus={toggleUserStatus}
+                      updateUserProfile={handleUpdateUserProfile}
                     />
                   </TabsContent>
                   
                   <TabsContent value="admin">
                     <UsersTable 
                       users={getFilteredUsers("admin")} 
-                      toggleUserStatus={toggleUserStatus} 
+                      toggleUserStatus={toggleUserStatus}
+                      updateUserProfile={handleUpdateUserProfile}
                     />
                   </TabsContent>
                   
                   <TabsContent value="staff">
                     <UsersTable 
                       users={getFilteredUsers("staff")} 
-                      toggleUserStatus={toggleUserStatus} 
+                      toggleUserStatus={toggleUserStatus}
+                      updateUserProfile={handleUpdateUserProfile}
                     />
                   </TabsContent>
                   
                   <TabsContent value="volunteer">
                     <UsersTable 
                       users={getFilteredUsers("volunteer")} 
-                      toggleUserStatus={toggleUserStatus} 
+                      toggleUserStatus={toggleUserStatus}
+                      updateUserProfile={handleUpdateUserProfile}
                     />
                   </TabsContent>
                   
                   <TabsContent value="beneficiary">
                     <UsersTable 
                       users={getFilteredUsers("beneficiary")} 
-                      toggleUserStatus={toggleUserStatus} 
+                      toggleUserStatus={toggleUserStatus}
+                      updateUserProfile={handleUpdateUserProfile}
                     />
                   </TabsContent>
                 </>
