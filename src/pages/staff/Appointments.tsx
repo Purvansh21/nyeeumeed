@@ -239,7 +239,6 @@ const StaffAppointments = () => {
             className="h-10 w-full md:w-[300px]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            prefix={<Search className="h-4 w-4" />}
           />
           <Select value={statusFilter || ""} onValueChange={(val) => setStatusFilter(val || null)}>
             <SelectTrigger className="h-10 w-[150px]">
@@ -279,14 +278,6 @@ const StaffAppointments = () => {
             <DataTable
               data={upcomingAppointments}
               columns={columns}
-              emptyState={
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <p className="text-lg font-medium">No upcoming appointments found</p>
-                  <p className="text-sm text-muted-foreground">
-                    Try clearing your filters or create a new appointment
-                  </p>
-                </div>
-              }
             />
           ) : (
             <Card>
@@ -310,14 +301,6 @@ const StaffAppointments = () => {
             <DataTable
               data={pastAppointments}
               columns={columns}
-              emptyState={
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <p className="text-lg font-medium">No past appointments found</p>
-                  <p className="text-sm text-muted-foreground">
-                    Past appointments will appear here once completed or cancelled
-                  </p>
-                </div>
-              }
             />
           ) : (
             <Card>

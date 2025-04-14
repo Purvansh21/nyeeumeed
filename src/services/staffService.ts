@@ -646,7 +646,7 @@ export async function fetchAppointments(): Promise<Appointment[]> {
       };
       
       // Add the relations if they exist and are valid
-      if (appointment.beneficiary && !appointment.beneficiary.error) {
+      if (appointment.beneficiary && typeof appointment.beneficiary === 'object' && !('error' in appointment.beneficiary)) {
         transformedAppointment.beneficiary = {
           id: appointment.beneficiary.id,
           full_name: appointment.beneficiary.full_name,
@@ -654,7 +654,7 @@ export async function fetchAppointments(): Promise<Appointment[]> {
         };
       }
       
-      if (appointment.staff && !appointment.staff.error) {
+      if (appointment.staff && typeof appointment.staff === 'object' && !('error' in appointment.staff)) {
         transformedAppointment.staff = {
           id: appointment.staff.id,
           full_name: appointment.staff.full_name
@@ -784,7 +784,7 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
       };
       
       // Add the relations if they exist and are valid
-      if (request.beneficiary && !request.beneficiary.error) {
+      if (request.beneficiary && typeof request.beneficiary === 'object' && !('error' in request.beneficiary)) {
         transformedRequest.beneficiary = {
           id: request.beneficiary.id,
           full_name: request.beneficiary.full_name,
@@ -792,7 +792,7 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
         };
       }
       
-      if (request.staff && !request.staff.error) {
+      if (request.staff && typeof request.staff === 'object' && !('error' in request.staff)) {
         transformedRequest.staff = {
           id: request.staff.id,
           full_name: request.staff.full_name
