@@ -606,6 +606,12 @@ export async function fetchReportById(id: string): Promise<Report | null> {
   }
 }
 
+// Add validation function for appointment status
+function validateAppointmentStatus(status: string): Appointment['status'] {
+  const validStatuses: Appointment['status'][] = ['scheduled', 'in-progress', 'completed', 'cancelled'];
+  return validStatuses.includes(status as any) ? status as Appointment['status'] : 'scheduled';
+}
+
 // Appointments Management
 export async function fetchAppointments(): Promise<Appointment[]> {
   try {
@@ -620,7 +626,11 @@ export async function fetchAppointments(): Promise<Appointment[]> {
     
     if (error) throw error;
     
-    return data || [];
+    // Validate status before returning
+    return (data || []).map(appointment => ({
+      ...appointment,
+      status: validateAppointmentStatus(appointment.status)
+    })) as Appointment[];
   } catch (error: any) {
     console.error("Error fetching appointments:", error.message);
     return [];
@@ -629,6 +639,11 @@ export async function fetchAppointments(): Promise<Appointment[]> {
 
 export async function updateAppointment(id: string, appointment: Partial<Appointment>): Promise<Appointment | null> {
   try {
+    // Validate status if provided
+    if (appointment.status) {
+      appointment.status = validateAppointmentStatus(appointment.status);
+    }
+    
     const { data, error } = await supabase
       .from('appointments')
       .update(appointment)
@@ -643,7 +658,10 @@ export async function updateAppointment(id: string, appointment: Partial<Appoint
       description: "Appointment updated successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      status: validateAppointmentStatus(data.status)
+    } as Appointment;
   } catch (error: any) {
     console.error("Error updating appointment:", error.message);
     toast({
@@ -657,9 +675,15 @@ export async function updateAppointment(id: string, appointment: Partial<Appoint
 
 export async function createAppointment(appointment: Omit<Appointment, 'id' | 'created_at' | 'updated_at'>): Promise<Appointment | null> {
   try {
+    // Validate status
+    const appointmentWithValidStatus = {
+      ...appointment,
+      status: validateAppointmentStatus(appointment.status)
+    };
+    
     const { data, error } = await supabase
       .from('appointments')
-      .insert(appointment)
+      .insert(appointmentWithValidStatus)
       .select()
       .single();
     
@@ -670,7 +694,10 @@ export async function createAppointment(appointment: Omit<Appointment, 'id' | 'c
       description: "Appointment created successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      status: validateAppointmentStatus(data.status)
+    } as Appointment;
   } catch (error: any) {
     console.error("Error creating appointment:", error.message);
     toast({
@@ -680,6 +707,17 @@ export async function createAppointment(appointment: Omit<Appointment, 'id' | 'c
     });
     return null;
   }
+}
+
+// Add validation functions for service request status and urgency
+function validateServiceRequestStatus(status: string): ServiceRequest['status'] {
+  const validStatuses: ServiceRequest['status'][] = ['pending', 'in-progress', 'completed', 'cancelled'];
+  return validStatuses.includes(status as any) ? status as ServiceRequest['status'] : 'pending';
+}
+
+function validateServiceRequestUrgency(urgency: string): ServiceRequest['urgency'] {
+  const validUrgencies: ServiceRequest['urgency'][] = ['high', 'medium', 'low'];
+  return validUrgencies.includes(urgency as any) ? urgency as ServiceRequest['urgency'] : 'medium';
 }
 
 // Service Requests Management
@@ -696,7 +734,12 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
     
     if (error) throw error;
     
-    return data || [];
+    // Validate status and urgency before returning
+    return (data || []).map(request => ({
+      ...request,
+      status: validateServiceRequestStatus(request.status),
+      urgency: validateServiceRequestUrgency(request.urgency)
+    })) as ServiceRequest[];
   } catch (error: any) {
     console.error("Error fetching service requests:", error.message);
     return [];
@@ -705,6 +748,15 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
 
 export async function updateServiceRequest(id: string, request: Partial<ServiceRequest>): Promise<ServiceRequest | null> {
   try {
+    // Validate status and urgency if provided
+    if (request.status) {
+      request.status = validateServiceRequestStatus(request.status);
+    }
+    
+    if (request.urgency) {
+      request.urgency = validateServiceRequestUrgency(request.urgency);
+    }
+    
     const { data, error } = await supabase
       .from('service_requests')
       .update(request)
@@ -719,7 +771,11 @@ export async function updateServiceRequest(id: string, request: Partial<ServiceR
       description: "Service request updated successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      status: validateServiceRequestStatus(data.status),
+      urgency: validateServiceRequestUrgency(data.urgency)
+    } as ServiceRequest;
   } catch (error: any) {
     console.error("Error updating service request:", error.message);
     toast({
@@ -733,9 +789,16 @@ export async function updateServiceRequest(id: string, request: Partial<ServiceR
 
 export async function createServiceRequest(request: Omit<ServiceRequest, 'id' | 'created_at' | 'updated_at'>): Promise<ServiceRequest | null> {
   try {
+    // Validate status and urgency
+    const requestWithValidProperties = {
+      ...request,
+      status: validateServiceRequestStatus(request.status),
+      urgency: validateServiceRequestUrgency(request.urgency)
+    };
+    
     const { data, error } = await supabase
       .from('service_requests')
-      .insert(request)
+      .insert(requestWithValidProperties)
       .select()
       .single();
     
@@ -746,7 +809,11 @@ export async function createServiceRequest(request: Omit<ServiceRequest, 'id' | 
       description: "Service request created successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      status: validateServiceRequestStatus(data.status),
+      urgency: validateServiceRequestUrgency(data.urgency)
+    } as ServiceRequest;
   } catch (error: any) {
     console.error("Error creating service request:", error.message);
     toast({
