@@ -19,6 +19,7 @@ import Settings from "./pages/admin/Settings";
 import AuditLogs from "./pages/admin/AuditLogs";
 import Reports from "./pages/admin/Reports";
 import Announcements from "./pages/admin/Announcements";
+import AdminVolunteerOpportunities from "./pages/admin/VolunteerOpportunities";
 
 // Staff Pages
 import StaffDashboard from "./pages/staff/Index";
@@ -140,6 +141,14 @@ const App = () => {
               element={
                 <RouteGuard>
                   <Announcements />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/admin/volunteer-opportunities"
+              element={
+                <RouteGuard>
+                  <AdminVolunteerOpportunities />
                 </RouteGuard>
               }
             />

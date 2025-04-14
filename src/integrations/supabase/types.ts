@@ -393,6 +393,98 @@ export type Database = {
         }
         Relationships: []
       }
+      volunteer_opportunities: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string
+          end_time: string
+          id: string
+          location: string
+          spots_available: number
+          spots_filled: number
+          start_time: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          date: string
+          description: string
+          end_time: string
+          id?: string
+          location: string
+          spots_available?: number
+          spots_filled?: number
+          start_time: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string
+          end_time?: string
+          id?: string
+          location?: string
+          spots_available?: number
+          spots_filled?: number
+          start_time?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      volunteer_registrations: {
+        Row: {
+          completed_at: string | null
+          feedback: string | null
+          hours_logged: number | null
+          id: string
+          opportunity_id: string
+          registered_at: string
+          status: string
+          volunteer_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          feedback?: string | null
+          hours_logged?: number | null
+          id?: string
+          opportunity_id: string
+          registered_at?: string
+          status?: string
+          volunteer_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          feedback?: string | null
+          hours_logged?: number | null
+          id?: string
+          opportunity_id?: string
+          registered_at?: string
+          status?: string
+          volunteer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "volunteer_registrations_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "volunteer_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       volunteer_shifts: {
         Row: {
           created_at: string
