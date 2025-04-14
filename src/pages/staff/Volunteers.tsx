@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -416,14 +415,14 @@ const VolunteersManagement = () => {
                     </Select>
                     
                     <Select 
-                      value={selectedVolunteer || ""}
-                      onValueChange={(value) => setSelectedVolunteer(value || null)}
+                      value={selectedVolunteer || "all"}
+                      onValueChange={(value) => setSelectedVolunteer(value === "all" ? null : value)}
                     >
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Filter by volunteer" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Volunteers</SelectItem>
+                        <SelectItem value="all">All Volunteers</SelectItem>
                         {volunteers.map((volunteer) => (
                           <SelectItem key={volunteer.id} value={volunteer.id}>
                             {volunteer.fullName}
