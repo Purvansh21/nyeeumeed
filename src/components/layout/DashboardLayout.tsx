@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getRoleDisplayName } from "@/utils/permissions";
-import { LogOut, Menu, User, Shield, Users, Home, FileText, Settings, AlertTriangle, Calendar, BarChart2, Briefcase } from "lucide-react";
+import { LogOut, Menu, User, Shield, Users, Home, FileText, Settings, AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, Activity } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -46,6 +45,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         { icon: Home, label: "Dashboard", path: "/admin" },
         { icon: Users, label: "User Management", path: "/admin/users" },
         { icon: BarChart2, label: "System Analytics", path: "/admin/analytics" },
+        { icon: PieChart, label: "Reports", path: "/admin/reports" }, 
         { icon: AlertTriangle, label: "Audit Logs", path: "/admin/audit-logs" },
         { icon: Settings, label: "System Settings", path: "/admin/settings" },
       ],
@@ -54,7 +54,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         { icon: Users, label: "Volunteer Management", path: "/staff/volunteers" },
         { icon: Briefcase, label: "Beneficiary Management", path: "/staff/beneficiaries" },
         { icon: FileText, label: "Resources", path: "/staff/resources" },
-        { icon: BarChart2, label: "Reports", path: "/staff/reports" },
+        { icon: Activity, label: "Reports", path: "/staff/reports" },
       ],
       volunteer: [
         { icon: Home, label: "Dashboard", path: "/volunteer" },

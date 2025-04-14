@@ -14,6 +14,8 @@ import AdminDashboard from "./pages/admin/Index";
 import UserManagement from "./pages/admin/Users";
 import Analytics from "./pages/admin/Analytics";
 import Settings from "./pages/admin/Settings";
+import AuditLogs from "./pages/admin/AuditLogs";
+import Reports from "./pages/admin/Reports";
 
 // Staff Pages
 import StaffDashboard from "./pages/staff/Index";
@@ -68,6 +70,22 @@ const App = () => (
             element={
               <RouteGuard>
                 <Analytics />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/admin/audit-logs"
+            element={
+              <RouteGuard>
+                <AuditLogs />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <RouteGuard>
+                <Reports />
               </RouteGuard>
             }
           />
