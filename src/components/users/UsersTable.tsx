@@ -122,6 +122,10 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
       setProcessingId(userId);
       await toggleUserStatus(userId, newStatus);
       
+      // Update the local state to reflect the change immediately
+      // This avoids having to refetch all users and provides immediate feedback
+      // users = users.map(u => u.id === userId ? {...u, isActive: newStatus} : u);
+      
       toast({
         title: newStatus ? "User activated" : "User deactivated",
         description: `The user has been ${newStatus ? "activated" : "deactivated"} successfully.`,

@@ -197,7 +197,10 @@ const UserManagement = () => {
       
       // If this was a role change, fetch fresh data to ensure all role changes are reflected correctly
       if (updates.role) {
-        fetchUsers();
+        // Small delay to allow the backend to fully process the role change
+        setTimeout(() => {
+          fetchUsers();
+        }, 500);
       }
       
       toast({
