@@ -649,14 +649,14 @@ export async function fetchAppointments(): Promise<Appointment[]> {
       if (appointment.beneficiary && 
           typeof appointment.beneficiary === 'object' && 
           !('error' in appointment.beneficiary)) {
-        // Type assertion after validation to tell TypeScript it's safe
-        const beneficiaryData = appointment.beneficiary as { id: string; full_name: string; contact_info: string | null };
         
-        if ('id' in beneficiaryData) {
+        // Safely check if the required properties exist before accessing them
+        const beneficiary = appointment.beneficiary;
+        if ('id' in beneficiary && 'full_name' in beneficiary) {
           transformedAppointment.beneficiary = {
-            id: beneficiaryData.id,
-            full_name: beneficiaryData.full_name,
-            contact_info: beneficiaryData.contact_info
+            id: beneficiary.id as string,
+            full_name: beneficiary.full_name as string,
+            contact_info: (beneficiary.contact_info as string) || null
           };
         }
       }
@@ -664,13 +664,13 @@ export async function fetchAppointments(): Promise<Appointment[]> {
       if (appointment.staff && 
           typeof appointment.staff === 'object' && 
           !('error' in appointment.staff)) {
-        // Type assertion after validation to tell TypeScript it's safe
-        const staffData = appointment.staff as { id: string; full_name: string };
         
-        if ('id' in staffData) {
+        // Safely check if the required properties exist before accessing them
+        const staff = appointment.staff;
+        if ('id' in staff && 'full_name' in staff) {
           transformedAppointment.staff = {
-            id: staffData.id,
-            full_name: staffData.full_name
+            id: staff.id as string,
+            full_name: staff.full_name as string
           };
         }
       }
@@ -774,14 +774,14 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
       if (request.beneficiary && 
           typeof request.beneficiary === 'object' && 
           !('error' in request.beneficiary)) {
-        // Type assertion after validation to tell TypeScript it's safe
-        const beneficiaryData = request.beneficiary as { id: string; full_name: string; contact_info: string | null };
         
-        if ('id' in beneficiaryData) {
+        // Safely check if the required properties exist before accessing them
+        const beneficiary = request.beneficiary;
+        if ('id' in beneficiary && 'full_name' in beneficiary) {
           transformedRequest.beneficiary = {
-            id: beneficiaryData.id,
-            full_name: beneficiaryData.full_name,
-            contact_info: beneficiaryData.contact_info
+            id: beneficiary.id as string,
+            full_name: beneficiary.full_name as string,
+            contact_info: (beneficiary.contact_info as string) || null
           };
         }
       }
@@ -789,13 +789,13 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
       if (request.staff && 
           typeof request.staff === 'object' && 
           !('error' in request.staff)) {
-        // Type assertion after validation to tell TypeScript it's safe
-        const staffData = request.staff as { id: string; full_name: string };
         
-        if ('id' in staffData) {
+        // Safely check if the required properties exist before accessing them
+        const staff = request.staff;
+        if ('id' in staff && 'full_name' in staff) {
           transformedRequest.staff = {
-            id: staffData.id,
-            full_name: staffData.full_name
+            id: staff.id as string,
+            full_name: staff.full_name as string
           };
         }
       }
