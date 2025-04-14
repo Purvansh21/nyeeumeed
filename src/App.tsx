@@ -30,6 +30,7 @@ import BeneficiariesManagement from "./pages/staff/Beneficiaries";
 import ResourcesManagement from "./pages/staff/Resources";
 import TasksManagement from "./pages/staff/Tasks";
 import StaffReports from "./pages/staff/Reports";
+import UrgentRequestsPage from "./pages/staff/UrgentRequests";
 
 // Volunteer Pages
 import VolunteerDashboard from "./pages/volunteer/Index";
@@ -239,6 +240,14 @@ const App = () => {
               element={
                 <RouteGuard>
                   <StaffReports />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/staff/urgent-requests"
+              element={
+                <RouteGuard>
+                  <UrgentRequestsPage />
                 </RouteGuard>
               }
             />

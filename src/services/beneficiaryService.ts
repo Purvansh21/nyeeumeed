@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -15,6 +14,10 @@ export interface ServiceRequest {
   next_step: string | null;
   assigned_staff: string | null;
   preferred_contact_method: string | null;
+  verification_status?: 'unverified' | 'verified' | 'rejected' | null;
+  verification_notes?: string | null;
+  verification_date?: string | null;
+  verified_by?: string | null;
   staff?: {
     full_name: string;
   } | null;
@@ -170,6 +173,70 @@ export async function updateServiceRequest(id: string, updates: Partial<ServiceR
       variant: "destructive",
       title: "Error",
       description: error.message || "Failed to update service request"
+    });
+    return null;
+  }
+}
+
+// New function to fetch urgent service requests
+export async function fetchUrgentServiceRequests(): Promise<ServiceRequest[]> {
+  try {
+    const { data, error } = await supabase
+      .from('service_requests')
+      .select(`
+        *,
+        staff:assigned_staff(full_name)
+      `)
+      .eq('urgency', 'high')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return (data || []) as unknown as ServiceRequest[];
+  } catch (error: any) {
+    console.error("Error fetching urgent service requests:", error.message);
+    return [];
+  }
+}
+
+// New function to verify an urgent service request
+export async function verifyServiceRequest(
+  id: string, 
+  verification: { 
+    verification_status: 'verified' | 'rejected',
+    verification_notes?: string,
+    verified_by: string
+  }
+): Promise<ServiceRequest | null> {
+  try {
+    const updates = {
+      ...verification,
+      verification_date: new Date().toISOString(),
+      // If verified, set to approved, if rejected maintain as pending
+      status: verification.verification_status === 'verified' ? 'approved' : 'pending'
+    };
+
+    const { data, error } = await supabase
+      .from('service_requests')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    toast({
+      title: "Success",
+      description: `Service request ${verification.verification_status === 'verified' ? 'verified' : 'rejected'} successfully`
+    });
+    
+    return data as unknown as ServiceRequest;
+  } catch (error: any) {
+    console.error("Error verifying service request:", error.message);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: error.message || "Failed to verify service request"
     });
     return null;
   }
