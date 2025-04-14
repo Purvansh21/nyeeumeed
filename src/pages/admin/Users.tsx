@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -154,21 +153,23 @@ const UserManagement = () => {
       // Update user status directly on the profiles table
       await updateUserProfile(userId, { isActive: newActiveStatus });
       
-      // Update local state
-      setUsers(users.map(user => 
-        user.id === userId ? { ...user, isActive: newActiveStatus } : user
-      ));
+      // Update local state to avoid refetching the whole list
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId ? { ...user, isActive: newActiveStatus } : user
+        )
+      );
       
       toast({
         title: newActiveStatus ? "User activated" : "User deactivated",
         description: `The user has been ${newActiveStatus ? "activated" : "deactivated"} successfully.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update user status:", error);
       toast({
         variant: "destructive",
         title: "Action failed",
-        description: "Failed to update user status. Please try again.",
+        description: error.message || "Failed to update user status. Please try again.",
       });
     }
   };
@@ -183,8 +184,22 @@ const UserManagement = () => {
       
       await updateUserProfile(userId, updates);
       
-      // Refresh the user list to reflect changes
-      fetchUsers();
+      // Update local state with the changes
+      if (updates.role || updates.fullName || updates.contactInfo || updates.isActive !== undefined) {
+        setUsers(prevUsers =>
+          prevUsers.map(u => 
+            u.id === userId 
+              ? { 
+                  ...u, 
+                  ...(updates.fullName ? { fullName: updates.fullName } : {}),
+                  ...(updates.role ? { role: updates.role } : {}),
+                  ...(updates.contactInfo ? { contactInfo: updates.contactInfo } : {}),
+                  ...(updates.isActive !== undefined ? { isActive: updates.isActive } : {})
+                } 
+              : u
+          )
+        );
+      }
       
       toast({
         title: "User updated",

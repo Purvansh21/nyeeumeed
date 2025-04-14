@@ -277,31 +277,116 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // Only update role if it's changed and provided
       if (data.role !== undefined && data.role !== currentProfile.role) {
         updateData.role = data.role;
+        
+        // Try to find if the user already exists in the target role table before inserting
+        // This prevents duplicate key errors when changing roles
+        
+        // Get user data to use for role table operations
+        const userData = {
+          id: userId,
+          full_name: data.fullName || currentProfile.full_name,
+          email: `${data.role}-${userId.substring(0, 8)}@example.com`,
+          contact_info: data.contactInfo || currentProfile.contact_info,
+          is_active: data.isActive !== undefined ? data.isActive : currentProfile.is_active,
+          created_at: currentProfile.created_at,
+          last_login_at: currentProfile.last_login_at
+        };
+        
+        // Check if user already exists in the target role table
+        let existsInTargetRole = false;
+        
+        if (data.role === 'admin') {
+          const { data: existingAdmin } = await supabase
+            .from('admin_users')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
+            
+          existsInTargetRole = !!existingAdmin;
+          
+          if (!existsInTargetRole) {
+            // Insert into admin_users only if the user doesn't already exist there
+            const { error: insertError } = await supabase
+              .from('admin_users')
+              .upsert(userData);
+              
+            if (insertError) {
+              console.error("Error inserting into admin_users:", insertError);
+              throw insertError;
+            }
+          }
+        } else if (data.role === 'staff') {
+          const { data: existingStaff } = await supabase
+            .from('staff_users')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
+            
+          existsInTargetRole = !!existingStaff;
+          
+          if (!existsInTargetRole) {
+            // Insert into staff_users only if the user doesn't already exist there
+            const { error: insertError } = await supabase
+              .from('staff_users')
+              .upsert(userData);
+              
+            if (insertError) {
+              console.error("Error inserting into staff_users:", insertError);
+              throw insertError;
+            }
+          }
+        } else if (data.role === 'volunteer') {
+          const { data: existingVolunteer } = await supabase
+            .from('volunteer_users')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
+            
+          existsInTargetRole = !!existingVolunteer;
+          
+          if (!existsInTargetRole) {
+            // Insert into volunteer_users only if the user doesn't already exist there
+            const { error: insertError } = await supabase
+              .from('volunteer_users')
+              .upsert(userData);
+              
+            if (insertError) {
+              console.error("Error inserting into volunteer_users:", insertError);
+              throw insertError;
+            }
+          }
+        } else if (data.role === 'beneficiary') {
+          const { data: existingBeneficiary } = await supabase
+            .from('beneficiary_users')
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
+            
+          existsInTargetRole = !!existingBeneficiary;
+          
+          if (!existsInTargetRole) {
+            // Insert into beneficiary_users only if the user doesn't already exist there
+            const { error: insertError } = await supabase
+              .from('beneficiary_users')
+              .upsert(userData);
+              
+            if (insertError) {
+              console.error("Error inserting into beneficiary_users:", insertError);
+              throw insertError;
+            }
+          }
+        }
 
-        // Delete existing role-specific records - we'll let the database trigger create new ones
-        if (currentProfile.role === 'admin') {
-          try {
+        // Delete from previous role table
+        if (currentProfile.role !== data.role) {
+          if (currentProfile.role === 'admin') {
             await supabase.from('admin_users').delete().eq('id', userId);
-          } catch (error) {
-            console.error("Error deleting from admin_users:", error);
-          }
-        } else if (currentProfile.role === 'staff') {
-          try {
+          } else if (currentProfile.role === 'staff') {
             await supabase.from('staff_users').delete().eq('id', userId);
-          } catch (error) {
-            console.error("Error deleting from staff_users:", error);
-          }
-        } else if (currentProfile.role === 'volunteer') {
-          try {
+          } else if (currentProfile.role === 'volunteer') {
             await supabase.from('volunteer_users').delete().eq('id', userId);
-          } catch (error) {
-            console.error("Error deleting from volunteer_users:", error);
-          }
-        } else if (currentProfile.role === 'beneficiary') {
-          try {
+          } else if (currentProfile.role === 'beneficiary') {
             await supabase.from('beneficiary_users').delete().eq('id', userId);
-          } catch (error) {
-            console.error("Error deleting from beneficiary_users:", error);
           }
         }
       }

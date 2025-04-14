@@ -111,12 +111,12 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
         title: newStatus ? "User activated" : "User deactivated",
         description: `The user has been ${newStatus ? "activated" : "deactivated"} successfully.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to toggle user status:", error);
       toast({
         variant: "destructive",
         title: "Action failed",
-        description: "Failed to update user status. Please try again.",
+        description: error.message || "Failed to update user status. Please try again.",
       });
     } finally {
       setProcessingId(null);
