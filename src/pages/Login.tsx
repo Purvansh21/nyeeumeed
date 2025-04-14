@@ -8,13 +8,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboardRoute } from "@/utils/permissions";
 import { Shield } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,9 +25,24 @@ const Login = () => {
 
     try {
       await login(email, password);
-      const { user } = useAuth();
-      if (user) {
-        navigate(getDashboardRoute(user.role));
+      
+      // The auth state will be updated by the AuthContext
+      // After login, check if the user is authenticated and redirect
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        // Get user profile to determine role
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.session.user.id)
+          .single();
+          
+        if (!error && profile) {
+          navigate(getDashboardRoute(profile.role));
+        } else {
+          // Fallback to admin dashboard if profile fetch fails
+          navigate('/admin');
+        }
       }
     } catch (err: any) {
       setError(err.message || "Failed to login. Please try again.");

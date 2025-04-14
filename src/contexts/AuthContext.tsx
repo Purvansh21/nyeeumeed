@@ -1,42 +1,69 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { AuthContextType, LoginCredentials, User, UserRole } from "@/types/auth";
-import { mockUsers, mockPasswords, generateUserId } from "@/data/mockUsers";
+import { AuthContextType, User, UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/use-toast";
-import { v4 as uuidv4 } from "uuid";
+import { supabase } from "@/integrations/supabase/client";
 
 // Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Local storage keys
-const USER_STORAGE_KEY = "ngo_auth_user";
-const USERS_STORAGE_KEY = "ngo_users";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
   children 
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [users, setUsers] = useState<User[]>([]);
 
-  // Initialize users from local storage or mock data
+  // Initialize auth state from Supabase
   useEffect(() => {
-    // Attempt to restore the logged-in user from local storage
-    const storedUser = localStorage.getItem(USER_STORAGE_KEY);
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          // User is signed in
+          try {
+            // Get user profile from database
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
 
-    // Initialize users from local storage or mock data
-    const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-    if (storedUsers) {
-      setUsers(JSON.parse(storedUsers));
-    } else {
-      setUsers(mockUsers);
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(mockUsers));
-    }
+            if (error) throw error;
 
-    setIsLoading(false);
+            // Set user state with profile data
+            setUser({
+              id: session.user.id,
+              email: session.user.email || '',
+              fullName: profile?.full_name || '',
+              role: (profile?.role as UserRole) || 'beneficiary',
+              isActive: profile?.is_active || true,
+              contactInfo: profile?.contact_info || '',
+              createdAt: profile?.created_at || new Date().toISOString(),
+              lastLoginAt: profile?.last_login_at || undefined,
+              additionalInfo: profile?.additional_info || {}
+            });
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
+          }
+        } else {
+          // User is signed out
+          setUser(null);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        // If there's an existing session, the onAuthStateChange will handle it
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Login function
@@ -44,52 +71,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(true);
     
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // Get all users
-      const allUsers = getAllUsers();
+      if (error) throw error;
       
-      // Find user by email
-      const foundUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-      
-      if (!foundUser) {
-        throw new Error("Invalid email or password");
+      // Update last login time in profile
+      if (user) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ last_login_at: new Date().toISOString() })
+          .eq('id', user.id);
+          
+        if (updateError) console.error("Failed to update last login time:", updateError);
       }
-      
-      // In a real app, you would hash and compare passwords
-      // Here we just check the mock passwords
-      const correctPassword = mockPasswords[email.toLowerCase()];
-      
-      if (password !== correctPassword) {
-        throw new Error("Invalid email or password");
-      }
-      
-      if (!foundUser.isActive) {
-        throw new Error("Your account is deactivated. Please contact an administrator.");
-      }
-      
-      // Update last login time
-      const updatedUser = {
-        ...foundUser,
-        lastLoginAt: new Date().toISOString()
-      };
-      
-      // Update the user locally
-      const updatedUsers = allUsers.map(u => 
-        u.id === updatedUser.id ? updatedUser : u
-      );
-      
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
-      setUsers(updatedUsers);
-      
-      // Set user as logged in
-      setUser(updatedUser);
-      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
       
       toast({
         title: "Login successful",
-        description: `Welcome back, ${foundUser.fullName}!`,
+        description: "Welcome back!",
       });
     } catch (error: any) {
       toast({
@@ -104,27 +105,77 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // Logout function
-  const logout = (): void => {
-    setUser(null);
-    localStorage.removeItem(USER_STORAGE_KEY);
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out."
-    });
+  const logout = async (): Promise<void> => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out."
+      });
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast({
+        variant: "destructive",
+        title: "Logout failed",
+        description: "An error occurred while logging out."
+      });
+    }
   };
 
-  // Get all users
-  const getAllUsers = (): User[] => {
-    const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-    if (storedUsers) {
-      return JSON.parse(storedUsers);
+  // Get all users (admin only)
+  const getAllUsers = async (): Promise<User[]> => {
+    if (user?.role !== 'admin') return [];
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
+        
+      if (error) throw error;
+      
+      return data.map(profile => ({
+        id: profile.id,
+        email: '', // Email is not stored in profiles table for security
+        fullName: profile.full_name,
+        role: profile.role as UserRole,
+        isActive: profile.is_active,
+        contactInfo: profile.contact_info || '',
+        createdAt: profile.created_at,
+        lastLoginAt: profile.last_login_at || undefined,
+        additionalInfo: profile.additional_info || {}
+      }));
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return [];
     }
-    return users;
   };
 
   // Get user by ID
-  const getUserById = (id: string): User | undefined => {
-    return getAllUsers().find(u => u.id === id);
+  const getUserById = async (id: string): Promise<User | undefined> => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (error) throw error;
+      
+      return {
+        id: profile.id,
+        email: '', // Email is not stored in profiles table for security
+        fullName: profile.full_name,
+        role: profile.role as UserRole,
+        isActive: profile.is_active,
+        contactInfo: profile.contact_info || '',
+        createdAt: profile.created_at,
+        lastLoginAt: profile.last_login_at || undefined,
+        additionalInfo: profile.additional_info || {}
+      };
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return undefined;
+    }
   };
 
   // Create a new user (admin only)
@@ -132,51 +183,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(true);
     
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
       // Check if the current user is an admin
       if (user?.role !== "admin") {
         throw new Error("Only administrators can create new users");
       }
       
-      // Check if the email is already in use
-      const existingUser = getAllUsers().find(u => u.email.toLowerCase() === userData.email.toLowerCase());
-      if (existingUser) {
-        throw new Error("Email is already in use");
-      }
-      
-      // Create new user object
-      const newUser: User = {
-        id: generateUserId(userData.role),
+      // Create user in Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
         email: userData.email,
-        fullName: userData.fullName,
-        role: userData.role,
-        contactInfo: userData.contactInfo,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        additionalInfo: userData.additionalInfo || {}
-      };
+        password: userData.password,
+        options: {
+          data: {
+            full_name: userData.fullName,
+            role: userData.role
+          }
+        }
+      });
       
-      // Update the users list
-      const updatedUsers = [...getAllUsers(), newUser];
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
-      setUsers(updatedUsers);
+      if (error) throw error;
       
-      // Update the passwords (in a real app, this would be hashed)
-      // Note: In a production app, never store passwords like this
-      const updatedPasswords = {
-        ...mockPasswords,
-        [userData.email.toLowerCase()]: userData.password
-      };
-      
-      // In a real app, you would save the hashed password to the database
-      // For our mock app, we just update our mock passwords
-      Object.assign(mockPasswords, updatedPasswords);
+      // The trigger will automatically create the profile entry
       
       toast({
         title: "User created",
-        description: `${newUser.fullName} has been added as a ${newUser.role}.`
+        description: `${userData.fullName} has been added as a ${userData.role}.`
       });
     } catch (error: any) {
       toast({
@@ -195,19 +225,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsLoading(true);
     
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Get current users
-      const allUsers = getAllUsers();
-      
-      // Find the user to update
-      const userToUpdate = allUsers.find(u => u.id === userId);
-      
-      if (!userToUpdate) {
-        throw new Error("User not found");
-      }
-      
       // Check permissions:
       // - Admin can update any user
       // - Users can only update their own profile
@@ -215,30 +232,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("You don't have permission to update this user");
       }
       
-      // Admin-only fields that other users can't modify
-      if (user?.role !== "admin") {
-        delete data.role;
-        delete data.isActive;
-      }
+      // Update profile in database
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: data.fullName,
+          role: data.role,
+          is_active: data.isActive,
+          contact_info: data.contactInfo,
+          additional_info: data.additionalInfo
+        })
+        .eq('id', userId);
+        
+      if (error) throw error;
       
-      // Update the user
-      const updatedUser = {
-        ...userToUpdate,
-        ...data
-      };
-      
-      // Update users array
-      const updatedUsers = allUsers.map(u => 
-        u.id === userId ? updatedUser : u
-      );
-      
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(updatedUsers));
-      setUsers(updatedUsers);
-      
-      // If updating the current user, also update the auth state
+      // If updating the current user, refresh user state
       if (user?.id === userId) {
-        setUser(updatedUser);
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+        const { data: updatedProfile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+          
+        if (fetchError) throw fetchError;
+        
+        setUser({
+          ...user,
+          fullName: updatedProfile.full_name,
+          role: updatedProfile.role as UserRole,
+          isActive: updatedProfile.is_active,
+          contactInfo: updatedProfile.contact_info || '',
+          additionalInfo: updatedProfile.additional_info || {}
+        });
       }
       
       toast({

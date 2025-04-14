@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +9,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getRoleDisplayName } from "@/utils/permissions";
-import { UserRole } from "@/types/auth";
-import { UserPlus, Search, Filter, RefreshCw, User, Edit, UserX } from "lucide-react";
+import { UserRole, User } from "@/types/auth";
+import { UserPlus, Search, Filter, RefreshCw, User as UserIcon, Edit, UserX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const UserManagement = () => {
-  const { getAllUsers, createUser, updateUserProfile } = useAuth();
+  const { createUser, updateUserProfile } = useAuth();
+  const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState<UserRole | "all">("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -27,25 +29,68 @@ const UserManagement = () => {
     contactInfo: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Get all users and apply filtering
-  const users = getAllUsers()
-    .filter(user => {
-      // Filter by search term
-      const matchesSearch = 
-        user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+  // Fetch users from Supabase
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch all profiles
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('*');
+        
+      if (error) throw error;
       
-      // Filter by role
-      const matchesRole = filterRole === "all" || user.role === filterRole;
+      // Get user emails from auth.users table via admin API
+      // Note: In a real app, you would use a secure server-side function for this
+      // For this demo, we'll assume we can't access emails and use placeholders
       
-      return matchesSearch && matchesRole;
-    })
-    .sort((a, b) => {
-      // Sort by role priority: admin > staff > volunteer > beneficiary
-      const rolePriority = { admin: 0, staff: 1, volunteer: 2, beneficiary: 3 };
-      return rolePriority[a.role] - rolePriority[b.role] || a.fullName.localeCompare(b.fullName);
-    });
+      const mappedUsers: User[] = profiles.map(profile => ({
+        id: profile.id,
+        email: `user-${profile.id.substring(0, 8)}@example.com`, // Placeholder for demo
+        fullName: profile.full_name,
+        role: profile.role as UserRole,
+        isActive: profile.is_active,
+        contactInfo: profile.contact_info || '',
+        createdAt: profile.created_at,
+        lastLoginAt: profile.last_login_at || undefined,
+        additionalInfo: profile.additional_info || {}
+      }));
+      
+      setUsers(mappedUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast({
+        variant: "destructive",
+        title: "Failed to load users",
+        description: "Could not retrieve user data from the database."
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // Filter users based on search term and role
+  const filteredUsers = users.filter(user => {
+    // Filter by search term
+    const matchesSearch = 
+      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter by role
+    const matchesRole = filterRole === "all" || user.role === filterRole;
+    
+    return matchesSearch && matchesRole;
+  }).sort((a, b) => {
+    // Sort by role priority: admin > staff > volunteer > beneficiary
+    const rolePriority = { admin: 0, staff: 1, volunteer: 2, beneficiary: 3 };
+    return (rolePriority[a.role] || 999) - (rolePriority[b.role] || 999) || a.fullName.localeCompare(b.fullName);
+  });
 
   // Reset the new user form
   const resetNewUserForm = () => {
@@ -74,6 +119,9 @@ const UserManagement = () => {
       
       setIsCreateDialogOpen(false);
       resetNewUserForm();
+      
+      // Refresh user list
+      fetchUsers();
     } catch (error) {
       console.error("Failed to create user:", error);
     } finally {
@@ -85,6 +133,12 @@ const UserManagement = () => {
   const toggleUserStatus = async (userId: string, isActive: boolean) => {
     try {
       await updateUserProfile(userId, { isActive: !isActive });
+      
+      // Update local state
+      setUsers(users.map(user => 
+        user.id === userId ? { ...user, isActive: !isActive } : user
+      ));
+      
       toast({
         title: isActive ? "User deactivated" : "User activated",
         description: `The user has been ${isActive ? "deactivated" : "activated"} successfully.`,
@@ -159,10 +213,15 @@ const UserManagement = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button variant="outline" size="icon" onClick={() => {
-                  setSearchTerm("");
-                  setFilterRole("all");
-                }}>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={() => {
+                    setSearchTerm("");
+                    setFilterRole("all");
+                    fetchUsers();
+                  }}
+                >
                   <RefreshCw className="h-4 w-4" />
                 </Button>
               </div>
@@ -178,13 +237,17 @@ const UserManagement = () => {
               </div>
               
               <div className="divide-y">
-                {users.length > 0 ? (
-                  users.map((user) => (
+                {isLoading ? (
+                  <div className="p-8 text-center">
+                    <div className="text-muted-foreground">Loading users...</div>
+                  </div>
+                ) : filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
                     <div key={user.id} className="grid grid-cols-12 gap-4 p-4 items-center">
                       <div className="col-span-5 sm:col-span-4">
                         <div className="flex items-center gap-3">
                           <div className="rounded-full bg-primary/10 p-2">
-                            <User className="h-4 w-4 text-primary" />
+                            <UserIcon className="h-4 w-4 text-primary" />
                           </div>
                           <div>
                             <div className="font-medium">{user.fullName}</div>

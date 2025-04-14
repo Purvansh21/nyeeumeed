@@ -18,11 +18,11 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   createUser: (userData: Omit<User, 'id' | 'createdAt' | 'isActive'> & { password: string }) => Promise<void>;
   updateUserProfile: (userId: string, data: Partial<User>) => Promise<void>;
-  getAllUsers: () => User[];
-  getUserById: (id: string) => User | undefined;
+  getAllUsers: () => Promise<User[]>;
+  getUserById: (id: string) => Promise<User | undefined>;
 }
 
 export interface LoginCredentials {
