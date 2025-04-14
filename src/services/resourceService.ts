@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { VolunteerTrainingMaterial, VolunteerTrainingProgress } from "@/types/volunteer";
+import { VolunteerTrainingMaterial } from "@/types/volunteer";
 
 // Mock data for development, used as fallback
 const MOCK_TRAINING_MATERIALS: VolunteerTrainingMaterial[] = [
@@ -100,7 +100,9 @@ export const createTrainingResource = async (data: TrainingResourceData): Promis
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('training_materials')
-        .upload(filePath, data.file);
+        .upload(filePath, data.file, {
+          upsert: true
+        });
       
       if (uploadError) {
         console.error("Error uploading file:", uploadError);
@@ -117,32 +119,25 @@ export const createTrainingResource = async (data: TrainingResourceData): Promis
       }
     }
     
-    // Try using the Supabase insert function
-    try {
-      const { error } = await supabase
-        .from('volunteer_training_materials')
-        .insert({
-          title: data.title,
-          description: data.description,
-          category: data.category,
-          content_type: data.content_type,
-          is_required: data.is_required,
-          url: publicUrl,
-          file_path: filePath
-        });
-      
-      if (error) {
-        console.error("Error inserting training resource:", error);
-        // If error, fall back to mock data for development
-        return true; // Simulate success for now
-      }
-      
-      return true;
-    } catch (supabaseError) {
-      console.error("Supabase error:", supabaseError);
-      // Fall back to mock data
-      return true; // Simulate success for now
+    // Insert resource metadata into the database
+    const { error } = await supabase
+      .from('volunteer_training_materials')
+      .insert({
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        content_type: data.content_type,
+        is_required: data.is_required,
+        url: publicUrl,
+        file_path: filePath
+      });
+    
+    if (error) {
+      console.error("Error inserting training resource:", error);
+      return false;
     }
+    
+    return true;
   } catch (error) {
     console.error("Failed to create training resource:", error);
     return false;
