@@ -7,20 +7,16 @@ import { validateServiceRequestStatus, validateServiceRequestUrgency } from "./u
 // Service Requests Management
 export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
   try {
-    // Query the database with corrected relationships
+    // Use basic select without trying to use relationship syntax
     const { data, error } = await supabase
       .from('service_requests')
-      .select(`
-        *,
-        beneficiary:beneficiary_id(id, full_name, contact_info),
-        staff:assigned_staff(id, full_name)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
     
-    // Transform the data to match our expected types
-    return (data || []).map(request => {
+    // Fetch related beneficiary and staff data separately if needed
+    const requests = await Promise.all((data || []).map(async (request) => {
       // Create a base request without relations
       const transformedRequest: ServiceRequest = {
         id: request.id,
@@ -36,44 +32,43 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
         updated_at: request.updated_at,
       };
       
-      // Add the beneficiary relation if it exists and is a valid object
-      if (request.beneficiary && 
-          typeof request.beneficiary === 'object' && 
-          request.beneficiary !== null) {
-        
-        // Use a type assertion for beneficiary to help TypeScript understand the structure
-        const beneficiary = request.beneficiary as {
-          id: string;
-          full_name: string;
-          contact_info: string | null;
-        };
-        
-        transformedRequest.beneficiary = {
-          id: beneficiary.id,
-          full_name: beneficiary.full_name,
-          contact_info: beneficiary.contact_info
-        };
+      // If beneficiary_id exists, fetch beneficiary data
+      if (request.beneficiary_id) {
+        const { data: beneficiaryData } = await supabase
+          .from('beneficiary_users')
+          .select('id, full_name, contact_info')
+          .eq('id', request.beneficiary_id)
+          .maybeSingle();
+          
+        if (beneficiaryData) {
+          transformedRequest.beneficiary = {
+            id: beneficiaryData.id,
+            full_name: beneficiaryData.full_name,
+            contact_info: beneficiaryData.contact_info
+          };
+        }
       }
       
-      // Add the staff relation if it exists and is a valid object
-      if (request.staff && 
-          typeof request.staff === 'object' && 
-          request.staff !== null) {
-        
-        // Use a type assertion for staff to help TypeScript understand the structure
-        const staff = request.staff as {
-          id: string;
-          full_name: string;
-        };
-        
-        transformedRequest.staff = {
-          id: staff.id,
-          full_name: staff.full_name
-        };
+      // If assigned_staff exists, fetch staff data
+      if (request.assigned_staff) {
+        const { data: staffData } = await supabase
+          .from('staff_users')
+          .select('id, full_name')
+          .eq('id', request.assigned_staff)
+          .maybeSingle();
+          
+        if (staffData) {
+          transformedRequest.staff = {
+            id: staffData.id,
+            full_name: staffData.full_name
+          };
+        }
       }
       
       return transformedRequest;
-    });
+    }));
+    
+    return requests;
   } catch (error: any) {
     console.error("Error fetching service requests:", error.message);
     return [];

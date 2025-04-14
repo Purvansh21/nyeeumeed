@@ -7,20 +7,16 @@ import { validateAppointmentStatus } from "./utils/validationUtils";
 // Appointments Management
 export async function fetchAppointments(): Promise<Appointment[]> {
   try {
-    // Query the database with corrected relationships
+    // Use basic select without trying to use relationship syntax
     const { data, error } = await supabase
       .from('appointments')
-      .select(`
-        *,
-        beneficiary:beneficiary_id(id, full_name, contact_info),
-        staff:staff_id(id, full_name)
-      `)
+      .select('*')
       .order('date', { ascending: true });
     
     if (error) throw error;
     
-    // Transform the data to match our expected types
-    return (data || []).map(appointment => {
+    // Fetch related beneficiary and staff data separately if needed
+    const appointments = await Promise.all((data || []).map(async (appointment) => {
       // Create a base appointment without relations
       const transformedAppointment: Appointment = {
         id: appointment.id,
@@ -38,44 +34,43 @@ export async function fetchAppointments(): Promise<Appointment[]> {
         updated_at: appointment.updated_at,
       };
       
-      // Add the beneficiary relation if it exists and is a valid object
-      if (appointment.beneficiary && 
-          typeof appointment.beneficiary === 'object' && 
-          appointment.beneficiary !== null) {
-        
-        // Use a type assertion for beneficiary to help TypeScript understand the structure
-        const beneficiary = appointment.beneficiary as {
-          id: string;
-          full_name: string;
-          contact_info: string | null;
-        };
-        
-        transformedAppointment.beneficiary = {
-          id: beneficiary.id,
-          full_name: beneficiary.full_name,
-          contact_info: beneficiary.contact_info
-        };
+      // If beneficiary_id exists, fetch beneficiary data
+      if (appointment.beneficiary_id) {
+        const { data: beneficiaryData } = await supabase
+          .from('beneficiary_users')
+          .select('id, full_name, contact_info')
+          .eq('id', appointment.beneficiary_id)
+          .maybeSingle();
+          
+        if (beneficiaryData) {
+          transformedAppointment.beneficiary = {
+            id: beneficiaryData.id,
+            full_name: beneficiaryData.full_name,
+            contact_info: beneficiaryData.contact_info
+          };
+        }
       }
       
-      // Add the staff relation if it exists and is a valid object
-      if (appointment.staff && 
-          typeof appointment.staff === 'object' && 
-          appointment.staff !== null) {
-        
-        // Use a type assertion for staff to help TypeScript understand the structure
-        const staff = appointment.staff as {
-          id: string;
-          full_name: string;
-        };
-        
-        transformedAppointment.staff = {
-          id: staff.id,
-          full_name: staff.full_name
-        };
+      // If staff_id exists, fetch staff data
+      if (appointment.staff_id) {
+        const { data: staffData } = await supabase
+          .from('staff_users')
+          .select('id, full_name')
+          .eq('id', appointment.staff_id)
+          .maybeSingle();
+          
+        if (staffData) {
+          transformedAppointment.staff = {
+            id: staffData.id,
+            full_name: staffData.full_name
+          };
+        }
       }
       
       return transformedAppointment;
-    });
+    }));
+    
+    return appointments;
   } catch (error: any) {
     console.error("Error fetching appointments:", error.message);
     return [];
