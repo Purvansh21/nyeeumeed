@@ -709,8 +709,8 @@ const BeneficiariesManagement = () => {
                     <FormItem>
                       <FormLabel>Assigned To (Optional)</FormLabel>
                       <Select 
-                        value={field.value || ""} 
-                        onValueChange={(value) => field.onChange(value || null)}
+                        value={field.value || "unassigned"} 
+                        onValueChange={(value) => field.onChange(value === "unassigned" ? null : value)}
                         disabled={isSubmitting}
                       >
                         <FormControl>
@@ -719,7 +719,7 @@ const BeneficiariesManagement = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Unassigned</SelectItem>
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
                           {staffUsers.map((staff) => (
                             <SelectItem key={staff.id} value={staff.id}>
                               {staff.fullName}
