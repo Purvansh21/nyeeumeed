@@ -144,7 +144,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => toggleUserStatus(user.id, user.isActive)}
+                      onClick={() => toggleUserStatus(user.id, !user.isActive)}
                       className={user.isActive ? "text-destructive" : "text-green-600"}
                       title={user.isActive ? "Deactivate user" : "Activate user"}
                     >

@@ -241,6 +241,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // Helper function to clean up role-specific tables when role changes
+  const cleanupPreviousRoleEntry = async (userId: string, previousRole: UserRole | undefined, newRole: UserRole | undefined) => {
+    try {
+      // Skip if previous role is the same as new role or if previous role is undefined
+      if (!previousRole || previousRole === newRole) return;
+      
+      // Delete from previous role table
+      let tableName = '';
+      switch (previousRole) {
+        case 'admin':
+          tableName = 'admin_users';
+          break;
+        case 'staff':
+          tableName = 'staff_users';
+          break;
+        case 'volunteer':
+          tableName = 'volunteer_users';
+          break;
+        case 'beneficiary':
+          tableName = 'beneficiary_users';
+          break;
+      }
+      
+      if (tableName) {
+        const { error } = await supabase
+          .from(tableName)
+          .delete()
+          .eq('id', userId);
+          
+        if (error) {
+          console.error(`Error deleting from ${tableName}:`, error);
+        }
+      }
+    } catch (error) {
+      console.error("Error cleaning up previous role entry:", error);
+    }
+  };
+
   // Update user profile
   const updateUserProfile = async (userId: string, data: Partial<User>): Promise<void> => {
     setIsLoading(true);
@@ -251,6 +289,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       // - Users can only update their own profile
       if (user?.role !== "admin" && user?.id !== userId) {
         throw new Error("You don't have permission to update this user");
+      }
+      
+      // Get current user data to check for role changes
+      const { data: currentProfile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      const previousRole = currentProfile.role as UserRole;
+      const newRole = data.role as UserRole | undefined;
+      
+      // If role is being changed, clean up previous role entry
+      if (newRole && previousRole !== newRole) {
+        await cleanupPreviousRoleEntry(userId, previousRole, newRole);
       }
       
       // Ensure additionalInfo is a valid object or null

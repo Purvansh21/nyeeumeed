@@ -11,12 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getRoleDisplayName } from "@/utils/permissions";
 import { UserRole, User } from "@/types/auth";
-import { UserPlus, Search, RefreshCw, User as UserIcon, Edit, UserX } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { UserPlus, Search, RefreshCw } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { SkeletonTable } from "@/components/ui/skeleton";
-import { Json } from "@/integrations/supabase/types";
 import UsersTable from "@/components/users/UsersTable";
 
 const UserManagement = () => {
@@ -151,18 +149,18 @@ const UserManagement = () => {
   };
 
   // Handle user activation/deactivation
-  const toggleUserStatus = async (userId: string, isActive: boolean) => {
+  const toggleUserStatus = async (userId: string, newActiveStatus: boolean) => {
     try {
-      await updateUserProfile(userId, { isActive: !isActive });
+      await updateUserProfile(userId, { isActive: newActiveStatus });
       
       // Update local state
       setUsers(users.map(user => 
-        user.id === userId ? { ...user, isActive: !isActive } : user
+        user.id === userId ? { ...user, isActive: newActiveStatus } : user
       ));
       
       toast({
-        title: isActive ? "User deactivated" : "User activated",
-        description: `The user has been ${isActive ? "deactivated" : "activated"} successfully.`,
+        title: newActiveStatus ? "User activated" : "User deactivated",
+        description: `The user has been ${newActiveStatus ? "activated" : "deactivated"} successfully.`,
       });
     } catch (error) {
       console.error("Failed to update user status:", error);
@@ -188,6 +186,9 @@ const UserManagement = () => {
         title: "User updated",
         description: "User information has been updated successfully.",
       });
+      
+      // Refresh the user list to reflect role changes properly
+      fetchUsers();
     } catch (error) {
       console.error("Failed to update user:", error);
       toast({
