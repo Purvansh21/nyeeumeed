@@ -67,7 +67,13 @@ export const numericSchema = z
 // Form helper functions
 export const formatValidationErrors = (errors: any) => {
   return Object.entries(errors).reduce((acc: Record<string, string>, [key, value]) => {
-    acc[key] = Array.isArray(value) ? value[0].message : value.message;
+    if (Array.isArray(value) && value[0] && typeof value[0] === 'object' && value[0] !== null && 'message' in value[0]) {
+      acc[key] = value[0].message as string;
+    } else if (value && typeof value === 'object' && value !== null && 'message' in value) {
+      acc[key] = value.message as string;
+    } else {
+      acc[key] = String(value);
+    }
     return acc;
   }, {});
 };
