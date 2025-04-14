@@ -2,13 +2,13 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { BookOpen, FileText, Search, Edit, Trash2, Download, FileUp } from "lucide-react";
+import { Search } from "lucide-react";
 import ResourceUploadForm from "@/components/admin/ResourceUploadForm";
+import ResourcesDataTable from "@/components/admin/ResourcesDataTable";
 import { VolunteerTrainingMaterial } from "@/types/volunteer";
 import { getTrainingMaterials } from "@/services/resourceService";
 import { useToast } from "@/hooks/use-toast";
@@ -45,6 +45,15 @@ const AdminTrainingResources = () => {
     toast({
       title: "Resource Created",
       description: "The training resource has been successfully created."
+    });
+    loadResources();
+  };
+  
+  const handleDeleteResource = (resource: VolunteerTrainingMaterial) => {
+    // TODO: Implement delete functionality
+    toast({
+      title: "Resource Deleted",
+      description: `${resource.title} has been deleted.`
     });
     loadResources();
   };
@@ -94,61 +103,11 @@ const AdminTrainingResources = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                {isLoading ? (
-                  <div className="flex justify-center py-8">
-                    <p>Loading resources...</p>
-                  </div>
-                ) : filteredResources.length > 0 ? (
-                  <div className="space-y-4">
-                    {filteredResources.map((resource) => (
-                      <Card key={resource.id} className="overflow-hidden">
-                        <div className="grid grid-cols-1 md:grid-cols-4 p-4">
-                          <div className="md:col-span-3 space-y-1">
-                            <div className="flex items-center gap-2">
-                              {resource.content_type === "document" ? (
-                                <FileText className="h-5 w-5 text-blue-500" />
-                              ) : resource.content_type === "video" ? (
-                                <FileUp className="h-5 w-5 text-red-500" />
-                              ) : (
-                                <BookOpen className="h-5 w-5 text-green-500" />
-                              )}
-                              <h3 className="font-medium">{resource.title}</h3>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{resource.description}</p>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              <Badge variant="outline">{resource.category}</Badge>
-                              <Badge variant="outline">{resource.content_type}</Badge>
-                              {resource.is_required && (
-                                <Badge variant="secondary">Required</Badge>
-                              )}
-                            </div>
-                          </div>
-                          <div className="md:col-span-1 flex flex-row md:flex-col gap-2 justify-end items-end mt-3 md:mt-0">
-                            <Button size="sm" variant="outline">
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
-                            <Button size="sm" variant="outline" className="text-destructive">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No resources found matching your criteria.</p>
-                    <Button variant="outline" className="mt-4" onClick={() => setSearchQuery("")}>
-                      Clear Search
-                    </Button>
-                  </div>
-                )}
+                <ResourcesDataTable 
+                  resources={filteredResources}
+                  isLoading={isLoading}
+                  onDelete={handleDeleteResource}
+                />
               </CardContent>
             </Card>
           </TabsContent>

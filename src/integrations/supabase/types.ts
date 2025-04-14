@@ -535,6 +535,96 @@ export type Database = {
           },
         ]
       }
+      volunteer_training_materials: {
+        Row: {
+          category: string
+          content_type: string
+          created_at: string
+          description: string
+          file_path: string | null
+          id: string
+          is_required: boolean | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          category: string
+          content_type: string
+          created_at?: string
+          description: string
+          file_path?: string | null
+          id?: string
+          is_required?: boolean | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          category?: string
+          content_type?: string
+          created_at?: string
+          description?: string
+          file_path?: string | null
+          id?: string
+          is_required?: boolean | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      volunteer_training_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          material_id: string
+          score: number | null
+          started_at: string | null
+          status: string
+          updated_at: string
+          volunteer_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          material_id: string
+          score?: number | null
+          started_at?: string | null
+          status: string
+          updated_at?: string
+          volunteer_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          material_id?: string
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          volunteer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "volunteer_training_progress_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "volunteer_training_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "volunteer_training_progress_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: false
+            referencedRelation: "volunteer_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       volunteer_users: {
         Row: {
           availability: string | null

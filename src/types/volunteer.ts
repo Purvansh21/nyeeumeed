@@ -1,4 +1,3 @@
-
 export interface VolunteerOpportunity {
   id: string;
   title: string;
@@ -44,9 +43,9 @@ export interface VolunteerTrainingMaterial {
   title: string;
   description: string;
   category: string;
-  content_type: 'video' | 'document' | 'quiz' | 'article';
+  content_type: 'video' | 'document' | 'interactive';
   url?: string;
-  content?: string;
+  file_path?: string;
   created_at: string;
   updated_at: string;
   is_required: boolean;
