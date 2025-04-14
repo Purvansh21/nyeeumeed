@@ -1,13 +1,28 @@
 
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, ShieldCheck, User, UserCheck, FileText, AlertTriangle, Bell } from "lucide-react";
 import { getRoleDisplayName } from "@/utils/permissions";
+import { User as UserType } from "@/types/auth";
 
 const AdminDashboard = () => {
   const { user, getAllUsers } = useAuth();
-  const allUsers = getAllUsers();
+  const [allUsers, setAllUsers] = useState<UserType[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const users = await getAllUsers();
+        setAllUsers(users);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, [getAllUsers]);
 
   // Count users by role
   const userCounts = {

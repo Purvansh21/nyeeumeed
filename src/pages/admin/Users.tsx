@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -14,6 +13,7 @@ import { UserPlus, Search, Filter, RefreshCw, User as UserIcon, Edit, UserX } fr
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 const UserManagement = () => {
   const { createUser, updateUserProfile } = useAuth();
@@ -42,21 +42,26 @@ const UserManagement = () => {
         
       if (error) throw error;
       
-      // Get user emails from auth.users table via admin API
-      // Note: In a real app, you would use a secure server-side function for this
-      // For this demo, we'll assume we can't access emails and use placeholders
-      
-      const mappedUsers: User[] = profiles.map(profile => ({
-        id: profile.id,
-        email: `user-${profile.id.substring(0, 8)}@example.com`, // Placeholder for demo
-        fullName: profile.full_name,
-        role: profile.role as UserRole,
-        isActive: profile.is_active,
-        contactInfo: profile.contact_info || '',
-        createdAt: profile.created_at,
-        lastLoginAt: profile.last_login_at || undefined,
-        additionalInfo: profile.additional_info || {}
-      }));
+      // Convert Json type to Record<string, any>
+      const mappedUsers: User[] = profiles.map(profile => {
+        // Ensure additionalInfo is always a Record<string, any> or empty object
+        let additionalInfo: Record<string, any> = {};
+        if (profile.additional_info && typeof profile.additional_info === 'object' && !Array.isArray(profile.additional_info)) {
+          additionalInfo = profile.additional_info as Record<string, any>;
+        }
+        
+        return {
+          id: profile.id,
+          email: `user-${profile.id.substring(0, 8)}@example.com`, // Placeholder for demo
+          fullName: profile.full_name,
+          role: profile.role as UserRole,
+          isActive: profile.is_active,
+          contactInfo: profile.contact_info || '',
+          createdAt: profile.created_at,
+          lastLoginAt: profile.last_login_at || undefined,
+          additionalInfo
+        };
+      });
       
       setUsers(mappedUsers);
     } catch (error) {

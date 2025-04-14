@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { AuthContextType, User, UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 // Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -131,7 +132,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Get all users (admin only)
   const getAllUsers = async (): Promise<User[]> => {
-    if (user?.role !== 'admin') return [];
+    if (user?.role !== 'admin' && user?.role !== 'staff') return [];
     
     try {
       const { data, error } = await supabase
@@ -141,10 +142,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (error) throw error;
       
       return data.map(profile => {
-        // Parse additionalInfo as Record<string, any> or default to empty object
-        const additionalInfo = typeof profile.additional_info === 'object' 
-          ? profile.additional_info as Record<string, any>
-          : {};
+        // Ensure additionalInfo is always a Record<string, any> or empty object
+        let additionalInfo: Record<string, any> = {};
+        if (profile.additional_info && typeof profile.additional_info === 'object' && !Array.isArray(profile.additional_info)) {
+          additionalInfo = profile.additional_info as Record<string, any>;
+        }
           
         return {
           id: profile.id,

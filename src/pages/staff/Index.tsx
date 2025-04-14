@@ -1,13 +1,28 @@
 
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserCheck, User, Calendar, FileText, BarChart2, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { User as UserType } from "@/types/auth";
 
 const StaffDashboard = () => {
   const { user, getAllUsers } = useAuth();
-  const allUsers = getAllUsers();
+  const [allUsers, setAllUsers] = useState<UserType[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const users = await getAllUsers();
+        setAllUsers(users);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+
+    fetchUsers();
+  }, [getAllUsers]);
 
   // Count volunteers and beneficiaries
   const volunteerCount = allUsers.filter(u => u.role === "volunteer").length;
