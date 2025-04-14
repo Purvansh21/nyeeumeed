@@ -1,14 +1,14 @@
 
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/components/layout/DashboardLayout";
+import SharedDashboardLayout from "@/components/layout/SharedDashboardLayout";
 import UrgentRequestsList from "@/components/staff/UrgentRequestsList";
 
 const UrgentRequestsPage = () => {
   const { user } = useAuth();
 
   return (
-    <DashboardLayout>
+    <SharedDashboardLayout>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Urgent Requests</h1>
@@ -19,7 +19,7 @@ const UrgentRequestsPage = () => {
 
         <UrgentRequestsList />
       </div>
-    </DashboardLayout>
+    </SharedDashboardLayout>
   );
 };
 

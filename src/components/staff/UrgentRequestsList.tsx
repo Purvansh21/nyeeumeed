@@ -1,17 +1,18 @@
-
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarIcon, CheckCircleIcon, MailIcon, PhoneIcon, UserIcon } from "lucide-react";
-import { fetchUrgentServiceRequests, ServiceRequest, verifyServiceRequest } from "@/services/beneficiaryService";
+import { CheckCircleIcon, AlertCircleIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/components/ui/use-toast";
+import { fetchUrgentServiceRequests, verifyServiceRequest } from "@/services/beneficiaryService";
+import { fetchUrgentRequests, verifyUrgentRequest } from "@/services/urgentRequestService";
 
 const UrgentRequestsList: React.FC = () => {
   const { user } = useAuth();
+  
   const { data: urgentRequests, isLoading, error, refetch } = useQuery({
     queryKey: ["urgent-service-requests"],
     queryFn: fetchUrgentServiceRequests,
@@ -55,13 +56,16 @@ const UrgentRequestsList: React.FC = () => {
           <CardDescription>Loading urgent service requests...</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <div className="flex items-center">
-            <Skeleton className="h-4 w-[100px]" />
-            <Skeleton className="ml-auto h-4 w-[50px]" />
-          </div>
-          <Skeleton className="h-4" />
-          <Skeleton className="h-4" />
-          <Skeleton className="h-4" />
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="flex items-center">
+                <Skeleton className="h-4 w-[100px]" />
+                <Skeleton className="ml-auto h-4 w-[50px]" />
+              </div>
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+            </div>
+          ))}
         </CardContent>
       </Card>
     );
@@ -75,7 +79,12 @@ const UrgentRequestsList: React.FC = () => {
           <CardDescription>Error fetching urgent service requests.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-red-500">Error: {(error as Error).message}</p>
+          <div className="flex items-center p-4 text-red-600 bg-red-50 rounded-lg">
+            <AlertCircleIcon className="h-5 w-5 mr-2" />
+            <span>
+              {(error as Error).message || "An error occurred while loading urgent requests."}
+            </span>
+          </div>
         </CardContent>
       </Card>
     );
@@ -89,7 +98,10 @@ const UrgentRequestsList: React.FC = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {!urgentRequests || urgentRequests.length === 0 ? (
-          <p>No urgent service requests at this time.</p>
+          <div className="flex flex-col items-center justify-center p-6 text-center text-gray-500">
+            <CheckCircleIcon className="h-12 w-12 mb-3 text-gray-400" />
+            <p>No urgent service requests at this time.</p>
+          </div>
         ) : (
           urgentRequests.map((request) => (
             <div key={request.id} className="border rounded-md p-4">

@@ -451,6 +451,10 @@ export type Database = {
           status: string
           updated_at: string
           urgency: string
+          verification_date: string | null
+          verification_notes: string | null
+          verification_status: string | null
+          verified_by: string | null
         }
         Insert: {
           assigned_staff?: string | null
@@ -464,6 +468,10 @@ export type Database = {
           status?: string
           updated_at?: string
           urgency: string
+          verification_date?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_by?: string | null
         }
         Update: {
           assigned_staff?: string | null
@@ -477,6 +485,10 @@ export type Database = {
           status?: string
           updated_at?: string
           urgency?: string
+          verification_date?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_by?: string | null
         }
         Relationships: []
       }
@@ -562,6 +574,62 @@ export type Database = {
           position?: string | null
         }
         Relationships: []
+      }
+      urgent_requests: {
+        Row: {
+          created_at: string
+          id: string
+          priority: string
+          responded_at: string | null
+          responded_by: string | null
+          response_needed_by: string | null
+          response_notes: string | null
+          service_request_id: string
+          status: string
+          verification_date: string | null
+          verification_notes: string | null
+          verification_status: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          priority?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          response_needed_by?: string | null
+          response_notes?: string | null
+          service_request_id: string
+          status?: string
+          verification_date?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          priority?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          response_needed_by?: string | null
+          response_notes?: string | null
+          service_request_id?: string
+          status?: string
+          verification_date?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "urgent_requests_service_request_id_fkey"
+            columns: ["service_request_id"]
+            isOneToOne: false
+            referencedRelation: "service_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       volunteer_opportunities: {
         Row: {
