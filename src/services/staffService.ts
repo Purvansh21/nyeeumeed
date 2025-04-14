@@ -649,7 +649,7 @@ export async function fetchAppointments(): Promise<Appointment[]> {
       if (appointment.beneficiary && 
           typeof appointment.beneficiary === 'object' && 
           !('error' in appointment.beneficiary) && 
-          appointment.beneficiary.id) {
+          'id' in appointment.beneficiary) {
         transformedAppointment.beneficiary = {
           id: appointment.beneficiary.id,
           full_name: appointment.beneficiary.full_name,
@@ -660,7 +660,7 @@ export async function fetchAppointments(): Promise<Appointment[]> {
       if (appointment.staff && 
           typeof appointment.staff === 'object' && 
           !('error' in appointment.staff) && 
-          appointment.staff.id) {
+          'id' in appointment.staff) {
         transformedAppointment.staff = {
           id: appointment.staff.id,
           full_name: appointment.staff.full_name
@@ -766,7 +766,7 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
       if (request.beneficiary && 
           typeof request.beneficiary === 'object' && 
           !('error' in request.beneficiary) && 
-          request.beneficiary.id) {
+          'id' in request.beneficiary) {
         transformedRequest.beneficiary = {
           id: request.beneficiary.id,
           full_name: request.beneficiary.full_name,
@@ -777,7 +777,7 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
       if (request.staff && 
           typeof request.staff === 'object' && 
           !('error' in request.staff) && 
-          request.staff.id) {
+          'id' in request.staff) {
         transformedRequest.staff = {
           id: request.staff.id,
           full_name: request.staff.full_name
