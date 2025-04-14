@@ -22,7 +22,7 @@ export const getAnnouncements = async (): Promise<Announcement[]> => {
       return [];
     }
 
-    return data || [];
+    return data as Announcement[] || [];
   } catch (error) {
     console.error("Failed to fetch announcements:", error);
     return [];
@@ -33,7 +33,7 @@ export const createAnnouncement = async (announcement: Omit<Announcement, "id" |
   try {
     const { data, error } = await supabase
       .from("announcements")
-      .insert([announcement])
+      .insert(announcement)
       .select()
       .single();
 
@@ -42,7 +42,7 @@ export const createAnnouncement = async (announcement: Omit<Announcement, "id" |
       return null;
     }
 
-    return data;
+    return data as Announcement;
   } catch (error) {
     console.error("Failed to create announcement:", error);
     return null;
@@ -63,7 +63,7 @@ export const updateAnnouncement = async (id: number, updates: Partial<Announceme
       return null;
     }
 
-    return data;
+    return data as Announcement;
   } catch (error) {
     console.error("Failed to update announcement:", error);
     return null;

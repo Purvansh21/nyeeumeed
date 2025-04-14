@@ -39,6 +39,33 @@ export type Database = {
         }
         Relationships: []
       }
+      announcements: {
+        Row: {
+          created_at: string
+          date: string
+          id: number
+          message: string
+          status: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: number
+          message: string
+          status?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: number
+          message?: string
+          status?: string
+          title?: string
+        }
+        Relationships: []
+      }
       beneficiary_users: {
         Row: {
           assistance_history: Json | null

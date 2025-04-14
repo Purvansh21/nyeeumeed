@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,23 +11,45 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/components/ui/use-toast";
 import { useForm } from "react-hook-form";
 import { Save, RefreshCw, Megaphone, Bell, Trash2, Plus, Check, X } from "lucide-react";
-
-// Mock announcements data
-const mockAnnouncements = [
-  { id: 1, title: "System Maintenance", message: "The system will be down for maintenance on Sunday from 2-4 AM.", status: "active", date: "2025-04-20" },
-  { id: 2, title: "New Feature Release", message: "We've added new volunteer management features!", status: "active", date: "2025-04-10" },
-  { id: 3, title: "Holiday Schedule", message: "Modified operating hours during upcoming holidays.", status: "scheduled", date: "2025-05-15" },
-  { id: 4, title: "Training Session", message: "Mandatory training for all staff members.", status: "expired", date: "2025-03-25" },
-];
+import { 
+  getAnnouncements, 
+  createAnnouncement, 
+  updateAnnouncement, 
+  deleteAnnouncement, 
+  Announcement 
+} from "@/integrations/supabase/announcements";
 
 const Settings = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("announcements");
-  const [announcements, setAnnouncements] = useState(mockAnnouncements);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showNewAnnouncementForm, setShowNewAnnouncementForm] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState<number | null>(null);
 
-  // Notification settings form
+  useEffect(() => {
+    const loadAnnouncements = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getAnnouncements();
+        setAnnouncements(data);
+      } catch (error) {
+        console.error("Error loading announcements:", error);
+        toast({
+          variant: "destructive",
+          title: "Failed to load announcements",
+          description: "There was an error loading the announcements. Please try again."
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (activeTab === "announcements") {
+      loadAnnouncements();
+    }
+  }, [activeTab]);
+
   const notificationForm = useForm({
     defaultValues: {
       enableEmailNotifications: true,
@@ -40,12 +61,11 @@ const Settings = () => {
     }
   });
 
-  // Announcement form
   const announcementForm = useForm({
     defaultValues: {
       title: "",
       message: "",
-      status: "active",
+      status: "active" as "active" | "scheduled" | "expired",
       date: new Date().toISOString().split('T')[0],
     }
   });
@@ -53,7 +73,6 @@ const Settings = () => {
   const handleNotificationSubmit = (data: any) => {
     setIsSubmitting(true);
     
-    // Simulate API call
     setTimeout(() => {
       console.log("Notification settings saved:", data);
       
@@ -66,34 +85,40 @@ const Settings = () => {
     }, 1000);
   };
 
-  const handleAddAnnouncement = (data: any) => {
+  const handleAddAnnouncement = async (data: any) => {
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
       if (editingAnnouncement !== null) {
-        // Update existing announcement
-        setAnnouncements(announcements.map(a => 
-          a.id === editingAnnouncement ? { ...a, ...data } : a
-        ));
+        const updated = await updateAnnouncement(editingAnnouncement, data);
         
-        toast({
-          title: "Announcement updated",
-          description: "The announcement has been updated successfully.",
-        });
-        
-        setEditingAnnouncement(null);
+        if (updated) {
+          setAnnouncements(announcements.map(a => 
+            a.id === editingAnnouncement ? { ...a, ...data } : a
+          ));
+          
+          toast({
+            title: "Announcement updated",
+            description: "The announcement has been updated successfully.",
+          });
+          
+          setEditingAnnouncement(null);
+        } else {
+          throw new Error("Failed to update announcement");
+        }
       } else {
-        // Add new announcement
-        setAnnouncements([
-          { id: Date.now(), ...data },
-          ...announcements,
-        ]);
+        const created = await createAnnouncement(data);
         
-        toast({
-          title: "Announcement created",
-          description: "A new announcement has been created successfully.",
-        });
+        if (created) {
+          setAnnouncements([created, ...announcements]);
+          
+          toast({
+            title: "Announcement created",
+            description: "A new announcement has been created successfully.",
+          });
+        } else {
+          throw new Error("Failed to create announcement");
+        }
       }
       
       setShowNewAnnouncementForm(false);
@@ -103,21 +128,43 @@ const Settings = () => {
         status: "active",
         date: new Date().toISOString().split('T')[0],
       });
-      
+    } catch (error) {
+      console.error("Error with announcement:", error);
+      toast({
+        variant: "destructive",
+        title: "Operation failed",
+        description: "There was an error processing your request. Please try again.",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
-  const deleteAnnouncement = (id: number) => {
-    setAnnouncements(announcements.filter(a => a.id !== id));
-    
-    toast({
-      title: "Announcement deleted",
-      description: "The announcement has been removed successfully.",
-    });
+  const handleDeleteAnnouncement = async (id: number) => {
+    try {
+      const success = await deleteAnnouncement(id);
+      
+      if (success) {
+        setAnnouncements(announcements.filter(a => a.id !== id));
+        
+        toast({
+          title: "Announcement deleted",
+          description: "The announcement has been removed successfully.",
+        });
+      } else {
+        throw new Error("Failed to delete announcement");
+      }
+    } catch (error) {
+      console.error("Error deleting announcement:", error);
+      toast({
+        variant: "destructive",
+        title: "Delete failed",
+        description: "There was an error deleting the announcement. Please try again.",
+      });
+    }
   };
 
-  const editAnnouncement = (announcement: any) => {
+  const handleEditAnnouncement = (announcement: Announcement) => {
     announcementForm.reset({
       title: announcement.title,
       message: announcement.message,
@@ -314,7 +361,15 @@ const Settings = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {announcements.length === 0 ? (
+                      {isLoading ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-6">
+                            <div className="flex justify-center">
+                              <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : announcements.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
                             No announcements available. Create your first announcement.
@@ -346,7 +401,7 @@ const Settings = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => editAnnouncement(announcement)}
+                                  onClick={() => handleEditAnnouncement(announcement)}
                                 >
                                   <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M11.8536 1.14645C11.6583 0.951184 11.3417 0.951184 11.1465 1.14645L3.71455 8.57836C3.62459 8.66832 3.55263 8.77461 3.50251 8.89155L2.04044 12.303C1.9599 12.491 2.00189 12.709 2.14646 12.8536C2.29103 12.9981 2.50905 13.0401 2.69697 12.9596L6.10847 11.4975C6.2254 11.4474 6.3317 11.3754 6.42166 11.2855L13.8536 3.85355C14.0488 3.65829 14.0488 3.34171 13.8536 3.14645L11.8536 1.14645ZM4.42166 9.28547L11.5 2.20711L12.7929 3.5L5.71455 10.5784L4.21924 11.2192L3.78081 10.7808L4.42166 9.28547Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
@@ -355,7 +410,7 @@ const Settings = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => deleteAnnouncement(announcement.id)}
+                                  onClick={() => handleDeleteAnnouncement(announcement.id)}
                                 >
                                   <Trash2 className="h-4 w-4 text-red-500" />
                                 </Button>
