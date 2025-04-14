@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { 
   VolunteerOpportunity, 
@@ -190,6 +191,8 @@ export const getVolunteerRegistrations = async (volunteerId: string): Promise<Vo
       
       return {
         ...reg,
+        // Ensure status is properly typed
+        status: reg.status as "registered" | "completed" | "cancelled" | "no-show",
         opportunity: opportunity ? {
           ...opportunity,
           status: opportunity.status as "active" | "cancelled" | "completed" | "full"
@@ -224,11 +227,25 @@ export const cancelRegistration = async (registrationId: string, opportunityId: 
       throw regError;
     }
     
+    // Get the current spots_filled value first
+    const { data: opportunity, error: getError } = await supabase
+      .from('volunteer_opportunities')
+      .select('spots_filled')
+      .eq('id', opportunityId)
+      .single();
+    
+    if (getError) {
+      console.error("Error getting opportunity details:", getError);
+      throw getError;
+    }
+    
     // Decrement the spots_filled count in the opportunity
+    const newSpotsFilled = Math.max(0, opportunity.spots_filled - 1);
     const { error: oppError } = await supabase
       .from('volunteer_opportunities')
       .update({ 
-        spots_filled: supabase.rpc('decrement_counter', { row_id: opportunityId, table_name: 'volunteer_opportunities', column_name: 'spots_filled' })
+        spots_filled: newSpotsFilled,
+        status: 'active' // Reset to active since a spot opened up
       })
       .eq('id', opportunityId);
     
@@ -370,8 +387,8 @@ export const getVolunteerHoursSummary = async (volunteerId: string): Promise<Vol
  * Register for a volunteer opportunity
  */
 export const registerForOpportunity = async (
-  volunteerId: string,
-  opportunityId: string
+  opportunityId: string,
+  volunteerId: string
 ): Promise<boolean> => {
   try {
     console.log(`Registering volunteer ${volunteerId} for opportunity ${opportunityId}`);
@@ -421,12 +438,13 @@ export const registerForOpportunity = async (
     }
     
     // Increment the spots_filled count
+    const newSpotsFilled = opportunity.spots_filled + 1;
     const { error: updateError } = await supabase
       .from('volunteer_opportunities')
       .update({ 
-        spots_filled: opportunity.spots_filled + 1,
+        spots_filled: newSpotsFilled,
         // Set status to full if this registration fills the last spot
-        status: opportunity.spots_filled + 1 >= opportunity.spots_available ? 'full' : 'active'
+        status: newSpotsFilled >= opportunity.spots_available ? 'full' : 'active'
       })
       .eq('id', opportunityId);
     
