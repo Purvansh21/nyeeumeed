@@ -171,6 +171,9 @@ const UserManagement = () => {
         title: "Action failed",
         description: error.message || "Failed to update user status. Please try again.",
       });
+      
+      // Refresh the user list in case of error to ensure UI consistency
+      fetchUsers();
     }
   };
 
@@ -184,22 +187,8 @@ const UserManagement = () => {
       
       await updateUserProfile(userId, updates);
       
-      // Update local state with the changes
-      if (updates.role || updates.fullName || updates.contactInfo || updates.isActive !== undefined) {
-        setUsers(prevUsers =>
-          prevUsers.map(u => 
-            u.id === userId 
-              ? { 
-                  ...u, 
-                  ...(updates.fullName ? { fullName: updates.fullName } : {}),
-                  ...(updates.role ? { role: updates.role } : {}),
-                  ...(updates.contactInfo ? { contactInfo: updates.contactInfo } : {}),
-                  ...(updates.isActive !== undefined ? { isActive: updates.isActive } : {})
-                } 
-              : u
-          )
-        );
-      }
+      // After successful update, fetch fresh data to ensure all role changes are reflected correctly
+      fetchUsers();
       
       toast({
         title: "User updated",
@@ -212,6 +201,10 @@ const UserManagement = () => {
         title: "Update failed",
         description: error.message || "Failed to update user information. Please try again.",
       });
+      
+      // Refresh to ensure UI is in sync with database
+      fetchUsers();
+      
       throw error; // Re-throw to be caught by the component
     }
   };

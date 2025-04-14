@@ -83,7 +83,19 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
     
     setIsSubmitting(true);
     try {
-      await updateUserProfile(editingUser.id, userUpdates);
+      // Prevent changing role to current role to avoid DB operation errors
+      const updates = {...userUpdates};
+      if (updates.role === editingUser.role) {
+        delete updates.role;
+      }
+      
+      if (Object.keys(updates).length === 0) {
+        setIsEditDialogOpen(false);
+        setEditingUser(null);
+        return;
+      }
+      
+      await updateUserProfile(editingUser.id, updates);
       setIsEditDialogOpen(false);
       setEditingUser(null);
       toast({
@@ -104,6 +116,8 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
 
   // Handle toggling user status (activate/deactivate)
   const handleToggleUserStatus = async (userId: string, newStatus: boolean) => {
+    if (processingId === userId) return; // Prevent multiple clicks
+    
     try {
       setProcessingId(userId);
       await toggleUserStatus(userId, newStatus);

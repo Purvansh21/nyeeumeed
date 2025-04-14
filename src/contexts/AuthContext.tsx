@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { AuthContextType, User, UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/use-toast";
@@ -278,9 +277,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (data.role !== undefined && data.role !== currentProfile.role) {
         updateData.role = data.role;
         
-        // Try to find if the user already exists in the target role table before inserting
-        // This prevents duplicate key errors when changing roles
-        
         // Get user data to use for role table operations
         const userData = {
           id: userId,
@@ -292,92 +288,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           last_login_at: currentProfile.last_login_at
         };
         
-        // Check if user already exists in the target role table
-        let existsInTargetRole = false;
-        
-        if (data.role === 'admin') {
-          const { data: existingAdmin } = await supabase
-            .from('admin_users')
-            .select('id')
-            .eq('id', userId)
-            .maybeSingle();
-            
-          existsInTargetRole = !!existingAdmin;
-          
-          if (!existsInTargetRole) {
-            // Insert into admin_users only if the user doesn't already exist there
-            const { error: insertError } = await supabase
-              .from('admin_users')
-              .upsert(userData);
-              
-            if (insertError) {
-              console.error("Error inserting into admin_users:", insertError);
-              throw insertError;
-            }
-          }
-        } else if (data.role === 'staff') {
-          const { data: existingStaff } = await supabase
-            .from('staff_users')
-            .select('id')
-            .eq('id', userId)
-            .maybeSingle();
-            
-          existsInTargetRole = !!existingStaff;
-          
-          if (!existsInTargetRole) {
-            // Insert into staff_users only if the user doesn't already exist there
-            const { error: insertError } = await supabase
-              .from('staff_users')
-              .upsert(userData);
-              
-            if (insertError) {
-              console.error("Error inserting into staff_users:", insertError);
-              throw insertError;
-            }
-          }
-        } else if (data.role === 'volunteer') {
-          const { data: existingVolunteer } = await supabase
-            .from('volunteer_users')
-            .select('id')
-            .eq('id', userId)
-            .maybeSingle();
-            
-          existsInTargetRole = !!existingVolunteer;
-          
-          if (!existsInTargetRole) {
-            // Insert into volunteer_users only if the user doesn't already exist there
-            const { error: insertError } = await supabase
-              .from('volunteer_users')
-              .upsert(userData);
-              
-            if (insertError) {
-              console.error("Error inserting into volunteer_users:", insertError);
-              throw insertError;
-            }
-          }
-        } else if (data.role === 'beneficiary') {
-          const { data: existingBeneficiary } = await supabase
-            .from('beneficiary_users')
-            .select('id')
-            .eq('id', userId)
-            .maybeSingle();
-            
-          existsInTargetRole = !!existingBeneficiary;
-          
-          if (!existsInTargetRole) {
-            // Insert into beneficiary_users only if the user doesn't already exist there
-            const { error: insertError } = await supabase
-              .from('beneficiary_users')
-              .upsert(userData);
-              
-            if (insertError) {
-              console.error("Error inserting into beneficiary_users:", insertError);
-              throw insertError;
-            }
-          }
-        }
-
-        // Delete from previous role table
+        // Delete from previous role table FIRST to avoid constraint violations
         if (currentProfile.role !== data.role) {
           if (currentProfile.role === 'admin') {
             await supabase.from('admin_users').delete().eq('id', userId);
@@ -388,6 +299,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           } else if (currentProfile.role === 'beneficiary') {
             await supabase.from('beneficiary_users').delete().eq('id', userId);
           }
+        }
+        
+        // Then insert into new role table after deletion, to prevent key constraint violations
+        try {
+          let tableName = '';
+          if (data.role === 'admin') {
+            tableName = 'admin_users';
+          } else if (data.role === 'staff') {
+            tableName = 'staff_users';
+          } else if (data.role === 'volunteer') {
+            tableName = 'volunteer_users';
+          } else if (data.role === 'beneficiary') {
+            tableName = 'beneficiary_users';
+          }
+          
+          if (tableName) {
+            // First check if the record already exists
+            const { data: existingRecord } = await supabase
+              .from(tableName)
+              .select('id')
+              .eq('id', userId)
+              .maybeSingle();
+              
+            if (!existingRecord) {
+              // Only insert if record doesn't exist
+              const { error: insertError } = await supabase
+                .from(tableName)
+                .insert(userData);
+                
+              if (insertError) {
+                console.error(`Error inserting into ${tableName}:`, insertError);
+                throw insertError;
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error during role table update:', error);
+          throw error;
         }
       }
       
