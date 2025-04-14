@@ -12,6 +12,8 @@ import Login from "./pages/Login";
 // Admin Pages
 import AdminDashboard from "./pages/admin/Index";
 import UserManagement from "./pages/admin/Users";
+import Analytics from "./pages/admin/Analytics";
+import Settings from "./pages/admin/Settings";
 
 // Staff Pages
 import StaffDashboard from "./pages/staff/Index";
@@ -58,6 +60,22 @@ const App = () => (
             element={
               <RouteGuard>
                 <UserManagement />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/admin/analytics"
+            element={
+              <RouteGuard>
+                <Analytics />
+              </RouteGuard>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <RouteGuard>
+                <Settings />
               </RouteGuard>
             }
           />

@@ -1,64 +1,97 @@
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, ShieldCheck, User, UserCheck, FileText, AlertTriangle, Bell } from "lucide-react";
-import { getRoleDisplayName } from "@/utils/permissions";
-import { User as UserType } from "@/types/auth";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { UserRole, User } from "@/types/auth";
+import { Users, UserPlus, BarChart2, Settings, Shield, Calendar, HelpCircle, Briefcase, FileText } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const AdminDashboard = () => {
-  const { user, getAllUsers } = useAuth();
-  const [allUsers, setAllUsers] = useState<UserType[]>([]);
+  const { getAllUsers } = useAuth();
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    adminUsers: 0,
+    staffUsers: 0,
+    volunteerUsers: 0,
+    beneficiaryUsers: 0
+  });
+  const [recentUsers, setRecentUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
-        const users = await getAllUsers();
-        setAllUsers(users);
+        setIsLoading(true);
+        const allUsers = await getAllUsers();
+        
+        // Calculate stats
+        setStats({
+          totalUsers: allUsers.length,
+          activeUsers: allUsers.filter(user => user.isActive).length,
+          adminUsers: allUsers.filter(user => user.role === "admin").length,
+          staffUsers: allUsers.filter(user => user.role === "staff").length,
+          volunteerUsers: allUsers.filter(user => user.role === "volunteer").length,
+          beneficiaryUsers: allUsers.filter(user => user.role === "beneficiary").length
+        });
+        
+        // Get recent users (most recently created)
+        const sorted = [...allUsers].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setRecentUsers(sorted.slice(0, 5));
       } catch (error) {
-        console.error("Error fetching users:", error);
+        console.error("Error fetching dashboard data:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
-
-    fetchUsers();
+    
+    fetchData();
   }, [getAllUsers]);
 
-  // Count users by role
-  const userCounts = {
-    total: allUsers.length,
-    admin: allUsers.filter(u => u.role === "admin").length,
-    staff: allUsers.filter(u => u.role === "staff").length,
-    volunteer: allUsers.filter(u => u.role === "volunteer").length,
-    beneficiary: allUsers.filter(u => u.role === "beneficiary").length,
-  };
-
-  // Latest system activity (mocked data)
-  const recentActivities = [
-    { type: "login", user: "Staff Member", time: "10 minutes ago", description: "Logged in successfully" },
-    { type: "create", user: "Admin User", time: "2 hours ago", description: "Created new volunteer account" },
-    { type: "update", user: "Staff Member", time: "3 hours ago", description: "Updated beneficiary information" },
-    { type: "login", user: "Volunteer Helper", time: "5 hours ago", description: "Logged in successfully" },
+  // Admin feature cards
+  const adminFeatures = [
+    {
+      title: "User Management",
+      description: "Manage user accounts and permissions",
+      icon: Users,
+      link: "/admin/users",
+      color: "bg-blue-500",
+      textColor: "text-blue-500"
+    },
+    {
+      title: "Analytics",
+      description: "View system statistics and reports",
+      icon: BarChart2,
+      link: "/admin/analytics",
+      color: "bg-purple-500",
+      textColor: "text-purple-500"
+    },
+    {
+      title: "System Settings",
+      description: "Configure global system settings",
+      icon: Settings,
+      link: "/admin/settings",
+      color: "bg-amber-500",
+      textColor: "text-amber-500"
+    }
   ];
-
-  // System health metrics (mocked data)
-  const systemHealth = {
-    uptime: "99.9%",
-    responseTime: "120ms",
-    lastBackup: "Today, 03:00 AM",
-    securityAlerts: 0,
-  };
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Administrator Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back, {user?.fullName}. Here's what's happening in your NGO Operations Hub.
+            Welcome to the NGO Operations Hub administration panel
           </p>
         </div>
 
+        {/* Stats Overview */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -66,178 +99,141 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{userCounts.total}</div>
+              <div className="text-2xl font-bold">
+                {isLoading ? "..." : stats.totalUsers}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Active accounts in the system
+                {isLoading ? "..." : stats.activeUsers} active
               </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Administrators</CardTitle>
+              <Shield className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{isLoading ? "..." : stats.adminUsers}</div>
+              <p className="text-xs text-muted-foreground">System administrators</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Staff Members</CardTitle>
-              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+              <Briefcase className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{userCounts.staff}</div>
-              <p className="text-xs text-muted-foreground">
-                Full-time NGO employees
-              </p>
+              <div className="text-2xl font-bold">{isLoading ? "..." : stats.staffUsers}</div>
+              <p className="text-xs text-muted-foreground">NGO staff members</p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Volunteers</CardTitle>
-              <UserCheck className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Others</CardTitle>
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{userCounts.volunteer}</div>
+              <div className="text-2xl font-bold">
+                {isLoading ? "..." : (stats.volunteerUsers + stats.beneficiaryUsers)}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Active volunteers
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Beneficiaries</CardTitle>
-              <User className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{userCounts.beneficiary}</div>
-              <p className="text-xs text-muted-foreground">
-                Individuals receiving services
+                {isLoading ? "..." : stats.volunteerUsers} volunteers, {isLoading ? "..." : stats.beneficiaryUsers} beneficiaries
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>
-                The latest activity in the system
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivities.map((activity, index) => (
-                  <div key={index} className="flex items-start gap-4">
-                    <div className="rounded-full p-2 bg-primary/10">
-                      {activity.type === "login" && <User className="h-4 w-4 text-primary" />}
-                      {activity.type === "create" && <UserCheck className="h-4 w-4 text-primary" />}
-                      {activity.type === "update" && <FileText className="h-4 w-4 text-primary" />}
+        {/* Admin Features */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Admin Tools</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {adminFeatures.map((feature) => (
+              <Card key={feature.title} className="overflow-hidden">
+                <CardHeader className="p-0">
+                  <div className={`${feature.color} h-2 w-full`} />
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-full p-2 ${feature.color} bg-opacity-10`}>
+                      <feature.icon className={`h-5 w-5 ${feature.textColor}`} />
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {activity.user}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {activity.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {activity.time}
-                      </p>
+                    <div>
+                      <h3 className="font-semibold">{feature.title}</h3>
+                      <p className="text-sm text-muted-foreground">{feature.description}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="col-span-1">
-            <CardHeader>
-              <CardTitle>System Health</CardTitle>
-              <CardDescription>
-                Current system performance metrics
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                    <span className="text-sm font-medium">System Uptime</span>
-                  </div>
-                  <span className="text-sm">{systemHealth.uptime}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-blue-500"></div>
-                    <span className="text-sm font-medium">Response Time</span>
-                  </div>
-                  <span className="text-sm">{systemHealth.responseTime}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-yellow-500"></div>
-                    <span className="text-sm font-medium">Last Backup</span>
-                  </div>
-                  <span className="text-sm">{systemHealth.lastBackup}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full bg-red-500"></div>
-                    <span className="text-sm font-medium">Security Alerts</span>
-                  </div>
-                  <span className="text-sm">{systemHealth.securityAlerts}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+                <CardFooter>
+                  <Button asChild variant="ghost" className="w-full">
+                    <Link to={feature.link}>Access {feature.title}</Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
         </div>
 
+        {/* Recent Users */}
         <Card>
           <CardHeader>
-            <CardTitle>User Distribution by Role</CardTitle>
+            <CardTitle>Recent User Registrations</CardTitle>
             <CardDescription>
-              Breakdown of user accounts by role
+              The most recently created user accounts in the system
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {Object.entries(userCounts)
-                .filter(([role]) => role !== "total")
-                .map(([role, count]) => (
-                  <div key={role} className="flex items-center gap-4">
-                    <div className={`role-badge role-badge-${role}`}>
-                      {getRoleDisplayName(role as any)}
-                    </div>
-                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full ${role === "admin" ? "bg-destructive" : 
-                          role === "staff" ? "bg-secondary" : 
-                          role === "volunteer" ? "bg-accent" : "bg-muted-foreground"}`}
-                        style={{ width: `${(count / userCounts.total) * 100}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-sm">{count}</div>
-                  </div>
-                ))}
-            </div>
+            {isLoading ? (
+              <div className="text-center py-4">Loading recent users...</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Created</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">{user.fullName}</TableCell>
+                      <TableCell className="capitalize">{user.role}</TableCell>
+                      <TableCell>
+                        <span className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${
+                          user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {user.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </TableCell>
+                      <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                  {recentUsers.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                        No recent users found
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle>Announcements & Notifications</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md border p-4">
-              <div className="flex items-start gap-4">
-                <Bell className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-semibold">System Maintenance Notice</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    A system upgrade is scheduled for next Sunday at 2:00 AM. The system will be unavailable 
-                    for approximately 2 hours. Please plan accordingly.
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Posted by Admin • April 12, 2023
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/admin/users">
+                <Users className="mr-2 h-4 w-4" />
+                View All Users
+              </Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link to="/admin/users">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Create User
+              </Link>
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     </DashboardLayout>
