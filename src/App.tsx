@@ -22,6 +22,11 @@ import Announcements from "./pages/admin/Announcements";
 
 // Staff Pages
 import StaffDashboard from "./pages/staff/Index";
+import VolunteersManagement from "./pages/staff/Volunteers";
+import BeneficiariesManagement from "./pages/staff/Beneficiaries";
+import ResourcesManagement from "./pages/staff/Resources";
+import TasksManagement from "./pages/staff/Tasks";
+import StaffReports from "./pages/staff/Reports";
 
 // Volunteer Pages
 import VolunteerDashboard from "./pages/volunteer/Index";
@@ -148,6 +153,46 @@ const App = () => {
               element={
                 <RouteGuard>
                   <StaffDashboard />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/staff/volunteers"
+              element={
+                <RouteGuard>
+                  <VolunteersManagement />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/staff/beneficiaries"
+              element={
+                <RouteGuard>
+                  <BeneficiariesManagement />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/staff/resources"
+              element={
+                <RouteGuard>
+                  <ResourcesManagement />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/staff/tasks"
+              element={
+                <RouteGuard>
+                  <TasksManagement />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/staff/reports"
+              element={
+                <RouteGuard>
+                  <StaffReports />
                 </RouteGuard>
               }
             />

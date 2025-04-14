@@ -66,6 +66,57 @@ export type Database = {
         }
         Relationships: []
       }
+      beneficiary_needs: {
+        Row: {
+          assigned_to: string | null
+          beneficiary_id: string
+          category: string
+          created_at: string
+          description: string
+          id: string
+          priority: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          beneficiary_id: string
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          priority: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          beneficiary_id?: string
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beneficiary_needs_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "staff_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beneficiary_needs_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiary_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beneficiary_users: {
         Row: {
           assistance_history: Json | null
@@ -135,6 +186,177 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          created_at: string
+          created_by: string
+          data: Json | null
+          description: string | null
+          id: string
+          parameters: Json | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          data?: Json | null
+          description?: string | null
+          id?: string
+          parameters?: Json | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          data?: Json | null
+          description?: string | null
+          id?: string
+          parameters?: Json | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      resource_allocations: {
+        Row: {
+          allocated_by: string
+          allocated_date: string
+          beneficiary_id: string
+          id: string
+          notes: string | null
+          quantity: number
+          resource_id: string
+        }
+        Insert: {
+          allocated_by: string
+          allocated_date?: string
+          beneficiary_id: string
+          id?: string
+          notes?: string | null
+          quantity: number
+          resource_id: string
+        }
+        Update: {
+          allocated_by?: string
+          allocated_date?: string
+          beneficiary_id?: string
+          id?: string
+          notes?: string | null
+          quantity?: number
+          resource_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_allocations_allocated_by_fkey"
+            columns: ["allocated_by"]
+            isOneToOne: false
+            referencedRelation: "staff_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resource_allocations_beneficiary_id_fkey"
+            columns: ["beneficiary_id"]
+            isOneToOne: false
+            referencedRelation: "beneficiary_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resource_allocations_resource_id_fkey"
+            columns: ["resource_id"]
+            isOneToOne: false
+            referencedRelation: "resources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resources: {
+        Row: {
+          allocated: number
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          quantity: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          allocated?: number
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          quantity?: number
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          allocated?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          quantity?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      staff_tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string
+          description: string
+          due_date: string | null
+          id: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by: string
+          description: string
+          due_date?: string | null
+          id?: string
+          priority: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "staff_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_users: {
         Row: {
           contact_info: string | null
@@ -170,6 +392,56 @@ export type Database = {
           position?: string | null
         }
         Relationships: []
+      }
+      volunteer_shifts: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          end_time: string
+          id: string
+          location: string | null
+          start_time: string
+          status: string
+          title: string
+          updated_at: string
+          volunteer_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_time: string
+          id?: string
+          location?: string | null
+          start_time: string
+          status?: string
+          title: string
+          updated_at?: string
+          volunteer_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_time?: string
+          id?: string
+          location?: string | null
+          start_time?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          volunteer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "volunteer_shifts_volunteer_id_fkey"
+            columns: ["volunteer_id"]
+            isOneToOne: false
+            referencedRelation: "volunteer_users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       volunteer_users: {
         Row: {

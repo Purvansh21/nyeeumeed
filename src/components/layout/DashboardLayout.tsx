@@ -8,7 +8,7 @@ import { getRoleDisplayName } from "@/utils/permissions";
 import { 
   LogOut, Menu, User, Shield, Users, Home, FileText, Settings, 
   AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, 
-  Activity, ChevronLeft, ChevronRight, Bell
+  Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -66,7 +66,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         { icon: Home, label: "Dashboard", path: "/staff" },
         { icon: Users, label: "Volunteer Management", path: "/staff/volunteers" },
         { icon: Briefcase, label: "Beneficiary Management", path: "/staff/beneficiaries" },
-        { icon: FileText, label: "Resources", path: "/staff/resources" },
+        { icon: Package, label: "Resources", path: "/staff/resources" },
+        { icon: ClipboardList, label: "Tasks", path: "/staff/tasks" },
         { icon: Activity, label: "Reports", path: "/staff/reports" },
       ],
       volunteer: [
