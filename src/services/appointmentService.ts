@@ -11,8 +11,8 @@ export async function fetchAppointments(): Promise<Appointment[]> {
       .from('appointments')
       .select(`
         *,
-        beneficiary:beneficiary_id(id, full_name, contact_info),
-        staff:staff_id(id, full_name)
+        beneficiary:beneficiary_users!beneficiary_id(id, full_name, contact_info),
+        staff:staff_users!staff_id(id, full_name)
       `)
       .order('date', { ascending: true });
     
@@ -40,7 +40,7 @@ export async function fetchAppointments(): Promise<Appointment[]> {
       // Add the beneficiary relation if it exists and is a valid object
       if (appointment.beneficiary && 
           typeof appointment.beneficiary === 'object' && 
-          !('error' in appointment.beneficiary)) {
+          appointment.beneficiary !== null) {
         
         const beneficiary = appointment.beneficiary;
         // Safely check if the required properties exist before accessing them
@@ -51,7 +51,7 @@ export async function fetchAppointments(): Promise<Appointment[]> {
           transformedAppointment.beneficiary = {
             id: beneficiary.id as string,
             full_name: beneficiary.full_name as string,
-            contact_info: beneficiary.contact_info as string || null
+            contact_info: (beneficiary.contact_info as string) || null
           };
         }
       }
@@ -59,7 +59,7 @@ export async function fetchAppointments(): Promise<Appointment[]> {
       // Add the staff relation if it exists and is a valid object
       if (appointment.staff && 
           typeof appointment.staff === 'object' && 
-          !('error' in appointment.staff)) {
+          appointment.staff !== null) {
         
         const staff = appointment.staff;
         // Safely check if the required properties exist before accessing them

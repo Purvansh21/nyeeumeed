@@ -11,8 +11,8 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
       .from('service_requests')
       .select(`
         *,
-        beneficiary:beneficiary_id(id, full_name, contact_info),
-        staff:assigned_staff(id, full_name)
+        beneficiary:beneficiary_users!beneficiary_id(id, full_name, contact_info),
+        staff:staff_users!assigned_staff(id, full_name)
       `)
       .order('created_at', { ascending: false });
     
@@ -38,7 +38,7 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
       // Add the beneficiary relation if it exists and is a valid object
       if (request.beneficiary && 
           typeof request.beneficiary === 'object' && 
-          !('error' in request.beneficiary)) {
+          request.beneficiary !== null) {
         
         const beneficiary = request.beneficiary;
         // Safely check if the required properties exist before accessing them
@@ -49,7 +49,7 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
           transformedRequest.beneficiary = {
             id: beneficiary.id as string,
             full_name: beneficiary.full_name as string,
-            contact_info: beneficiary.contact_info as string || null
+            contact_info: (beneficiary.contact_info as string) || null
           };
         }
       }
@@ -57,7 +57,7 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
       // Add the staff relation if it exists and is a valid object
       if (request.staff && 
           typeof request.staff === 'object' && 
-          !('error' in request.staff)) {
+          request.staff !== null) {
         
         const staff = request.staff;
         // Safely check if the required properties exist before accessing them
