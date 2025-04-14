@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 
@@ -93,19 +92,63 @@ export interface BeneficiaryResource {
 // Service Requests
 export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
   try {
-    // Updated query to use proper relationship syntax
     const { data, error } = await supabase
       .from('service_requests')
-      .select(`
-        *,
-        staff:assigned_staff(full_name)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
     
-    // First cast to unknown, then to the target type for safer type assertions
-    return (data || []) as unknown as ServiceRequest[];
+    const requests = await Promise.all((data || []).map(async (request) => {
+      const transformedRequest: ServiceRequest = {
+        id: request.id,
+        beneficiary_id: request.beneficiary_id,
+        service_type: request.service_type,
+        description: request.description,
+        urgency: request.urgency,
+        status: request.status,
+        preferred_contact_method: request.preferred_contact_method,
+        assigned_staff: request.assigned_staff,
+        next_step: request.next_step,
+        created_at: request.created_at,
+        updated_at: request.updated_at,
+      };
+      
+      if (request.beneficiary_id) {
+        const { data: beneficiaryData } = await supabase
+          .from('beneficiary_users')
+          .select('id, full_name, contact_info')
+          .eq('id', request.beneficiary_id)
+          .maybeSingle();
+          
+        if (beneficiaryData) {
+          transformedRequest.beneficiary = {
+            id: beneficiaryData.id,
+            full_name: beneficiaryData.full_name,
+            contact_info: beneficiaryData.contact_info
+          };
+        }
+      }
+      
+      if (request.assigned_staff) {
+        const { data: staffData } = await supabase
+          .from('staff_users')
+          .select('id, full_name')
+          .eq('id', request.assigned_staff)
+          .maybeSingle();
+          
+        if (staffData) {
+          transformedRequest.staff = {
+            id: staffData.id,
+            full_name: staffData.full_name
+          };
+        }
+      }
+      
+      return transformedRequest;
+    }));
+    
+    return requests;
   } catch (error: any) {
     console.error("Error fetching service requests:", error.message);
     return [];
@@ -138,7 +181,6 @@ export async function createServiceRequest(request: NewServiceRequest): Promise<
       description: "Your service request has been submitted"
     });
     
-    // First cast to unknown, then to the target type for safer type assertions
     return data as unknown as ServiceRequest;
   } catch (error: any) {
     console.error("Error creating service request:", error.message);
@@ -167,7 +209,6 @@ export async function updateServiceRequest(id: string, updates: Partial<ServiceR
       description: "Service request updated successfully"
     });
     
-    // First cast to unknown, then to the target type for safer type assertions
     return data as unknown as ServiceRequest;
   } catch (error: any) {
     console.error("Error updating service request:", error.message);
@@ -214,7 +255,6 @@ export async function verifyServiceRequest(
     const updates = {
       ...verification,
       verification_date: new Date().toISOString(),
-      // If verified, set to approved, if rejected maintain as pending
       status: verification.verification_status === 'verified' ? 'approved' : 'pending'
     };
 
@@ -247,19 +287,65 @@ export async function verifyServiceRequest(
 // Appointments
 export async function fetchAppointments(): Promise<Appointment[]> {
   try {
-    // Updated query to use proper relationship syntax
     const { data, error } = await supabase
       .from('appointments')
-      .select(`
-        *,
-        staff:staff_id(full_name)
-      `)
+      .select('*')
       .order('date', { ascending: true });
     
     if (error) throw error;
     
-    // First cast to unknown, then to the target type for safer type assertions
-    return (data || []) as unknown as Appointment[];
+    const appointments = await Promise.all((data || []).map(async (appointment) => {
+      const transformedAppointment: Appointment = {
+        id: appointment.id,
+        beneficiary_id: appointment.beneficiary_id,
+        staff_id: appointment.staff_id,
+        title: appointment.title,
+        appointment_type: appointment.appointment_type,
+        date: appointment.date,
+        time_slot: appointment.time_slot,
+        location: appointment.location,
+        is_virtual: appointment.is_virtual,
+        notes: appointment.notes,
+        status: appointment.status,
+        created_at: appointment.created_at,
+        updated_at: appointment.updated_at,
+      };
+      
+      if (appointment.beneficiary_id) {
+        const { data: beneficiaryData } = await supabase
+          .from('beneficiary_users')
+          .select('id, full_name, contact_info')
+          .eq('id', appointment.beneficiary_id)
+          .maybeSingle();
+          
+        if (beneficiaryData) {
+          transformedAppointment.beneficiary = {
+            id: beneficiaryData.id,
+            full_name: beneficiaryData.full_name,
+            contact_info: beneficiaryData.contact_info
+          };
+        }
+      }
+      
+      if (appointment.staff_id) {
+        const { data: staffData } = await supabase
+          .from('staff_users')
+          .select('id, full_name')
+          .eq('id', appointment.staff_id)
+          .maybeSingle();
+          
+        if (staffData) {
+          transformedAppointment.staff = {
+            id: staffData.id,
+            full_name: staffData.full_name
+          };
+        }
+      }
+      
+      return transformedAppointment;
+    }));
+    
+    return appointments;
   } catch (error: any) {
     console.error("Error fetching appointments:", error.message);
     return [];
@@ -295,7 +381,6 @@ export async function createAppointment(appointment: NewAppointment): Promise<Ap
       description: "Your appointment has been scheduled"
     });
     
-    // First cast to unknown, then to the target type for safer type assertions
     return data as unknown as Appointment;
   } catch (error: any) {
     console.error("Error creating appointment:", error.message);
@@ -324,7 +409,6 @@ export async function updateAppointment(id: string, updates: Partial<Appointment
       description: "Appointment updated successfully"
     });
     
-    // First cast to unknown, then to the target type for safer type assertions
     return data as unknown as Appointment;
   } catch (error: any) {
     console.error("Error updating appointment:", error.message);
@@ -350,7 +434,6 @@ export async function fetchServiceHistory(): Promise<ServiceHistory[]> {
     
     if (error) throw error;
     
-    // First cast to unknown, then to the target type for safer type assertions
     return (data || []) as unknown as ServiceHistory[];
   } catch (error: any) {
     console.error("Error fetching service history:", error.message);
@@ -418,7 +501,6 @@ export async function fetchBeneficiaryDashboardStats() {
 
     const userId = userData.user.id;
     
-    // Active Services
     const { count: activeServices, error: activeServicesError } = await supabase
       .from('service_requests')
       .select('*', { count: 'exact', head: true })
@@ -427,7 +509,6 @@ export async function fetchBeneficiaryDashboardStats() {
     
     if (activeServicesError) throw activeServicesError;
     
-    // Upcoming Appointments
     const { count: upcomingAppointments, error: appointmentsError } = await supabase
       .from('appointments')
       .select('*', { count: 'exact', head: true })
@@ -437,7 +518,6 @@ export async function fetchBeneficiaryDashboardStats() {
     
     if (appointmentsError) throw appointmentsError;
     
-    // Completed Services
     const { count: completedServices, error: completedServicesError } = await supabase
       .from('service_requests')
       .select('*', { count: 'exact', head: true })
@@ -446,7 +526,6 @@ export async function fetchBeneficiaryDashboardStats() {
     
     if (completedServicesError) throw completedServicesError;
     
-    // Pending Requests
     const { count: pendingRequests, error: pendingRequestsError } = await supabase
       .from('service_requests')
       .select('*', { count: 'exact', head: true })
