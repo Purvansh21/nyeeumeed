@@ -2,62 +2,67 @@
 import { User, UserRole } from "@/types/auth";
 import { v4 as uuidv4 } from "uuid";
 
-// Mock data for initial users
+// Mock data for initial users with Indian names and context
 export const mockUsers: User[] = [
   {
     id: "admin-1",
     email: "admin@ngo.org",
-    fullName: "Admin User",
+    fullName: "Rajesh Sharma",
     role: "admin",
     isActive: true,
-    contactInfo: "+1 123-456-7890",
+    contactInfo: "+91 98765-43210",
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
     additionalInfo: {
       department: "Management",
-      accessLevel: "Full"
+      accessLevel: "Full",
+      address: "Sector 29, Gurugram, Haryana"
     }
   },
   {
     id: "staff-1",
     email: "staff@ngo.org",
-    fullName: "Staff Member",
+    fullName: "Priya Patel",
     role: "staff",
     isActive: true,
-    contactInfo: "+1 234-567-8901",
+    contactInfo: "+91 87654-32109",
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
     additionalInfo: {
       department: "Operations",
-      specialization: "Project Management"
+      specialization: "Project Management",
+      address: "Andheri East, Mumbai, Maharashtra"
     }
   },
   {
     id: "volunteer-1",
     email: "volunteer@ngo.org",
-    fullName: "Volunteer Helper",
+    fullName: "Amit Kumar",
     role: "volunteer",
     isActive: true,
-    contactInfo: "+1 345-678-9012",
+    contactInfo: "+91 76543-21098",
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
     additionalInfo: {
       skills: ["Teaching", "First Aid"],
-      availability: "Weekends"
+      availability: "Weekends",
+      address: "Salt Lake City, Kolkata, West Bengal"
     }
   },
   {
     id: "beneficiary-1",
     email: "beneficiary@example.com",
-    fullName: "Service Recipient",
+    fullName: "Meera Devi",
     role: "beneficiary",
     isActive: true,
-    contactInfo: "+1 456-789-0123",
+    contactInfo: "+91 76543-21098",
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
     additionalInfo: {
       services: ["Education", "Healthcare"],
-      familySize: 4
+      familySize: 4,
+      address: "Dharavi, Mumbai, Maharashtra",
+      aadharNumber: "XXXX-XXXX-1234"
     }
   }
 ];
