@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, Award, FileText, User, BookOpen, Users, Filter, Search, MapPin, CheckCircle, XCircle, Trophy, Star, Medal, Certificate } from "lucide-react";
+import { Calendar, Clock, Award, FileText, User, BookOpen, Users, Filter, Search, MapPin, CheckCircle, XCircle, Trophy, Star, Medal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -149,7 +149,7 @@ const VolunteerDashboard = () => {
       title: "Team Leadership Award", 
       date: "Apr 12, 2025", 
       description: "Successfully led a team of volunteers during a major event",
-      icon: "Certificate"
+      icon: "FileText"
     }
   ];
 
@@ -427,7 +427,7 @@ const VolunteerDashboard = () => {
                         {achievement.icon === "Star" && <Star className="h-4 w-4 text-amber-600" />}
                         {achievement.icon === "Award" && <Award className="h-4 w-4 text-amber-600" />}
                         {achievement.icon === "Medal" && <Medal className="h-4 w-4 text-amber-600" />}
-                        {achievement.icon === "Certificate" && <FileText className="h-4 w-4 text-amber-600" />}
+                        {achievement.icon === "FileText" && <FileText className="h-4 w-4 text-amber-600" />}
                       </div>
                       <div className="flex-1">
                         <p className="font-medium text-sm">{achievement.title}</p>
@@ -899,7 +899,7 @@ const VolunteerDashboard = () => {
                         {achievement.icon === "Star" && <Star className="h-8 w-8 text-amber-600" />}
                         {achievement.icon === "Award" && <Award className="h-8 w-8 text-amber-600" />}
                         {achievement.icon === "Medal" && <Medal className="h-8 w-8 text-amber-600" />}
-                        {achievement.icon === "Certificate" && <FileText className="h-8 w-8 text-amber-600" />}
+                        {achievement.icon === "FileText" && <FileText className="h-8 w-8 text-amber-600" />}
                       </div>
                       <div className="flex-1">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
