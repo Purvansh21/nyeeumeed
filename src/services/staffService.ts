@@ -645,29 +645,30 @@ export async function fetchAppointments(): Promise<Appointment[]> {
         updated_at: appointment.updated_at,
       };
       
-      // Add the relations if they exist and are valid objects (not error objects)
+      // Add the beneficiary relation if it exists and is a valid object
       if (appointment.beneficiary && 
           typeof appointment.beneficiary === 'object' && 
           !('error' in appointment.beneficiary)) {
         
-        // Safely check if the required properties exist before accessing them
         const beneficiary = appointment.beneficiary;
-        if ('id' in beneficiary && 'full_name' in beneficiary) {
+        // Safely check if the required properties exist before accessing them
+        if (beneficiary && 'id' in beneficiary && 'full_name' in beneficiary) {
           transformedAppointment.beneficiary = {
             id: beneficiary.id as string,
             full_name: beneficiary.full_name as string,
-            contact_info: (beneficiary.contact_info as string) || null
+            contact_info: beneficiary.contact_info as string || null
           };
         }
       }
       
+      // Add the staff relation if it exists and is a valid object
       if (appointment.staff && 
           typeof appointment.staff === 'object' && 
           !('error' in appointment.staff)) {
         
-        // Safely check if the required properties exist before accessing them
         const staff = appointment.staff;
-        if ('id' in staff && 'full_name' in staff) {
+        // Safely check if the required properties exist before accessing them
+        if (staff && 'id' in staff && 'full_name' in staff) {
           transformedAppointment.staff = {
             id: staff.id as string,
             full_name: staff.full_name as string
@@ -770,29 +771,30 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
         updated_at: request.updated_at,
       };
       
-      // Add the relations if they exist and are valid objects (not error objects)
+      // Add the beneficiary relation if it exists and is a valid object
       if (request.beneficiary && 
           typeof request.beneficiary === 'object' && 
           !('error' in request.beneficiary)) {
         
-        // Safely check if the required properties exist before accessing them
         const beneficiary = request.beneficiary;
-        if ('id' in beneficiary && 'full_name' in beneficiary) {
+        // Safely check if the required properties exist before accessing them
+        if (beneficiary && 'id' in beneficiary && 'full_name' in beneficiary) {
           transformedRequest.beneficiary = {
             id: beneficiary.id as string,
             full_name: beneficiary.full_name as string,
-            contact_info: (beneficiary.contact_info as string) || null
+            contact_info: beneficiary.contact_info as string || null
           };
         }
       }
       
+      // Add the staff relation if it exists and is a valid object
       if (request.staff && 
           typeof request.staff === 'object' && 
           !('error' in request.staff)) {
         
-        // Safely check if the required properties exist before accessing them
         const staff = request.staff;
-        if ('id' in staff && 'full_name' in staff) {
+        // Safely check if the required properties exist before accessing them
+        if (staff && 'id' in staff && 'full_name' in staff) {
           transformedRequest.staff = {
             id: staff.id as string,
             full_name: staff.full_name as string
