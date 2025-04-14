@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { User, UserRole } from "@/types/auth";
 import { getRoleDisplayName } from "@/utils/permissions";
@@ -37,6 +36,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [userUpdates, setUserUpdates] = useState<Partial<User>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   // If no users found for this role/filter
   if (users.length === 0) {
@@ -91,6 +91,16 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
     }
   };
 
+  // Handle toggling user status (activate/deactivate)
+  const handleToggleUserStatus = async (userId: string, newStatus: boolean) => {
+    try {
+      setProcessingId(userId);
+      await toggleUserStatus(userId, newStatus);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   return (
     <>
       <div className="rounded-md border">
@@ -138,15 +148,17 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
                       variant="ghost" 
                       size="icon"
                       onClick={() => updateUserProfile && handleEditUser(user)}
+                      disabled={processingId === user.id}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => toggleUserStatus(user.id, !user.isActive)}
+                      onClick={() => handleToggleUserStatus(user.id, !user.isActive)}
                       className={user.isActive ? "text-destructive" : "text-green-600"}
                       title={user.isActive ? "Deactivate user" : "Activate user"}
+                      disabled={processingId === user.id}
                     >
                       {user.isActive ? (
                         <UserX className="h-4 w-4" />

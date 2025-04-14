@@ -151,6 +151,7 @@ const UserManagement = () => {
   // Handle user activation/deactivation
   const toggleUserStatus = async (userId: string, newActiveStatus: boolean) => {
     try {
+      // Update user status directly on the profiles table
       await updateUserProfile(userId, { isActive: newActiveStatus });
       
       // Update local state
