@@ -6,12 +6,18 @@ import { Report } from "@/types/staff";
 // Reports
 export async function fetchReports(): Promise<Report[]> {
   try {
+    console.log("Fetching reports...");
     const { data, error } = await supabase
       .from('reports')
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching reports:", error);
+      throw error;
+    }
+    
+    console.log("Reports fetched successfully:", data);
     
     // Transform JSON data to Record<string, any>
     return (data || []).map(report => ({
@@ -27,13 +33,19 @@ export async function fetchReports(): Promise<Report[]> {
 
 export async function createReport(report: Omit<Report, 'id' | 'created_at' | 'updated_at'>): Promise<Report | null> {
   try {
+    console.log("Creating report:", report);
     const { data, error } = await supabase
       .from('reports')
       .insert(report)
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error creating report:", error);
+      throw error;
+    }
+    
+    console.log("Report created successfully:", data);
     
     toast({
       title: "Success",
@@ -58,13 +70,19 @@ export async function createReport(report: Omit<Report, 'id' | 'created_at' | 'u
 
 export async function fetchReportById(id: string): Promise<Report | null> {
   try {
+    console.log("Fetching report by ID:", id);
     const { data, error } = await supabase
       .from('reports')
       .select('*')
       .eq('id', id)
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching report by ID:", error);
+      throw error;
+    }
+    
+    console.log("Report fetched successfully:", data);
     
     return data ? {
       ...data,

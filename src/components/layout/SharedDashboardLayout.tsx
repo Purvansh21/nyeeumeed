@@ -11,19 +11,13 @@ interface SharedDashboardLayoutProps {
 
 const SharedDashboardLayout: React.FC<SharedDashboardLayoutProps> = ({ 
   children, 
-  showAnnouncements
+  showAnnouncements = true // Changed default to true
 }) => {
   const location = useLocation();
   
-  // Only show announcements on main dashboard pages
-  const isDashboardPage = 
-    location.pathname === '/admin' || 
-    location.pathname === '/staff' || 
-    location.pathname === '/volunteer' || 
-    location.pathname === '/beneficiary';
-  
-  // Use the prop value if provided, otherwise use the isDashboardPage check
-  const shouldShowAnnouncements = showAnnouncements !== undefined ? showAnnouncements : isDashboardPage;
+  // Show announcements by default on all dashboard pages
+  // Only hide them if explicitly set to false via props
+  const shouldShowAnnouncements = showAnnouncements;
 
   return (
     <DashboardLayout>

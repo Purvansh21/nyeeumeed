@@ -1,11 +1,11 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircleIcon, BellIcon, CalendarIcon, ClockIcon, InfoIcon, MegaphoneIcon } from "lucide-react";
+import { AlertCircleIcon, BellIcon, CalendarIcon, InfoIcon, MegaphoneIcon } from "lucide-react";
 import { fetchAnnouncements } from "@/services/announcementService";
 
 interface AnnouncementsListProps {
@@ -21,6 +21,8 @@ const AnnouncementsList: React.FC<AnnouncementsListProps> = ({
     queryKey: ["announcements"],
     queryFn: fetchAnnouncements,
   });
+
+  console.log("Announcements data:", announcements);
 
   if (isLoading) {
     return (
@@ -92,7 +94,7 @@ const AnnouncementsList: React.FC<AnnouncementsListProps> = ({
         </CardHeader>
       )}
       <CardContent className="space-y-4">
-        {displayAnnouncements.map((announcement) => (
+        {displayAnnouncements?.map((announcement) => (
           <div key={announcement.id} className="border rounded-md p-4 hover:bg-gray-50 transition-colors">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold flex items-center">

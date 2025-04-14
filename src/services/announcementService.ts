@@ -13,13 +13,18 @@ export interface Announcement {
 
 export async function fetchAnnouncements(): Promise<Announcement[]> {
   try {
+    console.log("Fetching announcements...");
     const { data, error } = await supabase
       .from('announcements')
       .select('*')
       .order('date', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching announcements:", error);
+      throw error;
+    }
     
+    console.log("Announcements fetched successfully:", data);
     return data || [];
   } catch (error: any) {
     console.error("Error fetching announcements:", error.message);
