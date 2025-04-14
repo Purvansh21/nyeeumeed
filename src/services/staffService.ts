@@ -626,11 +626,43 @@ export async function fetchAppointments(): Promise<Appointment[]> {
     
     if (error) throw error;
     
-    // Validate status before returning
-    return (data || []).map(appointment => ({
-      ...appointment,
-      status: validateAppointmentStatus(appointment.status)
-    })) as Appointment[];
+    // Transform the data to match our expected types
+    return (data || []).map(appointment => {
+      // Handle the case where beneficiary/staff might have error
+      const transformedAppointment: Appointment = {
+        id: appointment.id,
+        beneficiary_id: appointment.beneficiary_id,
+        staff_id: appointment.staff_id,
+        title: appointment.title,
+        appointment_type: appointment.appointment_type,
+        date: appointment.date,
+        time_slot: appointment.time_slot,
+        location: appointment.location,
+        is_virtual: appointment.is_virtual,
+        notes: appointment.notes,
+        status: validateAppointmentStatus(appointment.status),
+        created_at: appointment.created_at,
+        updated_at: appointment.updated_at,
+      };
+      
+      // Add the relations if they exist and are valid
+      if (appointment.beneficiary && !appointment.beneficiary.error) {
+        transformedAppointment.beneficiary = {
+          id: appointment.beneficiary.id,
+          full_name: appointment.beneficiary.full_name,
+          contact_info: appointment.beneficiary.contact_info
+        };
+      }
+      
+      if (appointment.staff && !appointment.staff.error) {
+        transformedAppointment.staff = {
+          id: appointment.staff.id,
+          full_name: appointment.staff.full_name
+        };
+      }
+      
+      return transformedAppointment;
+    });
   } catch (error: any) {
     console.error("Error fetching appointments:", error.message);
     return [];
@@ -734,12 +766,41 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
     
     if (error) throw error;
     
-    // Validate status and urgency before returning
-    return (data || []).map(request => ({
-      ...request,
-      status: validateServiceRequestStatus(request.status),
-      urgency: validateServiceRequestUrgency(request.urgency)
-    })) as ServiceRequest[];
+    // Transform the data to match our expected types
+    return (data || []).map(request => {
+      // Handle the case where beneficiary/staff might have error
+      const transformedRequest: ServiceRequest = {
+        id: request.id,
+        beneficiary_id: request.beneficiary_id,
+        service_type: request.service_type,
+        description: request.description,
+        urgency: validateServiceRequestUrgency(request.urgency),
+        status: validateServiceRequestStatus(request.status),
+        preferred_contact_method: request.preferred_contact_method,
+        assigned_staff: request.assigned_staff,
+        next_step: request.next_step,
+        created_at: request.created_at,
+        updated_at: request.updated_at,
+      };
+      
+      // Add the relations if they exist and are valid
+      if (request.beneficiary && !request.beneficiary.error) {
+        transformedRequest.beneficiary = {
+          id: request.beneficiary.id,
+          full_name: request.beneficiary.full_name,
+          contact_info: request.beneficiary.contact_info
+        };
+      }
+      
+      if (request.staff && !request.staff.error) {
+        transformedRequest.staff = {
+          id: request.staff.id,
+          full_name: request.staff.full_name
+        };
+      }
+      
+      return transformedRequest;
+    });
   } catch (error: any) {
     console.error("Error fetching service requests:", error.message);
     return [];
