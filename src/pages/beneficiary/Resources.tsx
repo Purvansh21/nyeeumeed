@@ -1,6 +1,6 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import DashboardLayout from "@/components/layout/DashboardLayout";
+import SharedDashboardLayout from "@/components/layout/SharedDashboardLayout";
 import ResourceLibrary from "@/components/beneficiary/ResourceLibrary";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ const BeneficiaryResources = () => {
   const { user } = useAuth();
 
   return (
-    <DashboardLayout>
+    <SharedDashboardLayout showAnnouncements={false}>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Resources</h1>
@@ -78,7 +78,7 @@ const BeneficiaryResources = () => {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    </SharedDashboardLayout>
   );
 };
 
