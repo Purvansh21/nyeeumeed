@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -43,7 +42,6 @@ import {
   updateBeneficiaryNeed
 } from "@/services/staffService";
 
-// Form schema for beneficiary needs
 const needFormSchema = z.object({
   beneficiary_id: z.string({
     required_error: "Please select a beneficiary",
@@ -90,7 +88,6 @@ const BeneficiariesManagement = () => {
     },
   });
 
-  // Fetch beneficiaries, needs, and staff users
   useEffect(() => {
     const loadData = async () => {
       setIsLoadingBeneficiaries(true);
@@ -111,11 +108,9 @@ const BeneficiariesManagement = () => {
     loadData();
   }, [getAllUsers]);
 
-  // Reset form when dialog opens or closes
   useEffect(() => {
     if (isDialogOpen) {
       if (currentNeed) {
-        // Edit mode: Pre-fill form with need data
         form.reset({
           beneficiary_id: currentNeed.beneficiary_id,
           category: currentNeed.category,
@@ -125,7 +120,6 @@ const BeneficiariesManagement = () => {
           assigned_to: currentNeed.assigned_to
         });
       } else {
-        // Create mode: Reset form to defaults
         form.reset({
           beneficiary_id: selectedBeneficiary || "",
           category: "",
@@ -138,16 +132,13 @@ const BeneficiariesManagement = () => {
     }
   }, [isDialogOpen, currentNeed, selectedBeneficiary, form]);
 
-  // Handle form submission
   const onSubmit = async (data: z.infer<typeof needFormSchema>) => {
     setIsSubmitting(true);
     
     try {
       if (currentNeed) {
-        // Update existing need
         const updated = await updateBeneficiaryNeed(currentNeed.id, data);
         if (updated) {
-          // Refresh needs list
           const updatedNeeds = needs.map(n => 
             n.id === updated.id ? { 
               ...updated,
@@ -165,7 +156,6 @@ const BeneficiariesManagement = () => {
           setNeeds(updatedNeeds);
         }
       } else {
-        // Create new need - ensure all required fields are present
         const needData: Omit<BeneficiaryNeed, 'id' | 'created_at' | 'updated_at'> = {
           beneficiary_id: data.beneficiary_id,
           category: data.category,
@@ -177,9 +167,7 @@ const BeneficiariesManagement = () => {
         
         const created = await createBeneficiaryNeed(needData);
         if (created) {
-          // Find beneficiary to attach to the need for display
           const beneficiary = beneficiaries.find(b => b.id === created.beneficiary_id);
-          // Find staff member if assigned
           const staffMember = data.assigned_to ? staffUsers.find(s => s.id === data.assigned_to) : undefined;
           
           const newNeed = {
@@ -212,24 +200,19 @@ const BeneficiariesManagement = () => {
     }
   };
 
-  // Filter needs based on selected status, priority, and search query
   const filteredNeeds = needs.filter(need => {
-    // Filter by status
     if (filterStatus !== "all" && need.status !== filterStatus) {
       return false;
     }
     
-    // Filter by priority
     if (filterPriority !== "all" && need.priority !== filterPriority) {
       return false;
     }
     
-    // Filter by beneficiary
     if (selectedBeneficiary && need.beneficiary_id !== selectedBeneficiary) {
       return false;
     }
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
@@ -242,7 +225,6 @@ const BeneficiariesManagement = () => {
     return true;
   });
 
-  // Helper for showing status badge
   const getStatusBadge = (status: string) => {
     switch(status) {
       case "pending":
@@ -258,7 +240,6 @@ const BeneficiariesManagement = () => {
     }
   };
 
-  // Helper for showing priority badge
   const getPriorityBadge = (priority: string) => {
     switch(priority) {
       case "high":
@@ -271,13 +252,11 @@ const BeneficiariesManagement = () => {
         return "bg-muted text-muted-foreground";
     }
   };
-  
-  // Helper to format date
+
   const formatDate = (dateString: string) => {
     return format(parseISO(dateString), "MMM d, yyyy");
   };
 
-  // Handle adding new need
   const handleAddNeed = (beneficiaryId?: string) => {
     if (beneficiaryId) {
       setSelectedBeneficiary(beneficiaryId);
@@ -286,13 +265,11 @@ const BeneficiariesManagement = () => {
     setIsDialogOpen(true);
   };
 
-  // Handle editing need
   const handleEditNeed = (need: BeneficiaryNeed) => {
     setCurrentNeed(need);
     setIsDialogOpen(true);
   };
 
-  // Clear filters
   const clearFilters = () => {
     setSelectedBeneficiary(null);
     setFilterStatus("all");
@@ -316,7 +293,6 @@ const BeneficiariesManagement = () => {
             <TabsTrigger value="needs">Needs Assessment</TabsTrigger>
           </TabsList>
           
-          {/* Beneficiaries Tab */}
           <TabsContent value="beneficiaries" className="space-y-4">
             <Card>
               <CardHeader>
@@ -427,7 +403,6 @@ const BeneficiariesManagement = () => {
             </Card>
           </TabsContent>
           
-          {/* Needs Assessment Tab */}
           <TabsContent value="needs" className="space-y-4">
             <Card>
               <CardHeader>
@@ -476,14 +451,14 @@ const BeneficiariesManagement = () => {
                     </Select>
                     
                     <Select 
-                      value={selectedBeneficiary || ""}
-                      onValueChange={(value) => setSelectedBeneficiary(value || null)}
+                      value={selectedBeneficiary || "all"} 
+                      onValueChange={(value) => setSelectedBeneficiary(value === "all" ? null : value)}
                     >
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Filter by beneficiary" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All Beneficiaries</SelectItem>
+                        <SelectItem value="all">All Beneficiaries</SelectItem>
                         {beneficiaries.map((ben) => (
                           <SelectItem key={ben.id} value={ben.id}>
                             {ben.fullName}
@@ -572,7 +547,6 @@ const BeneficiariesManagement = () => {
           </TabsContent>
         </Tabs>
         
-        {/* Add/Edit Need Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
