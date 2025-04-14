@@ -4,7 +4,7 @@ import { User, UserRole } from "@/types/auth";
 import { getRoleDisplayName } from "@/utils/permissions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, User as UserIcon, UserX, Briefcase, Heart, Shield, Users } from "lucide-react";
+import { Edit, User as UserIcon, UserX, Briefcase, Heart, Shield, Users, UserCheck } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -96,8 +96,13 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus }) => {
                     size="icon"
                     onClick={() => toggleUserStatus(user.id, user.isActive)}
                     className={!user.isActive ? "text-green-600" : "text-destructive"}
+                    title={user.isActive ? "Deactivate user" : "Activate user"}
                   >
-                    <UserX className="h-4 w-4" />
+                    {user.isActive ? (
+                      <UserX className="h-4 w-4" />
+                    ) : (
+                      <UserCheck className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </TableCell>
@@ -154,3 +159,4 @@ const RoleBadge: React.FC<{ role: UserRole }> = ({ role }) => {
 };
 
 export default UsersTable;
+
