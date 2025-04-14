@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,6 +20,7 @@ import AuditLogs from "./pages/admin/AuditLogs";
 import Reports from "./pages/admin/Reports";
 import Announcements from "./pages/admin/Announcements";
 import AdminVolunteerOpportunities from "./pages/admin/VolunteerOpportunities";
+import AdminTrainingResources from "./pages/admin/TrainingResources";
 
 // Staff Pages
 import StaffDashboard from "./pages/staff/Index";
@@ -148,6 +150,14 @@ const App = () => {
               element={
                 <RouteGuard>
                   <AdminVolunteerOpportunities />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/admin/training-resources"
+              element={
+                <RouteGuard>
+                  <AdminTrainingResources />
                 </RouteGuard>
               }
             />
