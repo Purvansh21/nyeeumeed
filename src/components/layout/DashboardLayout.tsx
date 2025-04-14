@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getRoleDisplayName } from "@/utils/permissions";
 import { 
-  LogOut, Menu, User, Shield, Users, Home, FileText, Settings, 
-  AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, 
-  Activity, ChevronLeft, ChevronRight, Bell, Package, 
-  ClipboardList, Trophy, FilePlus 
+  LogOut, Menu, User, Shield, Users, Home, FileText, Settings, AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList, Trophy, FilePlus 
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -240,21 +237,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </div>}
           </div>
           {!isMinimized ? <div className="flex gap-2 mt-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90" 
-                onClick={() => navigate(`/${user.role}/profile`)}
-              >
+              <Button variant="outline" size="sm" className="w-full bg-secondary text-white hover:bg-secondary/90 hover:text-white" onClick={() => navigate(`/${user.role}/profile`)}>
                 <User className="h-4 w-4 mr-2" />
                 Profile
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90" 
-                onClick={handleLogout}
-              >
+              <Button variant="outline" size="sm" className="w-full bg-secondary text-white hover:bg-secondary/90 hover:text-white" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </Button>
@@ -262,12 +249,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <div className="flex flex-col items-center gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="bg-secondary text-secondary-foreground hover:bg-secondary/90" 
-                      onClick={() => navigate(`/${user.role}/profile`)}
-                    >
+                    <Button variant="outline" size="icon" className="bg-secondary text-white hover:bg-secondary/90 hover:text-white" onClick={() => navigate(`/${user.role}/profile`)}>
                       <User className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -276,12 +258,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="bg-secondary text-secondary-foreground hover:bg-secondary/90" 
-                      onClick={handleLogout}
-                    >
+                    <Button variant="outline" size="icon" className="bg-secondary text-white hover:bg-secondary/90 hover:text-white" onClick={handleLogout}>
                       <LogOut className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
