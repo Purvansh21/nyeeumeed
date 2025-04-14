@@ -241,46 +241,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Helper function to clean up role-specific tables when role changes
-  const cleanupPreviousRoleEntry = async (userId: string, previousRole: UserRole | undefined, newRole: UserRole | undefined) => {
-    try {
-      // Skip if previous role is the same as new role or if previous role is undefined
-      if (!previousRole || previousRole === newRole) return;
-      
-      // Delete from previous role table
-      let tableName: "admin_users" | "staff_users" | "volunteer_users" | "beneficiary_users" | null = null;
-      
-      switch (previousRole) {
-        case 'admin':
-          tableName = 'admin_users';
-          break;
-        case 'staff':
-          tableName = 'staff_users';
-          break;
-        case 'volunteer':
-          tableName = 'volunteer_users';
-          break;
-        case 'beneficiary':
-          tableName = 'beneficiary_users';
-          break;
-      }
-      
-      if (tableName) {
-        const { error } = await supabase
-          .from(tableName)
-          .delete()
-          .eq('id', userId);
-          
-        if (error) {
-          console.error(`Error deleting from ${tableName}:`, error);
-        }
-      }
-    } catch (error) {
-      console.error("Error cleaning up previous role entry:", error);
-    }
-  };
-
-  // Update user profile
+  // Modified function to handle role-specific data
   const updateUserProfile = async (userId: string, data: Partial<User>): Promise<void> => {
     setIsLoading(true);
     
@@ -301,32 +262,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         
       if (fetchError) throw fetchError;
       
-      const previousRole = currentProfile.role as UserRole;
-      const newRole = data.role as UserRole | undefined;
-      
-      // If role is being changed, clean up previous role entry
-      if (newRole && previousRole !== newRole) {
-        await cleanupPreviousRoleEntry(userId, previousRole, newRole);
-      }
-      
       // Ensure additionalInfo is a valid object or null
       const additional_info = data.additionalInfo && typeof data.additionalInfo === 'object' 
         ? data.additionalInfo 
         : null;
       
-      // Update profile in database
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          full_name: data.fullName,
-          role: data.role,
-          is_active: data.isActive,
-          contact_info: data.contactInfo,
-          additional_info
-        })
-        .eq('id', userId);
-        
-      if (error) throw error;
+      // Update profile in database - only update fields that are provided
+      const updateData: any = {};
+      if (data.fullName !== undefined) updateData.full_name = data.fullName;
+      if (data.isActive !== undefined) updateData.is_active = data.isActive;
+      if (data.contactInfo !== undefined) updateData.contact_info = data.contactInfo;
+      if (additional_info !== undefined) updateData.additional_info = additional_info;
+      
+      // Only update role if it's changed and provided
+      if (data.role !== undefined && data.role !== currentProfile.role) {
+        updateData.role = data.role;
+
+        // Delete existing role-specific records - we'll let the database trigger create new ones
+        if (currentProfile.role === 'admin') {
+          try {
+            await supabase.from('admin_users').delete().eq('id', userId);
+          } catch (error) {
+            console.error("Error deleting from admin_users:", error);
+          }
+        } else if (currentProfile.role === 'staff') {
+          try {
+            await supabase.from('staff_users').delete().eq('id', userId);
+          } catch (error) {
+            console.error("Error deleting from staff_users:", error);
+          }
+        } else if (currentProfile.role === 'volunteer') {
+          try {
+            await supabase.from('volunteer_users').delete().eq('id', userId);
+          } catch (error) {
+            console.error("Error deleting from volunteer_users:", error);
+          }
+        } else if (currentProfile.role === 'beneficiary') {
+          try {
+            await supabase.from('beneficiary_users').delete().eq('id', userId);
+          } catch (error) {
+            console.error("Error deleting from beneficiary_users:", error);
+          }
+        }
+      }
+      
+      // Only perform the update if there are fields to update
+      if (Object.keys(updateData).length > 0) {
+        const { error } = await supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('id', userId);
+          
+        if (error) throw error;
+      }
       
       // If updating the current user, refresh user state
       if (user?.id === userId) {
@@ -358,6 +346,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         description: "User profile has been successfully updated."
       });
     } catch (error: any) {
+      console.error("Error updating profile:", error);
       toast({
         variant: "destructive",
         title: "Failed to update profile",

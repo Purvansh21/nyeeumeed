@@ -18,7 +18,7 @@ import { SkeletonTable } from "@/components/ui/skeleton";
 import UsersTable from "@/components/users/UsersTable";
 
 const UserManagement = () => {
-  const { createUser, updateUserProfile } = useAuth();
+  const { createUser, updateUserProfile, user } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -176,26 +176,26 @@ const UserManagement = () => {
   // Handle user profile updates
   const handleUpdateUserProfile = async (userId: string, updates: Partial<User>) => {
     try {
+      // Check permissions - only allow admins to change roles
+      if (updates.role && updates.role !== users.find(u => u.id === userId)?.role && user?.role !== 'admin') {
+        throw new Error("Only administrators can change user roles");
+      }
+      
       await updateUserProfile(userId, updates);
       
-      // Update local state
-      setUsers(users.map(user => 
-        user.id === userId ? { ...user, ...updates } : user
-      ));
+      // Refresh the user list to reflect changes
+      fetchUsers();
       
       toast({
         title: "User updated",
         description: "User information has been updated successfully.",
       });
-      
-      // Refresh the user list to reflect role changes properly
-      fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update user:", error);
       toast({
         variant: "destructive",
         title: "Update failed",
-        description: "Failed to update user information. Please try again.",
+        description: error.message || "Failed to update user information. Please try again.",
       });
       throw error; // Re-throw to be caught by the component
     }

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { 
@@ -371,10 +370,38 @@ export async function createResourceAllocation(allocation: Omit<ResourceAllocati
       throw new Error(`Not enough available resources. Only ${resource.quantity - resource.allocated} ${resource.unit} available.`);
     }
     
+    // Ensure the current user has a staff record
+    const { data: authUser } = await supabase.auth.getUser();
+    if (!authUser || !authUser.user) {
+      throw new Error("You must be logged in to allocate resources");
+    }
+    
+    // Check if user exists in staff_users
+    const { data: staffUser, error: staffError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', authUser.user.id)
+      .single();
+      
+    if (staffError) {
+      console.error("Error checking staff status:", staffError);
+      throw new Error("Error verifying your staff status");
+    }
+    
+    if (staffUser.role !== 'admin' && staffUser.role !== 'staff') {
+      throw new Error("Only staff members can allocate resources");
+    }
+    
+    // Set the allocated_by field to the current user ID
+    const allocationWithUser = {
+      ...allocation,
+      allocated_by: authUser.user.id
+    };
+    
     // Start a transaction to update both tables
     const { data, error } = await supabase
       .from('resource_allocations')
-      .insert(allocation)
+      .insert(allocationWithUser)
       .select()
       .single();
     

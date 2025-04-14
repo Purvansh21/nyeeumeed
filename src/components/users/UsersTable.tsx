@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
 
 interface UsersTableProps {
   users: User[];
@@ -85,8 +86,17 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
       await updateUserProfile(editingUser.id, userUpdates);
       setIsEditDialogOpen(false);
       setEditingUser(null);
-    } catch (error) {
+      toast({
+        title: "User updated",
+        description: "User information has been updated successfully.",
+      });
+    } catch (error: any) {
       console.error("Failed to update user:", error);
+      toast({
+        variant: "destructive",
+        title: "Update failed",
+        description: error.message || "Failed to update user information. Please try again."
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -97,8 +107,17 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
     try {
       setProcessingId(userId);
       await toggleUserStatus(userId, newStatus);
+      toast({
+        title: newStatus ? "User activated" : "User deactivated",
+        description: `The user has been ${newStatus ? "activated" : "deactivated"} successfully.`,
+      });
     } catch (error) {
       console.error("Failed to toggle user status:", error);
+      toast({
+        variant: "destructive",
+        title: "Action failed",
+        description: "Failed to update user status. Please try again.",
+      });
     } finally {
       setProcessingId(null);
     }
