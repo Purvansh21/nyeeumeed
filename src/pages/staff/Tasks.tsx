@@ -143,14 +143,15 @@ const TasksManagement = () => {
     
     try {
       // Format the due date if it exists
-      const taskData = {
-        ...data,
-        due_date: data.due_date ? data.due_date.toISOString() : null,
-      };
+      const formattedDueDate = data.due_date ? data.due_date.toISOString() : null;
       
       if (currentTask) {
         // Update existing task
-        const updated = await updateStaffTask(currentTask.id, taskData);
+        const updated = await updateStaffTask(currentTask.id, {
+          ...data,
+          due_date: formattedDueDate
+        });
+        
         if (updated) {
           // Refresh tasks list
           const updatedTasks = tasks.map(t => 
@@ -168,13 +169,18 @@ const TasksManagement = () => {
           setTasks(updatedTasks);
         }
       } else {
-        // Create new task
-        const newTaskData = {
-          ...taskData,
+        // Create new task with all required fields
+        const taskData: Omit<StaffTask, 'id' | 'created_at' | 'updated_at'> = {
+          title: data.title,
+          description: data.description,
+          priority: data.priority,
+          status: data.status,
+          due_date: formattedDueDate,
+          assigned_to: data.assigned_to,
           created_by: user?.id as string // Staff member creating the task
         };
         
-        const created = await createStaffTask(newTaskData);
+        const created = await createStaffTask(taskData);
         if (created) {
           // Find staff member if assigned
           const staffMember = data.assigned_to ? staffUsers.find(s => s.id === data.assigned_to) : undefined;

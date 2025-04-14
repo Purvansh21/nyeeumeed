@@ -165,8 +165,17 @@ const BeneficiariesManagement = () => {
           setNeeds(updatedNeeds);
         }
       } else {
-        // Create new need
-        const created = await createBeneficiaryNeed(data);
+        // Create new need - ensure all required fields are present
+        const needData: Omit<BeneficiaryNeed, 'id' | 'created_at' | 'updated_at'> = {
+          beneficiary_id: data.beneficiary_id,
+          category: data.category,
+          description: data.description,
+          priority: data.priority,
+          status: data.status,
+          assigned_to: data.assigned_to
+        };
+        
+        const created = await createBeneficiaryNeed(needData);
         if (created) {
           // Find beneficiary to attach to the need for display
           const beneficiary = beneficiaries.find(b => b.id === created.beneficiary_id);

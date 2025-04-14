@@ -133,10 +133,14 @@ const VolunteersManagement = () => {
     
     try {
       // Convert dates to ISO strings
-      const shiftData = {
-        ...data,
+      const shiftData: Omit<VolunteerShift, 'id' | 'created_at' | 'updated_at'> = {
+        volunteer_id: data.volunteer_id,
+        title: data.title,
         start_time: data.start_time.toISOString(),
         end_time: data.end_time.toISOString(),
+        location: data.location || null,
+        description: data.description || null,
+        status: data.status,
         created_by: user?.id as string, // Staff member creating the shift
       };
       

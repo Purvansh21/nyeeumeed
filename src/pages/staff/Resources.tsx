@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -45,7 +44,6 @@ import {
   fetchBeneficiaries
 } from "@/services/staffService";
 
-// Form schema for resource
 const resourceFormSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
@@ -62,7 +60,6 @@ const resourceFormSchema = z.object({
   description: z.string().optional(),
 });
 
-// Form schema for resource allocation
 const allocationFormSchema = z.object({
   resource_id: z.string({
     required_error: "Please select a resource",
@@ -111,7 +108,6 @@ const ResourcesManagement = () => {
     },
   });
 
-  // Fetch resources, allocations, and beneficiaries
   useEffect(() => {
     const loadData = async () => {
       setIsLoadingResources(true);
@@ -132,11 +128,9 @@ const ResourcesManagement = () => {
     loadData();
   }, []);
 
-  // Reset resource form when dialog opens or closes
   useEffect(() => {
     if (isResourceDialogOpen) {
       if (currentResource) {
-        // Edit mode: Pre-fill form with resource data
         resourceForm.reset({
           name: currentResource.name,
           category: currentResource.category,
@@ -145,7 +139,6 @@ const ResourcesManagement = () => {
           description: currentResource.description || ""
         });
       } else {
-        // Create mode: Reset form to defaults
         resourceForm.reset({
           name: "",
           category: "",
@@ -157,7 +150,6 @@ const ResourcesManagement = () => {
     }
   }, [isResourceDialogOpen, currentResource, resourceForm]);
 
-  // Reset allocation form when dialog opens or closes
   useEffect(() => {
     if (isAllocationDialogOpen && selectedResource) {
       allocationForm.reset({
@@ -169,24 +161,26 @@ const ResourcesManagement = () => {
     }
   }, [isAllocationDialogOpen, selectedResource, allocationForm]);
 
-  // Handle resource form submission
-  const onResourceSubmit = async (data: z.infer<typeof resourceFormSchema>) => {
+  const onSubmit = async (data: z.infer<typeof resourceFormSchema>) => {
     setIsSubmitting(true);
     
     try {
       if (currentResource) {
-        // Update existing resource
         const updated = await updateResource(currentResource.id, data);
         if (updated) {
-          // Refresh resources list
-          const updatedResources = resources.map(r => 
-            r.id === updated.id ? updated : r
-          );
-          setResources(updatedResources);
+          setResources(resources.map(r => r.id === updated.id ? updated : r));
         }
       } else {
-        // Create new resource
-        const created = await createResource(data);
+        const resourceData: Omit<Resource, 'id' | 'created_at' | 'updated_at'> = {
+          name: data.name,
+          category: data.category,
+          quantity: data.quantity,
+          unit: data.unit,
+          description: data.description || null,
+          allocated: 0
+        };
+        
+        const created = await createResource(resourceData);
         if (created) {
           setResources([created, ...resources]);
         }
@@ -205,20 +199,21 @@ const ResourcesManagement = () => {
     }
   };
 
-  // Handle allocation form submission
-  const onAllocationSubmit = async (data: z.infer<typeof allocationFormSchema>) => {
-    setIsSubmitting(true);
+  const onSubmitAllocation = async (data: z.infer<typeof allocationFormSchema>) => {
+    setIsSubmittingAllocation(true);
     
     try {
-      // Add staff user ID to the allocation data
-      const allocationData = {
-        ...data,
-        allocated_by: user?.id as string
+      const allocationData: Omit<ResourceAllocation, 'id'> = {
+        resource_id: data.resource_id,
+        beneficiary_id: data.beneficiary_id,
+        quantity: data.quantity,
+        notes: data.notes || null,
+        allocated_by: user?.id as string,
+        allocated_date: new Date().toISOString()
       };
       
       const created = await createResourceAllocation(allocationData);
       if (created) {
-        // Find resource and beneficiary to attach to the allocation for display
         const resource = resources.find(r => r.id === created.resource_id);
         const beneficiary = beneficiaries.find(b => b.id === created.beneficiary_id);
         
@@ -226,7 +221,7 @@ const ResourcesManagement = () => {
           ...created,
           resource: resource ? {
             name: resource.name,
-            unit: resource.unit,
+            unit: resource.unit
           } : undefined,
           beneficiary: beneficiary ? {
             full_name: beneficiary.fullName
@@ -235,40 +230,33 @@ const ResourcesManagement = () => {
         
         setAllocations([newAllocation, ...allocations]);
         
-        // Update resources list
-        const updatedResources = resources.map(r => {
-          if (r.id === created.resource_id) {
-            return {
-              ...r,
-              allocated: r.allocated + created.quantity
-            };
-          }
-          return r;
-        });
-        setResources(updatedResources);
+        if (resource) {
+          const updatedResource = {
+            ...resource,
+            allocated: resource.allocated + data.quantity
+          };
+          setResources(resources.map(r => r.id === resource.id ? updatedResource : r));
+        }
       }
       
       setIsAllocationDialogOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating allocation:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create allocation"
+        description: error.message || "Failed to create allocation"
       });
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingAllocation(false);
     }
   };
 
-  // Filter resources based on selected category and search query
   const filteredResources = resources.filter(resource => {
-    // Filter by category
     if (selectedCategory && resource.category !== selectedCategory) {
       return false;
     }
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
@@ -281,44 +269,36 @@ const ResourcesManagement = () => {
     return true;
   });
 
-  // Get all unique categories
   const categories = [...new Set(resources.map(r => r.category))];
   
-  // Helper to format date
   const formatDate = (dateString: string) => {
     return format(parseISO(dateString), "MMM d, yyyy h:mm a");
   };
 
-  // Handle adding new resource
   const handleAddResource = () => {
     setCurrentResource(null);
     setIsResourceDialogOpen(true);
   };
 
-  // Handle editing resource
   const handleEditResource = (resource: Resource) => {
     setCurrentResource(resource);
     setIsResourceDialogOpen(true);
   };
 
-  // Handle allocating resource
   const handleAllocateResource = (resource: Resource) => {
     setSelectedResource(resource);
     setIsAllocationDialogOpen(true);
   };
 
-  // Clear filters
   const clearFilters = () => {
     setSelectedCategory(null);
     setSearchQuery("");
   };
 
-  // Calculate available quantity
   const getAvailableQuantity = (resource: Resource) => {
     return resource.quantity - resource.allocated;
   };
 
-  // Calculate allocation percentage
   const getAllocationPercentage = (resource: Resource) => {
     if (resource.quantity === 0) return 0;
     return Math.min(100, Math.round((resource.allocated / resource.quantity) * 100));
@@ -340,7 +320,6 @@ const ResourcesManagement = () => {
             <TabsTrigger value="allocations">Allocations</TabsTrigger>
           </TabsList>
           
-          {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-4">
             <Card>
               <CardHeader>
@@ -480,7 +459,6 @@ const ResourcesManagement = () => {
             </Card>
           </TabsContent>
           
-          {/* Allocations Tab */}
           <TabsContent value="allocations" className="space-y-4">
             <Card>
               <CardHeader>
@@ -557,8 +535,6 @@ const ResourcesManagement = () => {
                                 {allocation.quantity} {allocation.resource?.unit || "units"}
                               </TableCell>
                               <TableCell>
-                                {/* We don't have staff users stored with allocations in this implementation */}
-                                {/* Would need to join with profiles table to get staff name */}
                                 {user?.fullName || "Staff Member"}
                               </TableCell>
                               <TableCell>{formatDate(allocation.allocated_date)}</TableCell>
@@ -574,7 +550,6 @@ const ResourcesManagement = () => {
           </TabsContent>
         </Tabs>
         
-        {/* Add/Edit Resource Dialog */}
         <Dialog open={isResourceDialogOpen} onOpenChange={setIsResourceDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
@@ -588,7 +563,7 @@ const ResourcesManagement = () => {
             </DialogHeader>
             
             <Form {...resourceForm}>
-              <form onSubmit={resourceForm.handleSubmit(onResourceSubmit)} className="space-y-4">
+              <form onSubmit={resourceForm.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={resourceForm.control}
                   name="name"
@@ -727,7 +702,6 @@ const ResourcesManagement = () => {
           </DialogContent>
         </Dialog>
         
-        {/* Resource Allocation Dialog */}
         <Dialog open={isAllocationDialogOpen} onOpenChange={setIsAllocationDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
@@ -738,7 +712,7 @@ const ResourcesManagement = () => {
             </DialogHeader>
             
             <Form {...allocationForm}>
-              <form onSubmit={allocationForm.handleSubmit(onAllocationSubmit)} className="space-y-4">
+              <form onSubmit={allocationForm.handleSubmit(onSubmitAllocation)} className="space-y-4">
                 <FormField
                   control={allocationForm.control}
                   name="resource_id"
@@ -749,7 +723,6 @@ const ResourcesManagement = () => {
                         value={field.value} 
                         onValueChange={(value) => {
                           field.onChange(value);
-                          // Update selectedResource when the resource changes
                           const resource = resources.find(r => r.id === value);
                           if (resource) {
                             setSelectedResource(resource);

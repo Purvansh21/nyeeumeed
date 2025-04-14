@@ -20,7 +20,22 @@ export async function fetchVolunteers(): Promise<User[]> {
       .order('full_name');
     
     if (error) throw error;
-    return data || [];
+    
+    // Transform the data to match the User type
+    return (data || []).map(v => ({
+      id: v.id,
+      fullName: v.full_name,
+      email: v.email,
+      role: 'volunteer',
+      isActive: v.is_active,
+      createdAt: v.created_at,
+      lastLoginAt: v.last_login_at,
+      contactInfo: v.contact_info,
+      additionalInfo: {
+        skills: v.skills,
+        availability: v.availability
+      }
+    }));
   } catch (error: any) {
     console.error("Error fetching volunteers:", error.message);
     return [];
@@ -38,11 +53,21 @@ export async function fetchVolunteerShifts(): Promise<VolunteerShift[]> {
       .order('start_time', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // Ensure the status is always one of the allowed types
+    return (data || []).map(shift => ({
+      ...shift,
+      status: validateShiftStatus(shift.status)
+    })) as VolunteerShift[];
   } catch (error: any) {
     console.error("Error fetching volunteer shifts:", error.message);
     return [];
   }
+}
+
+function validateShiftStatus(status: string): VolunteerShift['status'] {
+  const validStatuses: VolunteerShift['status'][] = ['scheduled', 'completed', 'cancelled', 'in-progress'];
+  return validStatuses.includes(status as any) ? status as VolunteerShift['status'] : 'scheduled';
 }
 
 export async function createVolunteerShift(shift: Omit<VolunteerShift, 'id' | 'created_at' | 'updated_at'>): Promise<VolunteerShift | null> {
@@ -60,7 +85,10 @@ export async function createVolunteerShift(shift: Omit<VolunteerShift, 'id' | 'c
       description: "Volunteer shift created successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      status: validateShiftStatus(data.status)
+    } as VolunteerShift;
   } catch (error: any) {
     console.error("Error creating volunteer shift:", error.message);
     toast({
@@ -88,7 +116,10 @@ export async function updateVolunteerShift(id: string, shift: Partial<VolunteerS
       description: "Volunteer shift updated successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      status: validateShiftStatus(data.status)
+    } as VolunteerShift;
   } catch (error: any) {
     console.error("Error updating volunteer shift:", error.message);
     toast({
@@ -109,11 +140,36 @@ export async function fetchBeneficiaries(): Promise<User[]> {
       .order('full_name');
     
     if (error) throw error;
-    return data || [];
+    
+    // Transform the data to match the User type
+    return (data || []).map(b => ({
+      id: b.id,
+      fullName: b.full_name,
+      email: b.email,
+      role: 'beneficiary',
+      isActive: b.is_active,
+      createdAt: b.created_at,
+      lastLoginAt: b.last_login_at,
+      contactInfo: b.contact_info,
+      additionalInfo: {
+        needs: b.needs,
+        assistanceHistory: b.assistance_history
+      }
+    }));
   } catch (error: any) {
     console.error("Error fetching beneficiaries:", error.message);
     return [];
   }
+}
+
+function validateNeedPriority(priority: string): BeneficiaryNeed['priority'] {
+  const validPriorities: BeneficiaryNeed['priority'][] = ['high', 'medium', 'low'];
+  return validPriorities.includes(priority as any) ? priority as BeneficiaryNeed['priority'] : 'medium';
+}
+
+function validateNeedStatus(status: string): BeneficiaryNeed['status'] {
+  const validStatuses: BeneficiaryNeed['status'][] = ['pending', 'in-progress', 'fulfilled', 'cancelled'];
+  return validStatuses.includes(status as any) ? status as BeneficiaryNeed['status'] : 'pending';
 }
 
 export async function fetchBeneficiaryNeeds(): Promise<BeneficiaryNeed[]> {
@@ -128,7 +184,13 @@ export async function fetchBeneficiaryNeeds(): Promise<BeneficiaryNeed[]> {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // Ensure the priority and status are always one of the allowed types
+    return (data || []).map(need => ({
+      ...need,
+      priority: validateNeedPriority(need.priority),
+      status: validateNeedStatus(need.status)
+    })) as BeneficiaryNeed[];
   } catch (error: any) {
     console.error("Error fetching beneficiary needs:", error.message);
     return [];
@@ -150,7 +212,11 @@ export async function createBeneficiaryNeed(need: Omit<BeneficiaryNeed, 'id' | '
       description: "Beneficiary need created successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      priority: validateNeedPriority(data.priority),
+      status: validateNeedStatus(data.status)
+    } as BeneficiaryNeed;
   } catch (error: any) {
     console.error("Error creating beneficiary need:", error.message);
     toast({
@@ -178,7 +244,11 @@ export async function updateBeneficiaryNeed(id: string, need: Partial<Beneficiar
       description: "Beneficiary need updated successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      priority: validateNeedPriority(data.priority),
+      status: validateNeedStatus(data.status)
+    } as BeneficiaryNeed;
   } catch (error: any) {
     console.error("Error updating beneficiary need:", error.message);
     toast({
@@ -208,9 +278,15 @@ export async function fetchResources(): Promise<Resource[]> {
 
 export async function createResource(resource: Omit<Resource, 'id' | 'created_at' | 'updated_at'>): Promise<Resource | null> {
   try {
+    // Make sure allocated is included and defaulted to 0 if not provided
+    const resourceWithAllocated = {
+      ...resource,
+      allocated: resource.allocated ?? 0
+    };
+    
     const { data, error } = await supabase
       .from('resources')
-      .insert(resource)
+      .insert(resourceWithAllocated)
       .select()
       .single();
     
@@ -285,7 +361,7 @@ export async function createResourceAllocation(allocation: Omit<ResourceAllocati
     // First check if there's enough unallocated resources
     const { data: resource, error: resourceError } = await supabase
       .from('resources')
-      .select('quantity, allocated')
+      .select('quantity, allocated, unit')
       .eq('id', allocation.resource_id)
       .single();
     
@@ -330,6 +406,16 @@ export async function createResourceAllocation(allocation: Omit<ResourceAllocati
 }
 
 // Task Management
+function validateTaskPriority(priority: string): StaffTask['priority'] {
+  const validPriorities: StaffTask['priority'][] = ['high', 'medium', 'low'];
+  return validPriorities.includes(priority as any) ? priority as StaffTask['priority'] : 'medium';
+}
+
+function validateTaskStatus(status: string): StaffTask['status'] {
+  const validStatuses: StaffTask['status'][] = ['pending', 'in-progress', 'completed', 'cancelled'];
+  return validStatuses.includes(status as any) ? status as StaffTask['status'] : 'pending';
+}
+
 export async function fetchStaffTasks(): Promise<StaffTask[]> {
   try {
     const { data, error } = await supabase
@@ -341,7 +427,13 @@ export async function fetchStaffTasks(): Promise<StaffTask[]> {
       .order('due_date', { ascending: true });
     
     if (error) throw error;
-    return data || [];
+    
+    // Ensure the priority and status are always one of the allowed types
+    return (data || []).map(task => ({
+      ...task,
+      priority: validateTaskPriority(task.priority),
+      status: validateTaskStatus(task.status)
+    })) as StaffTask[];
   } catch (error: any) {
     console.error("Error fetching staff tasks:", error.message);
     return [];
@@ -363,7 +455,11 @@ export async function createStaffTask(task: Omit<StaffTask, 'id' | 'created_at' 
       description: "Task created successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      priority: validateTaskPriority(data.priority),
+      status: validateTaskStatus(data.status)
+    } as StaffTask;
   } catch (error: any) {
     console.error("Error creating staff task:", error.message);
     toast({
@@ -391,7 +487,11 @@ export async function updateStaffTask(id: string, task: Partial<StaffTask>): Pro
       description: "Task updated successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      priority: validateTaskPriority(data.priority),
+      status: validateTaskStatus(data.status)
+    } as StaffTask;
   } catch (error: any) {
     console.error("Error updating staff task:", error.message);
     toast({
@@ -412,7 +512,13 @@ export async function fetchReports(): Promise<Report[]> {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    
+    // Transform JSON data to Record<string, any>
+    return (data || []).map(report => ({
+      ...report,
+      data: report.data as Record<string, any> | null,
+      parameters: report.parameters as Record<string, any> | null
+    }));
   } catch (error: any) {
     console.error("Error fetching reports:", error.message);
     return [];
@@ -434,7 +540,11 @@ export async function createReport(report: Omit<Report, 'id' | 'created_at' | 'u
       description: "Report created successfully"
     });
     
-    return data;
+    return {
+      ...data,
+      data: data.data as Record<string, any> | null,
+      parameters: data.parameters as Record<string, any> | null
+    };
   } catch (error: any) {
     console.error("Error creating report:", error.message);
     toast({
@@ -455,7 +565,12 @@ export async function fetchReportById(id: string): Promise<Report | null> {
       .single();
     
     if (error) throw error;
-    return data;
+    
+    return data ? {
+      ...data,
+      data: data.data as Record<string, any> | null,
+      parameters: data.parameters as Record<string, any> | null
+    } : null;
   } catch (error: any) {
     console.error("Error fetching report:", error.message);
     return null;
