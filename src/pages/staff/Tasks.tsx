@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -652,8 +653,8 @@ const TasksManagement = () => {
                       <FormItem>
                         <FormLabel>Assigned To (Optional)</FormLabel>
                         <Select 
-                          value={field.value || ""} 
-                          onValueChange={(value) => field.onChange(value || null)}
+                          value={field.value || "unassigned"} 
+                          onValueChange={(value) => field.onChange(value === "unassigned" ? null : value)}
                           disabled={isSubmitting}
                         >
                           <FormControl>
@@ -662,7 +663,7 @@ const TasksManagement = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Unassigned</SelectItem>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
                             {staffUsers.map((staff) => (
                               <SelectItem key={staff.id} value={staff.id}>
                                 {staff.fullName}
@@ -697,3 +698,4 @@ const TasksManagement = () => {
 };
 
 export default TasksManagement;
+
