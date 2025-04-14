@@ -4,7 +4,6 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Json } from "@/integrations/supabase/types";
 
-// Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ 
@@ -13,15 +12,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Initialize auth state from Supabase
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session) {
-          // User is signed in
           try {
-            // Get user profile from database
             const { data: profile, error } = await supabase
               .from('profiles')
               .select('*')
@@ -30,12 +25,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
             if (error) throw error;
 
-            // Parse additionalInfo as Record<string, any> or default to empty object
             const additionalInfo = typeof profile?.additional_info === 'object' 
               ? profile?.additional_info as Record<string, any>
               : {};
 
-            // Set user state with profile data
             setUser({
               id: session.user.id,
               email: session.user.email || '',
@@ -51,7 +44,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             console.error("Error fetching user profile:", error);
           }
         } else {
-          // User is signed out
           setUser(null);
         }
 
@@ -59,10 +51,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        // If there's an existing session, the onAuthStateChange will handle it
       } else {
         setIsLoading(false);
       }
@@ -73,7 +63,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
-  // Login function
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     
@@ -85,7 +74,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       
       if (error) throw error;
       
-      // Update last login time in profile
       if (user) {
         const { error: updateError } = await supabase
           .from('profiles')
@@ -111,7 +99,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Logout function
   const logout = async (): Promise<void> => {
     try {
       await supabase.auth.signOut();
@@ -129,7 +116,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Get all users (admin only)
   const getAllUsers = async (): Promise<User[]> => {
     if (user?.role !== 'admin' && user?.role !== 'staff') return [];
     
@@ -141,7 +127,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       if (error) throw error;
       
       return data.map(profile => {
-        // Ensure additionalInfo is always a Record<string, any> or empty object
         let additionalInfo: Record<string, any> = {};
         if (profile.additional_info && typeof profile.additional_info === 'object' && !Array.isArray(profile.additional_info)) {
           additionalInfo = profile.additional_info as Record<string, any>;
@@ -149,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           
         return {
           id: profile.id,
-          email: '', // Email is not stored in profiles table for security
+          email: '',
           fullName: profile.full_name,
           role: profile.role as UserRole,
           isActive: profile.is_active,
@@ -165,7 +150,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Get user by ID
   const getUserById = async (id: string): Promise<User | undefined> => {
     try {
       const { data: profile, error } = await supabase
@@ -176,14 +160,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         
       if (error) throw error;
       
-      // Parse additionalInfo as Record<string, any> or default to empty object
       const additionalInfo = typeof profile.additional_info === 'object' 
         ? profile.additional_info as Record<string, any>
         : {};
         
       return {
         id: profile.id,
-        email: '', // Email is not stored in profiles table for security
+        email: '',
         fullName: profile.full_name,
         role: profile.role as UserRole,
         isActive: profile.is_active,
@@ -198,17 +181,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Create a new user (admin only)
   const createUser = async (userData: Omit<User, 'id' | 'createdAt' | 'isActive'> & { password: string }): Promise<void> => {
     setIsLoading(true);
     
     try {
-      // Check if the current user is an admin
       if (user?.role !== "admin") {
         throw new Error("Only administrators can create new users");
       }
       
-      // Create user in Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -221,8 +201,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       });
       
       if (error) throw error;
-      
-      // The trigger will automatically create the profile entry
       
       toast({
         title: "User created",
@@ -240,7 +218,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Helper function to get table name based on role
   const getTableNameForRole = (role: UserRole): "admin_users" | "staff_users" | "volunteer_users" | "beneficiary_users" => {
     switch (role) {
       case 'admin':
@@ -256,19 +233,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Modified function to handle role-specific data
   const updateUserProfile = async (userId: string, data: Partial<User>): Promise<void> => {
     setIsLoading(true);
     
     try {
-      // Check permissions:
-      // - Admin can update any user
-      // - Users can only update their own profile
       if (user?.role !== "admin" && user?.id !== userId) {
         throw new Error("You don't have permission to update this user");
       }
       
-      // Get current user data to check for role changes
       const { data: currentProfile, error: fetchError } = await supabase
         .from('profiles')
         .select('*')
@@ -277,23 +249,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         
       if (fetchError) throw fetchError;
       
-      // Ensure additionalInfo is a valid object or null
       const additional_info = data.additionalInfo && typeof data.additionalInfo === 'object' 
         ? data.additionalInfo 
         : null;
       
-      // Update profile in database - only update fields that are provided
       const updateData: any = {};
       if (data.fullName !== undefined) updateData.full_name = data.fullName;
       if (data.isActive !== undefined) updateData.is_active = data.isActive;
       if (data.contactInfo !== undefined) updateData.contact_info = data.contactInfo;
       if (additional_info !== undefined) updateData.additional_info = additional_info;
       
-      // Only update role if it's changed and provided
-      if (data.role !== undefined && data.role !== currentProfile.role) {
+      const roleChanged = data.role !== undefined && data.role !== currentProfile.role;
+      if (roleChanged) {
         updateData.role = data.role;
-        
-        // Get user data to use for role table operations
+      }
+      
+      if (Object.keys(updateData).length > 0) {
+        const { error } = await supabase
+          .from('profiles')
+          .update(updateData)
+          .eq('id', userId);
+          
+        if (error) throw error;
+      }
+      
+      if (roleChanged) {
         const userData = {
           id: userId,
           full_name: data.fullName || currentProfile.full_name,
@@ -304,51 +284,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           last_login_at: currentProfile.last_login_at
         };
         
-        // Delete from previous role table FIRST to avoid constraint violations
-        if (currentProfile.role !== data.role) {
-          const oldRoleTable = getTableNameForRole(currentProfile.role as UserRole);
-          await supabase.from(oldRoleTable).delete().eq('id', userId);
-        }
-        
-        // Then insert into new role table after deletion, to prevent key constraint violations
         try {
+          const oldRoleTable = getTableNameForRole(currentProfile.role as UserRole);
+          const { error: deleteError } = await supabase
+            .from(oldRoleTable)
+            .delete()
+            .eq('id', userId);
+            
+          if (deleteError) {
+            console.error(`Error deleting from ${oldRoleTable}:`, deleteError);
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           const newRoleTable = getTableNameForRole(data.role as UserRole);
           
-          // First check if the record already exists
-          const { data: existingRecord } = await supabase
+          const { error: insertError } = await supabase
             .from(newRoleTable)
-            .select('id')
-            .eq('id', userId)
-            .maybeSingle();
+            .insert(userData);
             
-          if (!existingRecord) {
-            // Only insert if record doesn't exist
-            const { error: insertError } = await supabase
-              .from(newRoleTable)
-              .insert(userData);
-              
-            if (insertError) {
-              console.error(`Error inserting into ${newRoleTable}:`, insertError);
-              throw insertError;
-            }
+          if (insertError) {
+            console.error(`Error inserting into ${newRoleTable}:`, insertError);
+            throw insertError;
           }
         } catch (error) {
           console.error('Error during role table update:', error);
           throw error;
         }
-      }
-      
-      // Only perform the update if there are fields to update
-      if (Object.keys(updateData).length > 0) {
-        const { error } = await supabase
-          .from('profiles')
-          .update(updateData)
-          .eq('id', userId);
+      } else if (data.isActive !== undefined || data.fullName !== undefined || data.contactInfo !== undefined) {
+        try {
+          const roleTable = getTableNameForRole(currentProfile.role as UserRole);
           
-        if (error) throw error;
+          const roleTableUpdateData: any = {};
+          if (data.isActive !== undefined) roleTableUpdateData.is_active = data.isActive;
+          if (data.fullName !== undefined) roleTableUpdateData.full_name = data.fullName;
+          if (data.contactInfo !== undefined) roleTableUpdateData.contact_info = data.contactInfo;
+          
+          if (Object.keys(roleTableUpdateData).length > 0) {
+            const { error: roleUpdateError } = await supabase
+              .from(roleTable)
+              .update(roleTableUpdateData)
+              .eq('id', userId);
+              
+            if (roleUpdateError) {
+              console.error(`Error updating ${roleTable}:`, roleUpdateError);
+            }
+          }
+        } catch (error) {
+          console.error('Error updating role-specific table:', error);
+        }
       }
       
-      // If updating the current user, refresh user state
       if (user?.id === userId) {
         const { data: updatedProfile, error: fetchError } = await supabase
           .from('profiles')
@@ -358,7 +344,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           
         if (fetchError) throw fetchError;
         
-        // Parse additionalInfo as Record<string, any> or default to empty object
         const additionalInfo = typeof updatedProfile.additional_info === 'object' 
           ? updatedProfile.additional_info as Record<string, any>
           : {};
@@ -405,7 +390,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Custom hook to use the auth context
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {

@@ -188,8 +188,17 @@ const UserManagement = () => {
       
       await updateUserProfile(userId, updates);
       
-      // After successful update, fetch fresh data to ensure all role changes are reflected correctly
-      fetchUsers();
+      // After successful update, update local state
+      setUsers(prevUsers => 
+        prevUsers.map(u => 
+          u.id === userId ? { ...u, ...updates } : u
+        )
+      );
+      
+      // If this was a role change, fetch fresh data to ensure all role changes are reflected correctly
+      if (updates.role) {
+        fetchUsers();
+      }
       
       toast({
         title: "User updated",

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -45,7 +44,6 @@ import {
 } from "@/services/staffService";
 import { User } from "@/types/auth";
 
-// Resource form schema
 const resourceFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   category: z.string().min(2, "Category is required"),
@@ -54,7 +52,6 @@ const resourceFormSchema = z.object({
   description: z.string().optional(),
 });
 
-// Allocation form schema
 const allocationFormSchema = z.object({
   resource_id: z.string({
     required_error: "Please select a resource",
@@ -101,7 +98,6 @@ const ResourcesManagement = () => {
     },
   });
   
-  // Fetch resources, allocations, and beneficiaries
   useEffect(() => {
     const loadData = async () => {
       setIsLoadingResources(true);
@@ -122,7 +118,6 @@ const ResourcesManagement = () => {
     loadData();
   }, []);
   
-  // Reset resource form when dialog opens or closes
   useEffect(() => {
     if (isResourceDialogOpen) {
       if (currentResource) {
@@ -145,7 +140,6 @@ const ResourcesManagement = () => {
     }
   }, [isResourceDialogOpen, currentResource, resourceForm]);
   
-  // Handle resource form submission
   const onResourceSubmit = async (data: z.infer<typeof resourceFormSchema>) => {
     if (!user) return;
     
@@ -162,7 +156,6 @@ const ResourcesManagement = () => {
       };
       
       if (currentResource) {
-        // Update resource
         const updated = await updateResource(currentResource.id, resourceData);
         
         if (updated) {
@@ -172,7 +165,6 @@ const ResourcesManagement = () => {
           setResources(updatedResources);
         }
       } else {
-        // Create new resource
         const created = await createResource(resourceData);
         
         if (created) {
@@ -188,7 +180,6 @@ const ResourcesManagement = () => {
     }
   };
   
-  // Handle allocation form submission
   const onAllocationSubmit = async (data: z.infer<typeof allocationFormSchema>) => {
     if (!user) return;
     
@@ -207,7 +198,6 @@ const ResourcesManagement = () => {
       const created = await createResourceAllocation(allocationData);
       
       if (created) {
-        // Find resource and beneficiary to attach to the allocation for display
         const resource = resources.find(r => r.id === created.resource_id);
         const beneficiary = beneficiaries.find(b => b.id === created.beneficiary_id);
         
@@ -222,10 +212,8 @@ const ResourcesManagement = () => {
           } : undefined
         };
         
-        // Update the allocations list and update the resource's allocated amount
         setAllocations([newAllocation, ...allocations]);
         
-        // Update the resource's allocated amount
         if (resource) {
           const updatedResource = {
             ...resource,
@@ -241,21 +229,27 @@ const ResourcesManagement = () => {
       }
       
       setIsAllocationDialogOpen(false);
-    } catch (error) {
-      console.error("Error creating allocation:", error);
+      toast({
+        title: "Resource allocated",
+        description: "Resource has been successfully allocated to the beneficiary."
+      });
+    } catch (error: any) {
+      console.error("Error creating resource allocation:", error);
+      toast({
+        variant: "destructive",
+        title: "Failed to allocate resource",
+        description: error.message || "An unexpected error occurred. Please try again."
+      });
     } finally {
       setIsSubmittingAllocation(false);
     }
   };
   
-  // Filter resources based on category and search query
   const filteredResources = resources.filter(resource => {
-    // Filter by category
     if (filterCategory !== "all" && resource.category !== filterCategory) {
       return false;
     }
     
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
@@ -268,22 +262,18 @@ const ResourcesManagement = () => {
     return true;
   });
   
-  // Get unique categories for the filter
   const categories = Array.from(new Set(resources.map(r => r.category)));
   
-  // Handle adding new resource
   const handleAddResource = () => {
     setCurrentResource(null);
     setIsResourceDialogOpen(true);
   };
   
-  // Handle editing resource
   const handleEditResource = (resource: Resource) => {
     setCurrentResource(resource);
     setIsResourceDialogOpen(true);
   };
   
-  // Handle allocation
   const handleAllocate = () => {
     allocationForm.reset({
       resource_id: "",
@@ -294,7 +284,6 @@ const ResourcesManagement = () => {
     setIsAllocationDialogOpen(true);
   };
   
-  // Format date
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "MMM d, yyyy h:mm a");
   };
@@ -315,7 +304,6 @@ const ResourcesManagement = () => {
             <TabsTrigger value="allocations">Allocations</TabsTrigger>
           </TabsList>
           
-          {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-4">
             <Card>
               <CardHeader>
@@ -420,7 +408,6 @@ const ResourcesManagement = () => {
             </Card>
           </TabsContent>
           
-          {/* Allocations Tab */}
           <TabsContent value="allocations" className="space-y-4">
             <Card>
               <CardHeader>
@@ -485,7 +472,6 @@ const ResourcesManagement = () => {
           </TabsContent>
         </Tabs>
         
-        {/* Resource Dialog */}
         <Dialog open={isResourceDialogOpen} onOpenChange={setIsResourceDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
@@ -607,7 +593,6 @@ const ResourcesManagement = () => {
           </DialogContent>
         </Dialog>
         
-        {/* Allocation Dialog */}
         <Dialog open={isAllocationDialogOpen} onOpenChange={setIsAllocationDialogOpen}>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
