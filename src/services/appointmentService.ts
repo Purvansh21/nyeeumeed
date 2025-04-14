@@ -42,18 +42,18 @@ export async function fetchAppointments(): Promise<Appointment[]> {
           typeof appointment.beneficiary === 'object' && 
           appointment.beneficiary !== null) {
         
-        const beneficiary = appointment.beneficiary;
-        // Safely check if the required properties exist before accessing them
-        if (beneficiary && 
-            typeof beneficiary === 'object' && 
-            'id' in beneficiary && 
-            'full_name' in beneficiary) {
-          transformedAppointment.beneficiary = {
-            id: beneficiary.id as string,
-            full_name: beneficiary.full_name as string,
-            contact_info: (beneficiary.contact_info as string) || null
-          };
-        }
+        // Use a type assertion for beneficiary to help TypeScript understand the structure
+        const beneficiary = appointment.beneficiary as {
+          id: string;
+          full_name: string;
+          contact_info: string | null;
+        };
+        
+        transformedAppointment.beneficiary = {
+          id: beneficiary.id,
+          full_name: beneficiary.full_name,
+          contact_info: beneficiary.contact_info
+        };
       }
       
       // Add the staff relation if it exists and is a valid object
@@ -61,17 +61,16 @@ export async function fetchAppointments(): Promise<Appointment[]> {
           typeof appointment.staff === 'object' && 
           appointment.staff !== null) {
         
-        const staff = appointment.staff;
-        // Safely check if the required properties exist before accessing them
-        if (staff && 
-            typeof staff === 'object' && 
-            'id' in staff && 
-            'full_name' in staff) {
-          transformedAppointment.staff = {
-            id: staff.id as string,
-            full_name: staff.full_name as string
-          };
-        }
+        // Use a type assertion for staff to help TypeScript understand the structure
+        const staff = appointment.staff as {
+          id: string;
+          full_name: string;
+        };
+        
+        transformedAppointment.staff = {
+          id: staff.id,
+          full_name: staff.full_name
+        };
       }
       
       return transformedAppointment;

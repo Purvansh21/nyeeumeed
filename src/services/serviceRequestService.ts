@@ -40,18 +40,18 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
           typeof request.beneficiary === 'object' && 
           request.beneficiary !== null) {
         
-        const beneficiary = request.beneficiary;
-        // Safely check if the required properties exist before accessing them
-        if (beneficiary && 
-            typeof beneficiary === 'object' && 
-            'id' in beneficiary && 
-            'full_name' in beneficiary) {
-          transformedRequest.beneficiary = {
-            id: beneficiary.id as string,
-            full_name: beneficiary.full_name as string,
-            contact_info: (beneficiary.contact_info as string) || null
-          };
-        }
+        // Use a type assertion for beneficiary to help TypeScript understand the structure
+        const beneficiary = request.beneficiary as {
+          id: string;
+          full_name: string;
+          contact_info: string | null;
+        };
+        
+        transformedRequest.beneficiary = {
+          id: beneficiary.id,
+          full_name: beneficiary.full_name,
+          contact_info: beneficiary.contact_info
+        };
       }
       
       // Add the staff relation if it exists and is a valid object
@@ -59,17 +59,16 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
           typeof request.staff === 'object' && 
           request.staff !== null) {
         
-        const staff = request.staff;
-        // Safely check if the required properties exist before accessing them
-        if (staff && 
-            typeof staff === 'object' && 
-            'id' in staff && 
-            'full_name' in staff) {
-          transformedRequest.staff = {
-            id: staff.id as string,
-            full_name: staff.full_name as string
-          };
-        }
+        // Use a type assertion for staff to help TypeScript understand the structure
+        const staff = request.staff as {
+          id: string;
+          full_name: string;
+        };
+        
+        transformedRequest.staff = {
+          id: staff.id,
+          full_name: staff.full_name
+        };
       }
       
       return transformedRequest;
