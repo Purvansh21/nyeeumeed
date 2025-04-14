@@ -22,7 +22,9 @@ const AdminVolunteerOpportunities = () => {
   const fetchOpportunities = async () => {
     setIsLoading(true);
     try {
+      console.log("Fetching opportunities...");
       const data = await getVolunteerOpportunities();
+      console.log("Opportunities fetched:", data);
       setOpportunities(data);
     } catch (error) {
       console.error("Error fetching opportunities:", error);
@@ -80,6 +82,7 @@ const AdminVolunteerOpportunities = () => {
   };
 
   const handleOpportunityCreated = () => {
+    console.log("Opportunity created, refreshing list...");
     fetchOpportunities();
   };
 
