@@ -72,9 +72,15 @@ const ResourceUploadForm = ({ onSuccess }: ResourceUploadFormProps) => {
         return;
       }
       
+      // Make sure we're passing all required fields to createTrainingResource
       const success = await createTrainingResource({
-        ...data,
-        file: selectedFile,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        content_type: data.content_type,
+        is_required: data.is_required,
+        url: data.url,
+        file: selectedFile
       });
       
       if (success) {
