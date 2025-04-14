@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -32,6 +33,7 @@ import StaffReports from "./pages/staff/Reports";
 import UrgentRequestsPage from "./pages/staff/UrgentRequests";
 import StaffAppointments from "./pages/staff/Appointments";
 import StaffServiceRequests from "./pages/staff/ServiceRequests";
+import StaffAnnouncements from "./pages/staff/Announcements";
 
 // Volunteer Pages
 import VolunteerDashboard from "./pages/volunteer/Index";
@@ -40,6 +42,7 @@ import VolunteerOpportunities from "./pages/volunteer/Opportunities";
 import VolunteerBeneficiaries from "./pages/volunteer/Beneficiaries";
 import VolunteerResources from "./pages/volunteer/Resources";
 import VolunteerAchievements from "./pages/volunteer/Achievements";
+import VolunteerAnnouncements from "./pages/volunteer/Announcements";
 
 // Beneficiary Pages
 import BeneficiaryDashboard from "./pages/beneficiary/Index";
@@ -47,6 +50,7 @@ import BeneficiaryServices from "./pages/beneficiary/Services";
 import BeneficiaryAppointments from "./pages/beneficiary/Appointments";
 import BeneficiaryResources from "./pages/beneficiary/Resources";
 import BeneficiaryTracking from "./pages/beneficiary/Tracking";
+import BeneficiaryAnnouncements from "./pages/beneficiary/Announcements";
 
 // Shared Pages
 import Profile from "./pages/shared/Profile";

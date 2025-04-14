@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getRoleDisplayName } from "@/utils/permissions";
 import { 
-  LogOut, Menu, User, Shield, Users, Home, FileText, Settings, AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList, Trophy, FilePlus, BellRing 
+  LogOut, Menu, User, Shield, Users, Home, FileText, Settings, AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList, Trophy, FilePlus, BellRing, MegaphoneIcon 
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -115,6 +116,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         label: "Urgent Requests",
         path: "/staff/urgent-requests"
       }, {
+        icon: MegaphoneIcon,
+        label: "Announcements",
+        path: "/staff/announcements"
+      }, {
         icon: Activity,
         label: "Reports",
         path: "/staff/reports"
@@ -131,6 +136,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         icon: Briefcase,
         label: "Opportunities",
         path: "/volunteer/opportunities"
+      }, {
+        icon: MegaphoneIcon,
+        label: "Announcements",
+        path: "/volunteer/announcements"
       }, {
         icon: FileText,
         label: "Resources",
@@ -152,6 +161,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         icon: Calendar,
         label: "Appointments",
         path: "/beneficiary/appointments"
+      }, {
+        icon: MegaphoneIcon,
+        label: "Announcements",
+        path: "/beneficiary/announcements"
       }, {
         icon: FileText,
         label: "Resources",
