@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { AuthContextType, User, UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/use-toast";
@@ -133,6 +132,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const createUser = async (userData: Omit<User, 'id' | 'createdAt' | 'isActive'> & { password: string }): Promise<void> => {
+    setIsLoading(true);
+    
+    try {
+      if (user?.role !== "admin") {
+        throw new Error("Only administrators can create new users");
+      }
+      
+      // Call our edge function to create the user
+      const { error } = await supabase.functions.invoke("create-user", {
+        body: {
+          email: userData.email,
+          password: userData.password,
+          fullName: userData.fullName,
+          role: userData.role,
+          contactInfo: userData.contactInfo || '',
+        },
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "User created",
+        description: `${userData.fullName} has been added as a ${userData.role}.`
+      });
+    } catch (error: any) {
+      console.error("Error creating user:", error);
+      toast({
+        variant: "destructive",
+        title: "Failed to create user",
+        description: error.message || "An unexpected error occurred"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getAllUsers = async (): Promise<User[]> => {
     if (user?.role !== 'admin' && user?.role !== 'staff') return [];
     
@@ -195,43 +232,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (error) {
       console.error("Error fetching user:", error);
       return undefined;
-    }
-  };
-
-  const createUser = async (userData: Omit<User, 'id' | 'createdAt' | 'isActive'> & { password: string }): Promise<void> => {
-    setIsLoading(true);
-    
-    try {
-      if (user?.role !== "admin") {
-        throw new Error("Only administrators can create new users");
-      }
-      
-      const { data, error } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-        options: {
-          data: {
-            full_name: userData.fullName,
-            role: userData.role
-          }
-        }
-      });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "User created",
-        description: `${userData.fullName} has been added as a ${userData.role}.`
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Failed to create user",
-        description: error.message || "An unexpected error occurred"
-      });
-      throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
