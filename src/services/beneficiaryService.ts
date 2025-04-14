@@ -99,8 +99,8 @@ export async function fetchServiceRequests(): Promise<ServiceRequest[]> {
     
     if (error) throw error;
     
-    // Cast the data to ensure TypeScript compatibility
-    return (data || []) as ServiceRequest[];
+    // First cast to unknown, then to the target type for safer type assertions
+    return (data || []) as unknown as ServiceRequest[];
   } catch (error: any) {
     console.error("Error fetching service requests:", error.message);
     return [];
@@ -133,8 +133,8 @@ export async function createServiceRequest(request: NewServiceRequest): Promise<
       description: "Your service request has been submitted"
     });
     
-    // Cast the data to ensure TypeScript compatibility
-    return data as ServiceRequest;
+    // First cast to unknown, then to the target type for safer type assertions
+    return data as unknown as ServiceRequest;
   } catch (error: any) {
     console.error("Error creating service request:", error.message);
     toast({
@@ -162,8 +162,8 @@ export async function updateServiceRequest(id: string, updates: Partial<ServiceR
       description: "Service request updated successfully"
     });
     
-    // Cast the data to ensure TypeScript compatibility
-    return data as ServiceRequest;
+    // First cast to unknown, then to the target type for safer type assertions
+    return data as unknown as ServiceRequest;
   } catch (error: any) {
     console.error("Error updating service request:", error.message);
     toast({
@@ -188,8 +188,8 @@ export async function fetchAppointments(): Promise<Appointment[]> {
     
     if (error) throw error;
     
-    // Cast the data to ensure TypeScript compatibility
-    return (data || []) as Appointment[];
+    // First cast to unknown, then to the target type for safer type assertions
+    return (data || []) as unknown as Appointment[];
   } catch (error: any) {
     console.error("Error fetching appointments:", error.message);
     return [];
@@ -225,8 +225,8 @@ export async function createAppointment(appointment: NewAppointment): Promise<Ap
       description: "Your appointment has been scheduled"
     });
     
-    // Cast the data to ensure TypeScript compatibility
-    return data as Appointment;
+    // First cast to unknown, then to the target type for safer type assertions
+    return data as unknown as Appointment;
   } catch (error: any) {
     console.error("Error creating appointment:", error.message);
     toast({
@@ -254,8 +254,8 @@ export async function updateAppointment(id: string, updates: Partial<Appointment
       description: "Appointment updated successfully"
     });
     
-    // Cast the data to ensure TypeScript compatibility
-    return data as Appointment;
+    // First cast to unknown, then to the target type for safer type assertions
+    return data as unknown as Appointment;
   } catch (error: any) {
     console.error("Error updating appointment:", error.message);
     toast({
@@ -280,8 +280,8 @@ export async function fetchServiceHistory(): Promise<ServiceHistory[]> {
     
     if (error) throw error;
     
-    // Cast the data to ensure TypeScript compatibility
-    return (data || []) as ServiceHistory[];
+    // First cast to unknown, then to the target type for safer type assertions
+    return (data || []) as unknown as ServiceHistory[];
   } catch (error: any) {
     console.error("Error fetching service history:", error.message);
     return [];
