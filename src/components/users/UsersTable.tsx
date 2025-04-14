@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { User, UserRole } from "@/types/auth";
 import { getRoleDisplayName } from "@/utils/permissions";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +100,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
       setEditingUser(null);
       toast({
         title: "User updated",
-        description: "User information has been updated successfully.",
+        description: "User information has been successfully updated.",
       });
     } catch (error: any) {
       console.error("Failed to update user:", error);

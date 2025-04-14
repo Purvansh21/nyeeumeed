@@ -153,21 +153,21 @@ const UserManagement = () => {
     try {
       console.log(`Toggling user ${userId} to ${newActiveStatus ? 'active' : 'inactive'}`);
       
-      // Update user status directly on the profiles table
-      await updateUserProfile(userId, { isActive: newActiveStatus });
-      
-      // Update local state immediately to reflect the changes
+      // Update local state immediately to reflect the change in UI
       setUsers(prevUsers => 
         prevUsers.map(user => 
           user.id === userId ? { ...user, isActive: newActiveStatus } : user
         )
       );
       
+      // Update user status directly on the profiles table
+      await updateUserProfile(userId, { isActive: newActiveStatus });
+      
       // Always do a full refresh after a short delay to ensure database changes are reflected
       setTimeout(() => {
         console.log("Refreshing user list after status change");
         fetchUsers();
-      }, 1000);
+      }, 2000);
       
       toast({
         title: newActiveStatus ? "User activated" : "User deactivated",
@@ -194,14 +194,15 @@ const UserManagement = () => {
         throw new Error("Only administrators can change user roles");
       }
       
-      await updateUserProfile(userId, updates);
-      
-      // After successful update, update local state immediately
+      // Update local state immediately
       setUsers(prevUsers => 
         prevUsers.map(u => 
           u.id === userId ? { ...u, ...updates } : u
         )
       );
+      
+      // Perform the update operation
+      await updateUserProfile(userId, updates);
       
       // Always do a full refresh after a role change or status change
       if (updates.role || updates.isActive !== undefined) {
@@ -209,7 +210,7 @@ const UserManagement = () => {
         setTimeout(() => {
           console.log("Refreshing user list after profile update");
           fetchUsers();
-        }, 1500);
+        }, 2000);
       }
       
       toast({

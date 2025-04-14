@@ -353,6 +353,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         try {
           const roleTable = getTableNameForRole(currentProfile.role as UserRole);
           
+          // Check if the user exists in the role table before updating
+          const { data: existingEntry, error: checkError } = await supabase
+            .from(roleTable)
+            .select('id')
+            .eq('id', userId)
+            .maybeSingle();
+            
+          if (checkError) {
+            console.error(`Error checking for existing entry in ${roleTable}:`, checkError);
+          }
+          
           const roleTableUpdateData: any = {};
           if (data.isActive !== undefined) {
             roleTableUpdateData.is_active = data.isActive;
@@ -362,14 +373,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           if (data.contactInfo !== undefined) roleTableUpdateData.contact_info = data.contactInfo;
           
           if (Object.keys(roleTableUpdateData).length > 0) {
-            const { error: roleUpdateError } = await supabase
-              .from(roleTable)
-              .update(roleTableUpdateData)
-              .eq('id', userId);
+            if (existingEntry) {
+              // Update existing entry
+              const { error: roleUpdateError } = await supabase
+                .from(roleTable)
+                .update(roleTableUpdateData)
+                .eq('id', userId);
+                
+              if (roleUpdateError) {
+                console.error(`Error updating ${roleTable}:`, roleUpdateError);
+                throw roleUpdateError;
+              }
+            } else {
+              // Insert new entry if it doesn't exist
+              console.log(`User ${userId} does not exist in ${roleTable}, inserting...`);
               
-            if (roleUpdateError) {
-              console.error(`Error updating ${roleTable}:`, roleUpdateError);
-              throw roleUpdateError;
+              // Fetch complete user data for insert
+              const { data: userData, error: fetchUserError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+                
+              if (fetchUserError) {
+                console.error(`Error fetching user data for ${userId}:`, fetchUserError);
+                throw fetchUserError;
+              }
+              
+              // Prepare complete user data for insert
+              const completeUserData = {
+                id: userId,
+                full_name: userData.full_name,
+                email: `${userData.role}-${userId.substring(0, 8)}@example.com`,
+                contact_info: userData.contact_info || '',
+                is_active: data.isActive !== undefined ? data.isActive : userData.is_active,
+                created_at: userData.created_at,
+                last_login_at: userData.last_login_at || null
+              };
+              
+              // Apply any updates
+              if (data.fullName !== undefined) completeUserData.full_name = data.fullName;
+              if (data.contactInfo !== undefined) completeUserData.contact_info = data.contactInfo;
+              
+              // Insert new entry
+              const { error: insertError } = await supabase
+                .from(roleTable)
+                .insert(completeUserData);
+                
+              if (insertError) {
+                console.error(`Error inserting into ${roleTable}:`, insertError);
+                throw insertError;
+              }
             }
           }
         } catch (error) {
