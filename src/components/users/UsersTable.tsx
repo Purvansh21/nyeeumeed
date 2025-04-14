@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { User, UserRole } from "@/types/auth";
 import { getRoleDisplayName } from "@/utils/permissions";
@@ -96,6 +97,8 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
     try {
       setProcessingId(userId);
       await toggleUserStatus(userId, newStatus);
+    } catch (error) {
+      console.error("Failed to toggle user status:", error);
     } finally {
       setProcessingId(null);
     }
@@ -148,7 +151,7 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
                       variant="ghost" 
                       size="icon"
                       onClick={() => updateUserProfile && handleEditUser(user)}
-                      disabled={processingId === user.id}
+                      disabled={processingId === user.id || !updateUserProfile}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>

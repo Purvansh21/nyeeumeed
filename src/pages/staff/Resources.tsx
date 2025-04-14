@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -48,7 +49,7 @@ import { User } from "@/types/auth";
 const resourceFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   category: z.string().min(2, "Category is required"),
-  quantity: z.number().min(0, "Quantity must be a positive number"),
+  quantity: z.coerce.number().min(0, "Quantity must be a positive number"),
   unit: z.string().min(1, "Unit is required"),
   description: z.string().optional(),
 });
@@ -61,7 +62,7 @@ const allocationFormSchema = z.object({
   beneficiary_id: z.string({
     required_error: "Please select a beneficiary",
   }),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
   notes: z.string().optional(),
 });
 
