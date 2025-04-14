@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboardRoute } from "@/utils/permissions";
-import { Shield, AlertCircle, Info } from "lucide-react";
+import { Shield, AlertCircle, Info, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/use-toast";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +23,7 @@ const Login = () => {
     user
   } = useAuth();
   const navigate = useNavigate();
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -53,6 +55,7 @@ const Login = () => {
       setIsSubmitting(false);
     }
   };
+  
   const createDemoUsers = async () => {
     setIsCreatingDemoUsers(true);
     try {
@@ -97,15 +100,19 @@ const Login = () => {
       setIsCreatingDemoUsers(false);
     }
   };
+
   return <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-muted to-background p-4 animate-fadeIn">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="rounded-full bg-primary p-3">
-              <Shield className="h-10 w-10 text-primary-foreground" />
+            <div className="relative">
+              <div className="rounded-full bg-primary p-3">
+                <Shield className="h-10 w-10 text-primary-foreground" />
+              </div>
+              <Heart className="h-4 w-4 text-red-500 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-primary">NGO Operations Hub</h1>
+          <h1 className="text-3xl font-bold text-primary">NayeeUmeed</h1>
           <p className="text-muted-foreground mt-2">Authentication & Access Control System</p>
         </div>
 
@@ -145,4 +152,5 @@ const Login = () => {
       </div>
     </div>;
 };
+
 export default Login;

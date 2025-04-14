@@ -21,7 +21,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
     }
 
     // Public routes that don't require authentication
-    const publicRoutes = ["/login"];
+    const publicRoutes = ["/login", "/"];
     const isPublicRoute = publicRoutes.some(route => currentPath === route);
 
     if (!isAuthenticated && !isPublicRoute) {
@@ -36,8 +36,9 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
     }
 
     if (isAuthenticated) {
-      if (isPublicRoute) {
+      if (isPublicRoute && currentPath !== "/") {
         // Redirect to dashboard if already authenticated and trying to access login page
+        // Note: We don't redirect from the landing page (/) even if authenticated
         navigate(getDashboardRoute(user!.role));
         return;
       }

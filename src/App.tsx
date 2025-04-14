@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -8,6 +7,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import RouteGuard from "@/components/layout/RouteGuard";
 import LoadingScreen from "@/components/ui/loading-screen";
 import ResourceSidebar from "@/components/layout/ResourceSidebar";
+
+// Landing Page
+import LandingPage from "./pages/LandingPage";
 
 // Auth Page
 import Login from "./pages/Login";
@@ -109,14 +111,10 @@ const App = () => {
         />
         <BrowserRouter>
           <Routes>
-            <Route
-              path="/login"
-              element={
-                <RouteGuard>
-                  <Login />
-                </RouteGuard>
-              }
-            />
+            <Route path="/login" element={<Login />} />
+            
+            {/* Landing Page Route */}
+            <Route path="/" element={<LandingPage />} />
             
             {/* Admin Routes */}
             <Route
@@ -410,16 +408,6 @@ const App = () => {
               element={
                 <RouteGuard>
                   <Profile />
-                </RouteGuard>
-              }
-            />
-            
-            {/* Default Route */}
-            <Route
-              path="/"
-              element={
-                <RouteGuard>
-                  <Login />
                 </RouteGuard>
               }
             />
