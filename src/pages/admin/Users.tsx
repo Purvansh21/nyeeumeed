@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -7,13 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getRoleDisplayName } from "@/utils/permissions";
 import { UserRole, User } from "@/types/auth";
 import { UserPlus, Search, Filter, RefreshCw, User as UserIcon, Edit, UserX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SkeletonTable } from "@/components/ui/skeleton";
 import { Json } from "@/integrations/supabase/types";
+import UsersTable from "@/components/users/UsersTable";
 
 const UserManagement = () => {
   const { createUser, updateUserProfile } = useAuth();
@@ -30,6 +34,7 @@ const UserManagement = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState("all");
 
   // Fetch users from Supabase
   const fetchUsers = async () => {
@@ -81,21 +86,23 @@ const UserManagement = () => {
   }, []);
 
   // Filter users based on search term and role
-  const filteredUsers = users.filter(user => {
-    // Filter by search term
-    const matchesSearch = 
-      user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Filter by role
-    const matchesRole = filterRole === "all" || user.role === filterRole;
-    
-    return matchesSearch && matchesRole;
-  }).sort((a, b) => {
-    // Sort by role priority: admin > staff > volunteer > beneficiary
-    const rolePriority = { admin: 0, staff: 1, volunteer: 2, beneficiary: 3 };
-    return (rolePriority[a.role] || 999) - (rolePriority[b.role] || 999) || a.fullName.localeCompare(b.fullName);
-  });
+  const getFilteredUsers = (role: UserRole | "all") => {
+    return users.filter(user => {
+      // Filter by search term
+      const matchesSearch = 
+        user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Filter by role
+      const matchesRole = role === "all" || user.role === role;
+      
+      return matchesSearch && matchesRole;
+    }).sort((a, b) => {
+      // Sort by role priority: admin > staff > volunteer > beneficiary
+      const rolePriority = { admin: 0, staff: 1, volunteer: 2, beneficiary: 3 };
+      return (rolePriority[a.role] || 999) - (rolePriority[b.role] || 999) || a.fullName.localeCompare(b.fullName);
+    });
+  };
 
   // Reset the new user form
   const resetNewUserForm = () => {
@@ -127,8 +134,18 @@ const UserManagement = () => {
       
       // Refresh user list
       fetchUsers();
+      
+      toast({
+        title: "User created successfully",
+        description: `${newUser.fullName} has been added as a ${getRoleDisplayName(newUser.role)}.`
+      });
     } catch (error) {
       console.error("Failed to create user:", error);
+      toast({
+        variant: "destructive",
+        title: "Failed to create user",
+        description: "There was an error creating the user. Please try again."
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -156,11 +173,6 @@ const UserManagement = () => {
         description: "Failed to update user status. Please try again.",
       });
     }
-  };
-
-  // Get role badge styling
-  const getRoleBadgeClass = (role: UserRole) => {
-    return `role-badge role-badge-${role}`;
   };
 
   return (
@@ -232,72 +244,61 @@ const UserManagement = () => {
               </div>
             </div>
 
-            <div className="rounded-md border">
-              <div className="grid grid-cols-12 gap-4 p-4 font-medium border-b bg-muted/40">
-                <div className="col-span-5 sm:col-span-4">User</div>
-                <div className="col-span-3 sm:col-span-2">Role</div>
-                <div className="hidden sm:block sm:col-span-3">Contact</div>
-                <div className="col-span-2 sm:col-span-1">Status</div>
-                <div className="col-span-2 text-right">Actions</div>
-              </div>
-              
-              <div className="divide-y">
-                {isLoading ? (
-                  <div className="p-8 text-center">
-                    <div className="text-muted-foreground">Loading users...</div>
-                  </div>
-                ) : filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <div key={user.id} className="grid grid-cols-12 gap-4 p-4 items-center">
-                      <div className="col-span-5 sm:col-span-4">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-primary/10 p-2">
-                            <UserIcon className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <div className="font-medium">{user.fullName}</div>
-                            <div className="text-sm text-muted-foreground">{user.email}</div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="col-span-3 sm:col-span-2">
-                        <div className={getRoleBadgeClass(user.role)}>
-                          {getRoleDisplayName(user.role)}
-                        </div>
-                      </div>
-                      <div className="hidden sm:block sm:col-span-3 text-sm">
-                        {user.contactInfo || "—"}
-                      </div>
-                      <div className="col-span-2 sm:col-span-1">
-                        <Badge
-                          variant={user.isActive ? "default" : "outline"}
-                          className={user.isActive ? "bg-green-500/20 text-green-700 hover:bg-green-500/20" : ""}
-                        >
-                          {user.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                      <div className="col-span-2 flex justify-end gap-2">
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => toggleUserStatus(user.id, user.isActive)}
-                          className={!user.isActive ? "text-green-600" : "text-destructive"}
-                        >
-                          <UserX className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-8 text-center">
-                    <div className="text-muted-foreground">No users found</div>
-                  </div>
-                )}
-              </div>
-            </div>
+            <Tabs 
+              defaultValue="all" 
+              className="w-full" 
+              value={selectedTab} 
+              onValueChange={setSelectedTab}
+            >
+              <TabsList className="grid grid-cols-5 mb-4">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="admin">Admins</TabsTrigger>
+                <TabsTrigger value="staff">Staff</TabsTrigger>
+                <TabsTrigger value="volunteer">Volunteers</TabsTrigger>
+                <TabsTrigger value="beneficiary">Beneficiaries</TabsTrigger>
+              </TabsList>
+
+              {isLoading ? (
+                <SkeletonTable />
+              ) : (
+                <>
+                  <TabsContent value="all">
+                    <UsersTable 
+                      users={getFilteredUsers("all")} 
+                      toggleUserStatus={toggleUserStatus} 
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="admin">
+                    <UsersTable 
+                      users={getFilteredUsers("admin")} 
+                      toggleUserStatus={toggleUserStatus} 
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="staff">
+                    <UsersTable 
+                      users={getFilteredUsers("staff")} 
+                      toggleUserStatus={toggleUserStatus} 
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="volunteer">
+                    <UsersTable 
+                      users={getFilteredUsers("volunteer")} 
+                      toggleUserStatus={toggleUserStatus} 
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="beneficiary">
+                    <UsersTable 
+                      users={getFilteredUsers("beneficiary")} 
+                      toggleUserStatus={toggleUserStatus} 
+                    />
+                  </TabsContent>
+                </>
+              )}
+            </Tabs>
           </CardContent>
         </Card>
       </div>
