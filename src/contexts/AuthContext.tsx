@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { AuthContextType, User, UserRole } from "@/types/auth";
 import { toast } from "@/components/ui/use-toast";
@@ -275,10 +274,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         if (error) throw error;
       }
       
-      // Handle role changes first to ensure old role table entries are deleted
       if (roleChanged && data.role) {
         try {
-          // First, delete from old role table
           const oldRoleTable = getTableNameForRole(currentProfile.role as UserRole);
           console.log(`Deleting user ${userId} from ${oldRoleTable}`);
           
@@ -289,13 +286,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             
           if (deleteError) {
             console.error(`Error deleting from ${oldRoleTable}:`, deleteError);
-            // Continue despite error to try to complete the operation
+            await new Promise(resolve => setTimeout(resolve, 800));
           }
           
-          // Wait a moment to ensure delete completes
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
-          // Then insert into new role table
           const newRoleTable = getTableNameForRole(data.role);
           
           const userData = {
@@ -310,7 +303,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           
           console.log(`Adding user ${userId} to ${newRoleTable}`, userData);
           
-          // Check if user already exists in the target role table
           const { data: existingEntry, error: checkError } = await supabase
             .from(newRoleTable)
             .select('id')
@@ -322,7 +314,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           }
           
           if (existingEntry) {
-            // User already exists in target table, update instead of insert
             const { error: updateError } = await supabase
               .from(newRoleTable)
               .update(userData)
@@ -333,7 +324,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               throw updateError;
             }
           } else {
-            // User doesn't exist in target table, insert
             const { error: insertError } = await supabase
               .from(newRoleTable)
               .insert(userData);
@@ -348,7 +338,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           throw error;
         }
       } else if (data.isActive !== undefined || data.fullName !== undefined || data.contactInfo !== undefined) {
-        // Handle regular profile updates
         try {
           const roleTable = getTableNameForRole(currentProfile.role as UserRole);
           
@@ -372,7 +361,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
       
-      // Update local state if this is the current user
       if (user?.id === userId) {
         const { data: updatedProfile, error: fetchError } = await supabase
           .from('profiles')

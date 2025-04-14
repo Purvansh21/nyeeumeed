@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { User, UserRole } from "@/types/auth";
 import { getRoleDisplayName } from "@/utils/permissions";
@@ -122,9 +121,8 @@ const UsersTable: React.FC<UsersTableProps> = ({ users, toggleUserStatus, update
       setProcessingId(userId);
       await toggleUserStatus(userId, newStatus);
       
-      // Update the local state to reflect the change immediately
-      // This avoids having to refetch all users and provides immediate feedback
-      // users = users.map(u => u.id === userId ? {...u, isActive: newStatus} : u);
+      // No immediate local state update here, we'll let the parent component
+      // handle the state update after the API call completes
       
       toast({
         title: newStatus ? "User activated" : "User deactivated",

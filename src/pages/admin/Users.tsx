@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -154,12 +153,17 @@ const UserManagement = () => {
       // Update user status directly on the profiles table
       await updateUserProfile(userId, { isActive: newActiveStatus });
       
-      // Update local state to avoid refetching the whole list
+      // Update local state to reflect the changes immediately
       setUsers(prevUsers => 
         prevUsers.map(user => 
           user.id === userId ? { ...user, isActive: newActiveStatus } : user
         )
       );
+      
+      // Add a small delay before refreshing to ensure database changes are reflected
+      setTimeout(() => {
+        fetchUsers();
+      }, 500);
       
       toast({
         title: newActiveStatus ? "User activated" : "User deactivated",
@@ -195,9 +199,9 @@ const UserManagement = () => {
         )
       );
       
-      // If this was a role change, fetch fresh data to ensure all role changes are reflected correctly
-      if (updates.role) {
-        // Small delay to allow the backend to fully process the role change
+      // If this was a role change or status change, fetch fresh data after a delay
+      if (updates.role || updates.isActive !== undefined) {
+        // Small delay to allow the backend to fully process the changes
         setTimeout(() => {
           fetchUsers();
         }, 500);
