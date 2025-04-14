@@ -388,7 +388,16 @@ const BeneficiariesManagement = () => {
                                 >
                                   View Needs
                                 </Button>
-                                <Button variant="outline" size="sm">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => {
+                                    toast({
+                                      title: "Edit Beneficiary",
+                                      description: `Editing ${beneficiary.fullName}`,
+                                    });
+                                  }}
+                                >
                                   <FileEdit className="mr-2 h-4 w-4" />
                                   Edit
                                 </Button>
