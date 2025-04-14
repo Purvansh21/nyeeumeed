@@ -274,6 +274,14 @@ const App = () => {
               }
             />
             <Route
+              path="/staff/announcements"
+              element={
+                <RouteGuard>
+                  <StaffAnnouncements />
+                </RouteGuard>
+              }
+            />
+            <Route
               path="/staff/profile"
               element={
                 <RouteGuard>
@@ -332,6 +340,14 @@ const App = () => {
               }
             />
             <Route
+              path="/volunteer/announcements"
+              element={
+                <RouteGuard>
+                  <VolunteerAnnouncements />
+                </RouteGuard>
+              }
+            />
+            <Route
               path="/volunteer/profile"
               element={
                 <RouteGuard>
@@ -378,6 +394,14 @@ const App = () => {
               element={
                 <RouteGuard>
                   <BeneficiaryResources />
+                </RouteGuard>
+              }
+            />
+            <Route
+              path="/beneficiary/announcements"
+              element={
+                <RouteGuard>
+                  <BeneficiaryAnnouncements />
                 </RouteGuard>
               }
             />
