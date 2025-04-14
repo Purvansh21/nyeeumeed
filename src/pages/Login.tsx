@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +17,7 @@ const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [isCreatingDemoUsers, setIsCreatingDemoUsers] = useState(false);
+  const [customRole, setCustomRole] = useState<UserRole>("admin");
   const { login, user } = useAuth();
   const navigate = useNavigate();
 
@@ -29,11 +29,8 @@ const Login = () => {
     try {
       await login(email, password);
       
-      // The auth state will be updated by the AuthContext
-      // After login, check if the user is authenticated and redirect
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        // Get user profile to determine role
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('role')
@@ -43,7 +40,6 @@ const Login = () => {
         if (!error && profile) {
           navigate(getDashboardRoute(profile.role as UserRole));
         } else {
-          // Fallback to admin dashboard if profile fetch fails
           navigate('/admin');
         }
       }
@@ -62,12 +58,8 @@ const Login = () => {
   const createDemoUsers = async () => {
     setIsCreatingDemoUsers(true);
     try {
-      // Create demo users in Supabase
       const demoUsers = [
-        { email: "admin@ngo.org", password: "admin123", role: "admin", fullName: "Admin User" },
-        { email: "staff@ngo.org", password: "staff123", role: "staff", fullName: "Staff User" },
-        { email: "volunteer@ngo.org", password: "volunteer123", role: "volunteer", fullName: "Volunteer User" },
-        { email: "beneficiary@example.com", password: "beneficiary123", role: "beneficiary", fullName: "Beneficiary User" }
+        { email: `${customRole}@ngo.org`, password: `${customRole}123`, role: customRole, fullName: `${customRole.charAt(0).toUpperCase() + customRole.slice(1)} User` },
       ];
 
       let createdCount = 0;
@@ -86,15 +78,14 @@ const Login = () => {
 
         if (!error) {
           createdCount++;
+          toast({
+            title: "Demo user created",
+            description: `${user.fullName} has been created successfully.`,
+          });
         } else if (!error.message.includes("already registered")) {
           throw error;
         }
       }
-      
-      toast({
-        title: "Demo users created",
-        description: `${createdCount} demo users have been created successfully.`,
-      });
       
     } catch (err: any) {
       console.error("Error creating demo users:", err);
@@ -177,12 +168,21 @@ const Login = () => {
           <div className="bg-card p-4 rounded border">
             <div className="flex items-center gap-2 mb-3 text-foreground">
               <Info className="h-4 w-4" />
-              <div className="font-medium">Demo Accounts</div>
+              <div className="font-medium">Create Custom Demo User</div>
             </div>
             
             <div className="space-y-2 mb-4">
-              <p>The demo accounts shown below need to be created before you can use them.</p>
-              <p>Click the button below to create these accounts in your Supabase project.</p>
+              <Label>Select Role</Label>
+              <select 
+                value={customRole} 
+                onChange={(e) => setCustomRole(e.target.value as UserRole)} 
+                className="w-full p-2 border rounded"
+              >
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
+                <option value="volunteer">Volunteer</option>
+                <option value="beneficiary">Beneficiary</option>
+              </select>
             </div>
 
             <Button
@@ -191,31 +191,8 @@ const Login = () => {
               className="w-full mb-4"
               disabled={isCreatingDemoUsers}
             >
-              {isCreatingDemoUsers ? "Creating Demo Users..." : "Create Demo Users"}
+              {isCreatingDemoUsers ? `Creating ${customRole} User...` : `Create ${customRole} User`}
             </Button>
-            
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-              <div className="bg-card border p-2 rounded text-xs">
-                <div className="font-semibold mb-1">Admin</div>
-                <div>admin@ngo.org</div>
-                <div>admin123</div>
-              </div>
-              <div className="bg-card border p-2 rounded text-xs">
-                <div className="font-semibold mb-1">Staff</div>
-                <div>staff@ngo.org</div>
-                <div>staff123</div>
-              </div>
-              <div className="bg-card border p-2 rounded text-xs">
-                <div className="font-semibold mb-1">Volunteer</div>
-                <div>volunteer@ngo.org</div>
-                <div>volunteer123</div>
-              </div>
-              <div className="bg-card border p-2 rounded text-xs">
-                <div className="font-semibold mb-1">Beneficiary</div>
-                <div>beneficiary@example.com</div>
-                <div>beneficiary123</div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
