@@ -1,18 +1,21 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getRoleDisplayName } from "@/utils/permissions";
-import { LogOut, Menu, User, Shield, Users, Home, FileText, Settings, AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList, Trophy, FilePlus } from "lucide-react";
+import { 
+  LogOut, Menu, User, Shield, Users, Home, FileText, Settings, AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, Activity, ChevronLeft, ChevronRight, Bell, Package, ClipboardList, Trophy, FilePlus 
+} from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
+
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children
 }) => {
@@ -24,17 +27,21 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+
   const getInitials = () => {
     if (!user?.fullName) return "U";
     return user.fullName.split(" ").map(name => name[0]).join("").toUpperCase().substring(0, 2);
   };
+
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
+
   const toggleSidebar = () => {
     setIsMinimized(!isMinimized);
   };
+
   const getNavItems = () => {
     if (!user) return [];
     const roleBasedLinks = {
@@ -141,18 +148,23 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     };
     return roleBasedLinks[user.role] || [];
   };
+
   const handleOpenResourceSidebar = () => {
     if (typeof window.openResourceSidebar === 'function') {
       window.openResourceSidebar();
     }
   };
+
   useEffect(() => {
     setIsMobileOpen(false);
   }, [location.pathname]);
+
   if (!user) {
     return null;
   }
+
   const navItems = getNavItems();
+
   return <div className="flex h-screen bg-background">
       <aside className={cn("hidden md:flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out", isMinimized ? "md:w-20" : "md:w-64")}>
         <div className="flex items-center justify-between p-6">
@@ -187,7 +199,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </ul>
             </TooltipProvider>
 
-            {/* Add Resource Upload Button - Only for Admins */}
             {user.role === "admin" && (
               <div className="mt-6">
                 <Tooltip>
@@ -196,9 +207,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                       variant="outline" 
                       onClick={handleOpenResourceSidebar} 
                       className={cn(
-                        "w-full flex items-center gap-3 rounded-md text-sidebar-foreground transition-colors",
+                        "w-full flex items-center gap-3 rounded-md text-white transition-colors",
                         isMinimized ? "justify-center p-2 h-10 w-10" : "px-3 py-2",
-                        "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        "bg-secondary hover:bg-secondary/90 border-secondary/50",
+                        "hover:bg-secondary/80 hover:text-white"
                       )}
                     >
                       <FilePlus className="h-5 w-5" />
@@ -292,10 +304,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     </li>)}
                 </ul>
                 
-                {/* Add Resource Upload Button for Mobile - Only for Admins */}
                 {user.role === "admin" && (
                   <div className="mt-4">
-                    <Button variant="outline" onClick={handleOpenResourceSidebar} className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-accent/10">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleOpenResourceSidebar} 
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-secondary text-white hover:bg-secondary/90"
+                    >
                       <FilePlus className="h-5 w-5" />
                       <span>Upload Resource</span>
                     </Button>
@@ -336,4 +351,5 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       </main>
     </div>;
 };
+
 export default DashboardLayout;
