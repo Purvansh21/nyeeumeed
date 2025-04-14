@@ -6,7 +6,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserRole, User } from "@/types/auth";
-import { Users, UserPlus, BarChart2, Settings, Shield, Calendar, HelpCircle, Briefcase, FileText } from "lucide-react";
+import { Users, UserPlus, BarChart2, Settings, Shield, Calendar, HelpCircle, Briefcase, FileText, Bell } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const AdminDashboard = () => {
@@ -72,12 +72,20 @@ const AdminDashboard = () => {
       textColor: "text-purple-500"
     },
     {
+      title: "Announcements",
+      description: "Create and manage global announcements",
+      icon: Bell,
+      link: "/admin/announcements",
+      color: "bg-amber-500",
+      textColor: "text-amber-500"
+    },
+    {
       title: "System Settings",
       description: "Configure global system settings",
       icon: Settings,
       link: "/admin/settings",
-      color: "bg-amber-500",
-      textColor: "text-amber-500"
+      color: "bg-green-500",
+      textColor: "text-green-500"
     }
   ];
 

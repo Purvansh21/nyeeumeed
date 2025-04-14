@@ -5,7 +5,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getRoleDisplayName } from "@/utils/permissions";
-import { LogOut, Menu, User, Shield, Users, Home, FileText, Settings, AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, Activity, ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  LogOut, Menu, User, Shield, Users, Home, FileText, Settings, 
+  AlertTriangle, Calendar, BarChart2, Briefcase, PieChart, 
+  Activity, ChevronLeft, ChevronRight, Bell
+} from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -55,6 +59,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         { icon: BarChart2, label: "System Analytics", path: "/admin/analytics" },
         { icon: PieChart, label: "Reports", path: "/admin/reports" }, 
         { icon: AlertTriangle, label: "Audit Logs", path: "/admin/audit-logs" },
+        { icon: Bell, label: "Announcements", path: "/admin/announcements" },
         { icon: Settings, label: "System Settings", path: "/admin/settings" },
       ],
       staff: [
