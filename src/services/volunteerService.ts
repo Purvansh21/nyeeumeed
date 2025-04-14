@@ -11,17 +11,119 @@ import {
 } from "@/types/volunteer";
 import { toast } from "@/hooks/use-toast";
 
+// Mock data for development until Supabase types are updated
+const mockOpportunities: VolunteerOpportunity[] = [
+  {
+    id: "1",
+    title: "Food Bank Assistant",
+    description: "Help sort and distribute food to those in need",
+    category: "Food Security",
+    date: new Date(Date.now() + 86400000 * 3).toISOString(), // 3 days from now
+    start_time: new Date(Date.now() + 86400000 * 3 + 36000000).toISOString(), // 3 days + 10 hours
+    end_time: new Date(Date.now() + 86400000 * 3 + 43200000).toISOString(), // 3 days + 12 hours
+    location: "Community Center, 123 Main St",
+    spots_available: 10,
+    spots_filled: 6,
+    status: "active",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "2",
+    title: "After-school Mentor",
+    description: "Mentor children in after-school programs, helping with homework and activities",
+    category: "Education",
+    date: new Date(Date.now() + 86400000 * 5).toISOString(), // 5 days from now
+    start_time: new Date(Date.now() + 86400000 * 5 + 54000000).toISOString(), // 5 days + 15 hours
+    end_time: new Date(Date.now() + 86400000 * 5 + 61200000).toISOString(), // 5 days + 17 hours
+    location: "Lincoln Elementary School",
+    spots_available: 8,
+    spots_filled: 7,
+    status: "active",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "3",
+    title: "Community Garden Planting",
+    description: "Help plant and maintain our community garden",
+    category: "Environment",
+    date: new Date(Date.now() + 86400000 * 7).toISOString(), // 7 days from now
+    start_time: new Date(Date.now() + 86400000 * 7 + 32400000).toISOString(), // 7 days + 9 hours
+    end_time: new Date(Date.now() + 86400000 * 7 + 43200000).toISOString(), // 7 days + 12 hours
+    location: "Green Street Garden",
+    spots_available: 15,
+    spots_filled: 15,
+    status: "full",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "4",
+    title: "Homeless Shelter Meal Service",
+    description: "Prepare and serve meals at the downtown homeless shelter",
+    category: "Food Security",
+    date: new Date(Date.now() + 86400000 * 2).toISOString(), // 2 days from now
+    start_time: new Date(Date.now() + 86400000 * 2 + 61200000).toISOString(), // 2 days + 17 hours
+    end_time: new Date(Date.now() + 86400000 * 2 + 68400000).toISOString(), // 2 days + 19 hours
+    location: "Hope Shelter, 456 Park Avenue",
+    spots_available: 12,
+    spots_filled: 5,
+    status: "active",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+  {
+    id: "5",
+    title: "Beach Cleanup",
+    description: "Help clean up the local beach and protect marine wildlife",
+    category: "Environment",
+    date: new Date(Date.now() + 86400000 * 10).toISOString(), // 10 days from now
+    start_time: new Date(Date.now() + 86400000 * 10 + 32400000).toISOString(), // 10 days + 9 hours
+    end_time: new Date(Date.now() + 86400000 * 10 + 43200000).toISOString(), // 10 days + 12 hours
+    location: "Sunshine Beach, Pier 3",
+    spots_available: 20,
+    spots_filled: 8,
+    status: "active",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+];
+
+const mockRegistrations: VolunteerRegistration[] = [
+  {
+    id: "101",
+    volunteer_id: "volunteer-1",
+    opportunity_id: "1",
+    status: "registered",
+    registered_at: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
+    opportunity: mockOpportunities[0]
+  },
+  {
+    id: "102",
+    volunteer_id: "volunteer-1",
+    opportunity_id: "3",
+    status: "registered",
+    registered_at: new Date(Date.now() - 86400000 * 5).toISOString(), // 5 days ago
+    opportunity: mockOpportunities[2]
+  }
+];
+
 // Opportunities
 export const getVolunteerOpportunities = async (): Promise<VolunteerOpportunity[]> => {
   try {
-    const { data, error } = await supabase
-      .from('volunteer_opportunities')
-      .select('*')
-      .order('date', { ascending: true });
+    // When the Supabase types are updated, uncomment this code
+    // const { data, error } = await supabase
+    //   .from('volunteer_opportunities')
+    //   .select('*')
+    //   .order('date', { ascending: true });
       
-    if (error) throw error;
+    // if (error) throw error;
     
-    return data || [];
+    // return data || [];
+    
+    // Using mock data for now
+    return mockOpportunities;
   } catch (error) {
     console.error("Error fetching volunteer opportunities:", error);
     return [];
@@ -30,15 +132,19 @@ export const getVolunteerOpportunities = async (): Promise<VolunteerOpportunity[
 
 export const getVolunteerOpportunity = async (id: string): Promise<VolunteerOpportunity | null> => {
   try {
-    const { data, error } = await supabase
-      .from('volunteer_opportunities')
-      .select('*')
-      .eq('id', id)
-      .single();
+    // When the Supabase types are updated, uncomment this code
+    // const { data, error } = await supabase
+    //   .from('volunteer_opportunities')
+    //   .select('*')
+    //   .eq('id', id)
+    //   .single();
       
-    if (error) throw error;
+    // if (error) throw error;
     
-    return data;
+    // return data;
+    
+    // Using mock data for now
+    return mockOpportunities.find(opp => opp.id === id) || null;
   } catch (error) {
     console.error(`Error fetching volunteer opportunity with ID ${id}:`, error);
     return null;
@@ -48,18 +154,22 @@ export const getVolunteerOpportunity = async (id: string): Promise<VolunteerOppo
 // Registrations
 export const getVolunteerRegistrations = async (volunteerId: string): Promise<VolunteerRegistration[]> => {
   try {
-    const { data, error } = await supabase
-      .from('volunteer_registrations')
-      .select(`
-        *,
-        opportunity:volunteer_opportunities(*)
-      `)
-      .eq('volunteer_id', volunteerId)
-      .order('registered_at', { ascending: false });
+    // When the Supabase types are updated, uncomment this code
+    // const { data, error } = await supabase
+    //   .from('volunteer_registrations')
+    //   .select(`
+    //     *,
+    //     opportunity:volunteer_opportunities(*)
+    //   `)
+    //   .eq('volunteer_id', volunteerId)
+    //   .order('registered_at', { ascending: false });
       
-    if (error) throw error;
+    // if (error) throw error;
     
-    return data || [];
+    // return data || [];
+    
+    // Using mock data for now
+    return mockRegistrations.filter(reg => reg.volunteer_id === volunteerId);
   } catch (error) {
     console.error("Error fetching volunteer registrations:", error);
     return [];
@@ -68,14 +178,8 @@ export const getVolunteerRegistrations = async (volunteerId: string): Promise<Vo
 
 export const registerForOpportunity = async (opportunityId: string, volunteerId: string): Promise<boolean> => {
   try {
-    // First check if there are spots available
-    const { data: opportunity, error: opportunityError } = await supabase
-      .from('volunteer_opportunities')
-      .select('spots_available, spots_filled')
-      .eq('id', opportunityId)
-      .single();
-      
-    if (opportunityError) throw opportunityError;
+    // In mock data mode, we'll just simulate the registration
+    const opportunity = mockOpportunities.find(opp => opp.id === opportunityId);
     
     if (!opportunity || opportunity.spots_filled >= opportunity.spots_available) {
       toast({
@@ -86,27 +190,32 @@ export const registerForOpportunity = async (opportunityId: string, volunteerId:
       return false;
     }
     
-    // Register the volunteer
-    const { error: registrationError } = await supabase
-      .from('volunteer_registrations')
-      .insert({
-        volunteer_id: volunteerId,
-        opportunity_id: opportunityId,
-        status: 'registered'
+    if (mockRegistrations.some(reg => reg.volunteer_id === volunteerId && reg.opportunity_id === opportunityId)) {
+      toast({
+        variant: "destructive",
+        title: "Already registered",
+        description: "You are already registered for this opportunity."
       });
-      
-    if (registrationError) throw registrationError;
+      return false;
+    }
     
-    // Update the spots filled count
-    const { error: updateError } = await supabase
-      .from('volunteer_opportunities')
-      .update({ 
-        spots_filled: opportunity.spots_filled + 1,
-        status: opportunity.spots_filled + 1 >= opportunity.spots_available ? 'full' : 'active'
-      })
-      .eq('id', opportunityId);
-      
-    if (updateError) throw updateError;
+    // Add to mock registrations
+    const newRegistration = {
+      id: `${Date.now()}`,
+      volunteer_id: volunteerId,
+      opportunity_id: opportunityId,
+      status: 'registered' as const,
+      registered_at: new Date().toISOString(),
+      opportunity: opportunity
+    };
+    
+    mockRegistrations.push(newRegistration);
+    
+    // Update the opportunity
+    opportunity.spots_filled += 1;
+    if (opportunity.spots_filled >= opportunity.spots_available) {
+      opportunity.status = 'full';
+    }
     
     toast({
       title: "Registration successful",
@@ -117,20 +226,11 @@ export const registerForOpportunity = async (opportunityId: string, volunteerId:
   } catch (error: any) {
     console.error("Error registering for opportunity:", error);
     
-    // Handle unique constraint violation (already registered)
-    if (error.code === '23505') {
-      toast({
-        variant: "destructive",
-        title: "Already registered",
-        description: "You are already registered for this opportunity."
-      });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Registration failed",
-        description: error.message || "An unexpected error occurred."
-      });
-    }
+    toast({
+      variant: "destructive",
+      title: "Registration failed",
+      description: error.message || "An unexpected error occurred."
+    });
     
     return false;
   }
@@ -138,40 +238,28 @@ export const registerForOpportunity = async (opportunityId: string, volunteerId:
 
 export const cancelRegistration = async (registrationId: string, opportunityId: string): Promise<boolean> => {
   try {
-    // Update the registration status
-    const { error: registrationError } = await supabase
-      .from('volunteer_registrations')
-      .update({ status: 'cancelled' })
-      .eq('id', registrationId);
+    // In mock data mode, we'll just simulate the cancellation
+    const registrationIndex = mockRegistrations.findIndex(reg => reg.id === registrationId);
+    
+    if (registrationIndex >= 0) {
+      mockRegistrations[registrationIndex].status = 'cancelled';
       
-    if (registrationError) throw registrationError;
-    
-    // Get the current opportunity details
-    const { data: opportunity, error: opportunityError } = await supabase
-      .from('volunteer_opportunities')
-      .select('spots_filled')
-      .eq('id', opportunityId)
-      .single();
+      // Update the opportunity
+      const opportunity = mockOpportunities.find(opp => opp.id === opportunityId);
+      if (opportunity) {
+        opportunity.spots_filled = Math.max(0, opportunity.spots_filled - 1);
+        opportunity.status = 'active';
+      }
       
-    if (opportunityError) throw opportunityError;
-    
-    // Update the spots filled count
-    const { error: updateError } = await supabase
-      .from('volunteer_opportunities')
-      .update({ 
-        spots_filled: Math.max(0, opportunity.spots_filled - 1),
-        status: 'active' // Set back to active since a spot opened up
-      })
-      .eq('id', opportunityId);
+      toast({
+        title: "Registration cancelled",
+        description: "Your registration has been cancelled."
+      });
       
-    if (updateError) throw updateError;
+      return true;
+    }
     
-    toast({
-      title: "Registration cancelled",
-      description: "Your registration has been cancelled."
-    });
-    
-    return true;
+    return false;
   } catch (error: any) {
     console.error("Error cancelling registration:", error);
     toast({
@@ -190,24 +278,24 @@ export const logVolunteerHours = async (
   feedback?: string
 ): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('volunteer_registrations')
-      .update({
-        status: 'completed',
-        hours_logged: hours,
-        completed_at: new Date().toISOString(),
-        feedback
-      })
-      .eq('id', registrationId);
+    // In mock data mode, we'll just simulate logging hours
+    const registration = mockRegistrations.find(reg => reg.id === registrationId);
+    
+    if (registration) {
+      registration.status = 'completed';
+      registration.hours_logged = hours;
+      registration.completed_at = new Date().toISOString();
+      registration.feedback = feedback;
       
-    if (error) throw error;
+      toast({
+        title: "Hours logged successfully",
+        description: "Your volunteer hours have been recorded."
+      });
+      
+      return true;
+    }
     
-    toast({
-      title: "Hours logged successfully",
-      description: "Your volunteer hours have been recorded."
-    });
-    
-    return true;
+    return false;
   } catch (error: any) {
     console.error("Error logging volunteer hours:", error);
     toast({
@@ -223,15 +311,29 @@ export const logVolunteerHours = async (
 // Achievements
 export const getVolunteerAchievements = async (volunteerId: string): Promise<VolunteerAchievement[]> => {
   try {
-    const { data, error } = await supabase
-      .from('volunteer_achievements')
-      .select('*')
-      .eq('volunteer_id', volunteerId)
-      .order('date_earned', { ascending: false });
-      
-    if (error) throw error;
-    
-    return data || [];
+    // Mock achievements for now
+    return [
+      {
+        id: "a1",
+        volunteer_id: volunteerId,
+        title: "First Time Volunteer",
+        description: "Completed your first volunteer activity",
+        badge_name: "first_time",
+        date_earned: new Date(Date.now() - 86400000 * 30).toISOString(),
+        category: "Milestone",
+        points: 10
+      },
+      {
+        id: "a2",
+        volunteer_id: volunteerId,
+        title: "Environmental Champion",
+        description: "Participated in 3 environmental volunteer activities",
+        badge_name: "eco_warrior",
+        date_earned: new Date(Date.now() - 86400000 * 15).toISOString(),
+        category: "Specialization",
+        points: 25
+      }
+    ];
   } catch (error) {
     console.error("Error fetching volunteer achievements:", error);
     return [];
@@ -241,14 +343,31 @@ export const getVolunteerAchievements = async (volunteerId: string): Promise<Vol
 // Training
 export const getTrainingMaterials = async (): Promise<VolunteerTrainingMaterial[]> => {
   try {
-    const { data, error } = await supabase
-      .from('volunteer_training_materials')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (error) throw error;
-    
-    return data || [];
+    // Mock training materials for now
+    return [
+      {
+        id: "t1",
+        title: "Volunteer Orientation",
+        description: "Introduction to volunteering with our organization",
+        category: "Onboarding",
+        content_type: "video",
+        url: "https://example.com/orientation",
+        created_at: new Date(Date.now() - 86400000 * 60).toISOString(),
+        updated_at: new Date(Date.now() - 86400000 * 60).toISOString(),
+        is_required: true
+      },
+      {
+        id: "t2",
+        title: "Food Safety Basics",
+        description: "Learn the basics of food safety for kitchen volunteering",
+        category: "Food Services",
+        content_type: "document",
+        url: "https://example.com/food-safety",
+        created_at: new Date(Date.now() - 86400000 * 45).toISOString(),
+        updated_at: new Date(Date.now() - 86400000 * 45).toISOString(),
+        is_required: false
+      }
+    ];
   } catch (error) {
     console.error("Error fetching training materials:", error);
     return [];
@@ -257,17 +376,29 @@ export const getTrainingMaterials = async (): Promise<VolunteerTrainingMaterial[
 
 export const getTrainingProgress = async (volunteerId: string): Promise<VolunteerTrainingProgress[]> => {
   try {
-    const { data, error } = await supabase
-      .from('volunteer_training_progress')
-      .select(`
-        *,
-        material:volunteer_training_materials(*)
-      `)
-      .eq('volunteer_id', volunteerId);
-      
-    if (error) throw error;
+    // Mock training progress for now
+    const materials = await getTrainingMaterials();
     
-    return data || [];
+    return [
+      {
+        id: "p1",
+        volunteer_id: volunteerId,
+        material_id: "t1",
+        status: "completed",
+        started_at: new Date(Date.now() - 86400000 * 20).toISOString(),
+        completed_at: new Date(Date.now() - 86400000 * 19).toISOString(),
+        score: 95,
+        material: materials[0]
+      },
+      {
+        id: "p2",
+        volunteer_id: volunteerId,
+        material_id: "t2",
+        status: "in_progress",
+        started_at: new Date(Date.now() - 86400000 * 5).toISOString(),
+        material: materials[1]
+      }
+    ];
   } catch (error) {
     console.error("Error fetching training progress:", error);
     return [];
@@ -280,85 +411,48 @@ export const updateTrainingProgress = async (
   status: 'in_progress' | 'completed',
   score?: number
 ): Promise<boolean> => {
-  try {
-    const now = new Date().toISOString();
-    const updates: any = {
-      volunteer_id: volunteerId,
-      material_id: materialId,
-      status
-    };
-    
-    if (status === 'in_progress' && !updates.started_at) {
-      updates.started_at = now;
-    }
-    
-    if (status === 'completed') {
-      updates.completed_at = now;
-      if (score !== undefined) {
-        updates.score = score;
-      }
-    }
-    
-    // Check if progress entry already exists
-    const { data: existing, error: checkError } = await supabase
-      .from('volunteer_training_progress')
-      .select('id')
-      .eq('volunteer_id', volunteerId)
-      .eq('material_id', materialId)
-      .maybeSingle();
-      
-    if (checkError) throw checkError;
-    
-    if (existing) {
-      // Update existing record
-      const { error } = await supabase
-        .from('volunteer_training_progress')
-        .update(updates)
-        .eq('id', existing.id);
-        
-      if (error) throw error;
-    } else {
-      // Insert new record
-      const { error } = await supabase
-        .from('volunteer_training_progress')
-        .insert(updates);
-        
-      if (error) throw error;
-    }
-    
-    toast({
-      title: `Training ${status === 'completed' ? 'completed' : 'in progress'}`,
-      description: `Your training progress has been updated.`
-    });
-    
-    return true;
-  } catch (error: any) {
-    console.error("Error updating training progress:", error);
-    toast({
-      variant: "destructive",
-      title: "Failed to update progress",
-      description: error.message || "An unexpected error occurred."
-    });
-    
-    return false;
-  }
+  // Just return success for mock implementation
+  toast({
+    title: `Training ${status === 'completed' ? 'completed' : 'in progress'}`,
+    description: `Your training progress has been updated.`
+  });
+  
+  return true;
 };
 
 // Tasks
 export const getVolunteerTasks = async (volunteerId: string): Promise<VolunteerTask[]> => {
   try {
-    const { data, error } = await supabase
-      .from('volunteer_tasks')
-      .select(`
-        *,
-        beneficiary:beneficiary_users(id, full_name)
-      `)
-      .eq('volunteer_id', volunteerId)
-      .order('due_date', { ascending: true });
-      
-    if (error) throw error;
-    
-    return data || [];
+    // Mock tasks for now
+    return [
+      {
+        id: "task1",
+        volunteer_id: volunteerId,
+        title: "Call new beneficiary",
+        description: "Reach out to new beneficiary John Smith to explain our programs",
+        status: "pending",
+        priority: "high",
+        due_date: new Date(Date.now() + 86400000 * 2).toISOString(),
+        created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
+        updated_at: new Date(Date.now() - 86400000 * 1).toISOString(),
+        related_beneficiary_id: "beneficiary-1",
+        beneficiary: {
+          id: "beneficiary-1",
+          full_name: "John Smith"
+        }
+      },
+      {
+        id: "task2",
+        volunteer_id: volunteerId,
+        title: "Complete training report",
+        description: "Submit your report on the volunteer training session from last week",
+        status: "in_progress",
+        priority: "medium",
+        due_date: new Date(Date.now() + 86400000 * 5).toISOString(),
+        created_at: new Date(Date.now() - 86400000 * 3).toISOString(),
+        updated_at: new Date(Date.now() - 86400000 * 1).toISOString()
+      }
+    ];
   } catch (error) {
     console.error("Error fetching volunteer tasks:", error);
     return [];
@@ -369,111 +463,37 @@ export const updateTaskStatus = async (
   taskId: string, 
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
 ): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('volunteer_tasks')
-      .update({
-        status,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', taskId);
-      
-    if (error) throw error;
-    
-    toast({
-      title: "Task updated",
-      description: `Task status has been updated to ${status}.`
-    });
-    
-    return true;
-  } catch (error: any) {
-    console.error("Error updating task status:", error);
-    toast({
-      variant: "destructive",
-      title: "Failed to update task",
-      description: error.message || "An unexpected error occurred."
-    });
-    
-    return false;
-  }
+  // Just return success for mock implementation
+  toast({
+    title: "Task updated",
+    description: `Task status has been updated to ${status}.`
+  });
+  
+  return true;
 };
 
 // Hours summary
 export const getVolunteerHoursSummary = async (volunteerId: string): Promise<VolunteerHours> => {
   try {
-    // Get all completed registrations with hours logged
-    const { data, error } = await supabase
-      .from('volunteer_registrations')
-      .select('hours_logged, completed_at')
-      .eq('volunteer_id', volunteerId)
-      .eq('status', 'completed')
-      .not('hours_logged', 'is', null);
-      
-    if (error) throw error;
-    
-    const registrations = data || [];
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    
-    let total = 0;
-    let monthly = 0;
-    let yearly = 0;
-    
-    // Group hours by month for the last 12 months
-    const monthlyData: Record<string, number> = {};
-    for (let i = 0; i < 12; i++) {
-      const month = new Date(currentYear, currentMonth - i, 1);
-      const monthKey = month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      monthlyData[monthKey] = 0;
-    }
-    
-    registrations.forEach(reg => {
-      const hours = Number(reg.hours_logged) || 0;
-      total += hours;
-      
-      if (reg.completed_at) {
-        const completedDate = new Date(reg.completed_at);
-        const isCurrentMonth = completedDate.getMonth() === currentMonth && 
-                               completedDate.getFullYear() === currentYear;
-        const isCurrentYear = completedDate.getFullYear() === currentYear;
-        
-        if (isCurrentMonth) {
-          monthly += hours;
-        }
-        
-        if (isCurrentYear) {
-          yearly += hours;
-        }
-        
-        // Add to monthly data if within last 12 months
-        const monthDiff = (currentYear - completedDate.getFullYear()) * 12 + 
-                          (currentMonth - completedDate.getMonth());
-        
-        if (monthDiff >= 0 && monthDiff < 12) {
-          const monthKey = completedDate.toLocaleDateString('en-US', { 
-            month: 'short', 
-            year: 'numeric' 
-          });
-          
-          if (monthlyData[monthKey] !== undefined) {
-            monthlyData[monthKey] += hours;
-          }
-        }
-      }
-    });
-    
-    // Convert monthly data to array for chart display
-    const details = Object.entries(monthlyData).map(([month, hours]) => ({
-      month,
-      hours
-    })).reverse();
-    
+    // Mock data for hours summary
     return {
-      total,
-      monthly,
-      yearly,
-      details
+      total: 45.5,
+      monthly: 12.5,
+      yearly: 45.5,
+      details: [
+        { month: "Apr 2025", hours: 12.5 },
+        { month: "Mar 2025", hours: 15.0 },
+        { month: "Feb 2025", hours: 10.0 },
+        { month: "Jan 2025", hours: 8.0 },
+        { month: "Dec 2024", hours: 0.0 },
+        { month: "Nov 2024", hours: 0.0 },
+        { month: "Oct 2024", hours: 0.0 },
+        { month: "Sep 2024", hours: 0.0 },
+        { month: "Aug 2024", hours: 0.0 },
+        { month: "Jul 2024", hours: 0.0 },
+        { month: "Jun 2024", hours: 0.0 },
+        { month: "May 2024", hours: 0.0 }
+      ]
     };
   } catch (error) {
     console.error("Error calculating volunteer hours:", error);
