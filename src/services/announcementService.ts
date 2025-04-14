@@ -25,7 +25,22 @@ export async function fetchAnnouncements(): Promise<Announcement[]> {
     }
     
     console.log("Announcements fetched successfully:", data);
-    return data || [];
+    
+    // Validate and cast the status to ensure it matches the expected type
+    const typedAnnouncements = data?.map(item => {
+      // Ensure status is one of the allowed values
+      let validStatus: "active" | "scheduled" | "expired" = "active";
+      if (item.status === "scheduled" || item.status === "expired") {
+        validStatus = item.status as "scheduled" | "expired";
+      }
+      
+      return {
+        ...item,
+        status: validStatus
+      } as Announcement;
+    }) || [];
+    
+    return typedAnnouncements;
   } catch (error: any) {
     console.error("Error fetching announcements:", error.message);
     return [];
@@ -49,7 +64,13 @@ export async function createAnnouncement(announcement: Omit<Announcement, 'id' |
       description: "Announcement created successfully"
     });
     
-    return data;
+    // Cast the returned data to Announcement type
+    const typedAnnouncement = {
+      ...data,
+      status: data.status as "active" | "scheduled" | "expired"
+    } as Announcement;
+    
+    return typedAnnouncement;
   } catch (error: any) {
     console.error("Error creating announcement:", error.message);
     toast({
@@ -79,7 +100,13 @@ export async function updateAnnouncement(id: number, announcement: Partial<Omit<
       description: "Announcement updated successfully"
     });
     
-    return data;
+    // Cast the returned data to Announcement type
+    const typedAnnouncement = {
+      ...data,
+      status: data.status as "active" | "scheduled" | "expired"
+    } as Announcement;
+    
+    return typedAnnouncement;
   } catch (error: any) {
     console.error("Error updating announcement:", error.message);
     toast({
