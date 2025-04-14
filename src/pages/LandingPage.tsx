@@ -11,31 +11,21 @@ const LandingPage = () => {
     navigate("/login");
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
+  <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
       {/* Hero Section with Video Background */}
       <header className="relative h-screen flex flex-col items-center justify-center text-center px-4 md:px-8">
         {/* Video Background */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <div className="absolute inset-0 bg-black/40 z-10"></div>
-          <video 
+          <iframe 
+            src="https://player.vimeo.com/video/1075489243?title=0&amp;byline=0&amp;portrait=0&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
+            width="1920" 
+            height="1080" 
+            frameBorder="0" 
+            allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" 
+            title="Hero Video"
             className="absolute w-full h-full object-cover"
-            autoPlay 
-            muted 
-            loop 
-            playsInline
-          >
-            <source 
-              src="https://cdn.coverr.co/videos/coverr-community-volunteers-planting-trees-5584/1080p.mp4" 
-              type="video/mp4" 
-            />
-            {/* Fallback image in case video doesn't load */}
-            <img 
-              src="https://images.unsplash.com/photo-1593113598332-cd59c5a3ca0e?q=80&w=2070&auto=format&fit=crop" 
-              alt="Community service" 
-              className="w-full h-full object-cover"
-            />
-          </video>
+          ></iframe>
         </div>
         
         <div className="max-w-4xl mx-auto z-10">
