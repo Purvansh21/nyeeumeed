@@ -308,8 +308,11 @@ const announcements = [
 async function insertDemoData() {
   console.log('Starting data insertion...')
   
-  // Clear existing data first (if needed)
   try {
+    // Clear existing data to avoid conflicts
+    // This is a safer approach than trying to check for existing data
+    await clearExistingData()
+    
     // Insert resources
     console.log('Inserting resources...')
     for (const resource of resources) {
@@ -330,352 +333,413 @@ async function insertDemoData() {
       if (error) throw error
     }
     
-    // First, insert the user profiles with generated UUIDs
-    console.log('Creating beneficiary users...')
-    for (const beneficiary of beneficiaries) {
-      // Generate UUID
-      const id = crypto.randomUUID()
-      
-      // Insert into profiles table first
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: id,
-          full_name: beneficiary.full_name,
-          role: 'beneficiary',
-          is_active: true,
-          contact_info: beneficiary.contact_info,
-          additional_info: beneficiary.additional_info || null
-        })
-      
-      if (profileError) throw profileError
-      
-      // Use the same ID for beneficiary_users
-      const { error: beneficiaryError } = await supabase
-        .from('beneficiary_users')
-        .insert({
-          id: id,
-          full_name: beneficiary.full_name,
-          email: beneficiary.email,
-          contact_info: beneficiary.contact_info,
-          needs: beneficiary.needs
-        })
-      
-      if (beneficiaryError) throw beneficiaryError
-    }
+    // Insert beneficiary users
+    const beneficiaryIds = await createBeneficiaryUsers()
     
-    // Create staff users with same approach
-    console.log('Creating staff users...')
-    for (const staffMember of staff) {
-      const id = crypto.randomUUID()
-      
-      // Insert into profiles table first
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: id,
-          full_name: staffMember.full_name,
-          role: 'staff',
-          is_active: true,
-          contact_info: staffMember.contact_info,
-          additional_info: staffMember.additional_info || null
-        })
-      
-      if (profileError) throw profileError
-      
-      // Use the same ID for staff_users
-      const { error: staffError } = await supabase
-        .from('staff_users')
-        .insert({
-          id: id,
-          full_name: staffMember.full_name,
-          email: staffMember.email,
-          contact_info: staffMember.contact_info,
-          position: staffMember.position,
-          department: staffMember.department
-        })
-      
-      if (staffError) throw staffError
-    }
+    // Insert staff users
+    const staffIds = await createStaffUsers()
     
-    // Create volunteer users with same approach
-    console.log('Creating volunteer users...')
-    for (const volunteer of volunteers) {
-      const id = crypto.randomUUID()
-      
-      // Insert into profiles table first
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: id,
-          full_name: volunteer.full_name,
-          role: 'volunteer',
-          is_active: true,
-          contact_info: volunteer.contact_info,
-          additional_info: volunteer.additional_info || null
-        })
-      
-      if (profileError) throw profileError
-      
-      // Use the same ID for volunteer_users
-      const { error: volunteerError } = await supabase
-        .from('volunteer_users')
-        .insert({
-          id: id,
-          full_name: volunteer.full_name,
-          email: volunteer.email,
-          contact_info: volunteer.contact_info,
-          availability: volunteer.availability,
-          skills: volunteer.skills
-        })
-      
-      if (volunteerError) throw volunteerError
-    }
+    // Insert volunteer users
+    const volunteerIds = await createVolunteerUsers()
     
-    // Create admin users with same approach
-    console.log('Creating admin users...')
-    for (const admin of admins) {
-      const id = crypto.randomUUID()
-      
-      // Insert into profiles table first
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: id,
-          full_name: admin.full_name,
-          role: 'admin',
-          is_active: true,
-          contact_info: admin.contact_info,
-          additional_info: admin.additional_info || null
-        })
-      
-      if (profileError) throw profileError
-      
-      // Use the same ID for admin_users
-      const { error: adminError } = await supabase
-        .from('admin_users')
-        .insert({
-          id: id,
-          full_name: admin.full_name,
-          email: admin.email,
-          contact_info: admin.contact_info
-        })
-      
-      if (adminError) throw adminError
-    }
+    // Insert admin users
+    const adminIds = await createAdminUsers()
     
-    // Insert volunteer opportunities
+    // Create volunteer opportunities
     console.log('Inserting volunteer opportunities...')
-    // Get one staff user ID to use as created_by
-    const { data: staffUser } = await supabase
-      .from('staff_users')
-      .select('id')
-      .limit(1)
-      .single()
-    
-    for (const opportunity of volunteerOpportunities) {
-      const { error } = await supabase
-        .from('volunteer_opportunities')
-        .insert({
-          ...opportunity,
-          created_by: staffUser.id
-        })
-      
-      if (error) throw error
-    }
-    
-    // Create relationships between users for tasks, needs, etc.
-    console.log('Creating relationships between data...')
-    
-    // Get IDs
-    const { data: beneficiaryIds } = await supabase
-      .from('beneficiary_users')
-      .select('id, full_name')
-    
-    const { data: staffIds } = await supabase
-      .from('staff_users')
-      .select('id, full_name')
-    
-    const { data: adminIds } = await supabase
-      .from('admin_users')
-      .select('id')
-    
-    if (beneficiaryIds && staffIds && adminIds) {
-      // Create beneficiary needs
-      console.log('Creating beneficiary needs...')
-      const needs = [
-        {
-          beneficiary_id: beneficiaryIds[0].id,
-          category: 'education',
-          description: 'School supplies and tuition support for two children (ages 8 and 10)',
-          priority: 'high',
-          status: 'pending',
-          assigned_to: staffIds[0].id
-        },
-        {
-          beneficiary_id: beneficiaryIds[1].id,
-          category: 'healthcare',
-          description: 'Medical assistance for elderly parents (diabetes and hypertension medication)',
-          priority: 'high',
-          status: 'in-progress',
-          assigned_to: staffIds[1].id
-        },
-        {
-          beneficiary_id: beneficiaryIds[2].id,
-          category: 'skill_development',
-          description: 'Tailoring training program for self-employment',
-          priority: 'medium',
-          status: 'pending'
-        },
-        {
-          beneficiary_id: beneficiaryIds[3].id,
-          category: 'housing',
-          description: 'Temporary shelter support after displacement due to urban development',
-          priority: 'high',
-          status: 'in-progress',
-          assigned_to: staffIds[3].id
-        },
-        {
-          beneficiary_id: beneficiaryIds[4].id,
-          category: 'food_security',
-          description: 'Monthly ration support for family of five',
-          priority: 'medium',
-          status: 'pending',
-          assigned_to: staffIds[2].id
-        },
-        {
-          beneficiary_id: beneficiaryIds[0].id,
-          category: 'healthcare',
-          description: 'Eye check-up and glasses for eldest child',
-          priority: 'low',
-          status: 'completed',
-          assigned_to: staffIds[1].id
-        }
-      ]
-      
-      for (const need of needs) {
+    if (staffIds.length > 0) {
+      for (const opportunity of volunteerOpportunities) {
         const { error } = await supabase
-          .from('beneficiary_needs')
-          .insert(need)
-        
-        if (error) throw error
-      }
-      
-      // Create service requests
-      console.log('Creating service requests...')
-      const serviceRequests = [
-        {
-          beneficiary_id: beneficiaryIds[0].id,
-          service_type: 'education',
-          description: 'School admission assistance for daughter in Class 6',
-          urgency: 'medium',
-          status: 'pending'
-        },
-        {
-          beneficiary_id: beneficiaryIds[1].id,
-          service_type: 'healthcare',
-          description: 'Hospital referral for father requiring cardiac treatment',
-          urgency: 'high',
-          status: 'in-progress',
-          assigned_staff: staffIds[1].id
-        },
-        {
-          beneficiary_id: beneficiaryIds[2].id,
-          service_type: 'legal',
-          description: 'Help with obtaining income certificate from local authorities',
-          urgency: 'low',
-          status: 'pending'
-        },
-        {
-          beneficiary_id: beneficiaryIds[3].id,
-          service_type: 'housing',
-          description: 'Assistance with rental housing after eviction',
-          urgency: 'high',
-          status: 'in-progress',
-          assigned_staff: staffIds[3].id
-        },
-        {
-          beneficiary_id: beneficiaryIds[4].id,
-          service_type: 'employment',
-          description: 'Job placement support after completion of skill training',
-          urgency: 'medium',
-          status: 'pending',
-          assigned_staff: staffIds[4].id
-        }
-      ]
-      
-      for (const request of serviceRequests) {
-        const { error } = await supabase
-          .from('service_requests')
-          .insert(request)
-        
-        if (error) throw error
-      }
-      
-      // Create staff tasks
-      console.log('Creating staff tasks...')
-      const tasks = [
-        {
-          title: 'Organize Education Workshop',
-          description: 'Plan and execute workshop on importance of education for slum community parents',
-          assigned_to: staffIds[0].id,
-          status: 'pending',
-          priority: 'medium',
-          due_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-          created_by: adminIds[0].id
-        },
-        {
-          title: 'Medical Camp Coordination',
-          description: 'Coordinate with local doctors and volunteers for upcoming health camp in Dharavi',
-          assigned_to: staffIds[1].id,
-          status: 'in-progress',
-          priority: 'high',
-          due_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-          created_by: adminIds[0].id
-        },
-        {
-          title: 'Ration Distribution Planning',
-          description: 'Create distribution plan for monthly ration to identified families',
-          assigned_to: staffIds[2].id,
-          status: 'pending',
-          priority: 'high',
-          due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          created_by: adminIds[1].id
-        },
-        {
-          title: 'Beneficiary Verification',
-          description: 'Conduct home visits to verify new beneficiary applications',
-          assigned_to: staffIds[3].id,
-          status: 'in-progress',
-          priority: 'medium',
-          due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-          created_by: adminIds[1].id
-        },
-        {
-          title: 'Volunteer Training Session',
-          description: 'Organize orientation session for new volunteers',
-          assigned_to: staffIds[4].id,
-          status: 'pending',
-          priority: 'low',
-          due_date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
-          created_by: adminIds[0].id
-        }
-      ]
-      
-      for (const task of tasks) {
-        const { error } = await supabase
-          .from('staff_tasks')
-          .insert(task)
+          .from('volunteer_opportunities')
+          .insert({
+            ...opportunity,
+            created_by: staffIds[0]
+          })
         
         if (error) throw error
       }
     }
+    
+    // Create relationships between users
+    await createUserRelationships(beneficiaryIds, staffIds, adminIds)
     
     console.log('Demo data successfully inserted!')
     return { success: true, message: 'Demo data successfully inserted' }
   } catch (error) {
     console.error('Error inserting demo data:', error)
     return { success: false, error: error.message }
+  }
+}
+
+async function clearExistingData() {
+  console.log('Clearing existing demo data...')
+  
+  // Delete data in reverse order of dependencies
+  const tablesToClear = [
+    'staff_tasks',
+    'service_requests',
+    'beneficiary_needs',
+    'volunteer_opportunities',
+    'announcements',
+    'resources',
+    'volunteer_users',
+    'staff_users',
+    'beneficiary_users',
+    'admin_users',
+    'profiles'
+  ]
+  
+  for (const table of tablesToClear) {
+    const { error } = await supabase
+      .from(table)
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000') // Safety to ensure we don't delete all
+    
+    if (error) {
+      console.error(`Error clearing ${table}:`, error)
+      // Continue with other tables even if one fails
+    }
+  }
+}
+
+async function createBeneficiaryUsers() {
+  console.log('Creating beneficiary users...')
+  const beneficiaryIds = []
+  
+  for (const beneficiary of beneficiaries) {
+    // Generate a UUID for this user - will be used in both profiles and role-specific table
+    const id = crypto.randomUUID()
+    beneficiaryIds.push(id)
+    
+    // First insert into profiles table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id,
+        full_name: beneficiary.full_name,
+        role: 'beneficiary',
+        is_active: true,
+        contact_info: beneficiary.contact_info,
+        additional_info: beneficiary.additional_info || null,
+        created_at: new Date().toISOString()
+      })
+    
+    if (profileError) {
+      console.error('Error inserting beneficiary profile:', profileError)
+      throw profileError
+    }
+    
+    // Then insert into role-specific table with the same ID
+    const { error: beneficiaryError } = await supabase
+      .from('beneficiary_users')
+      .insert({
+        id,
+        full_name: beneficiary.full_name,
+        email: beneficiary.email,
+        contact_info: beneficiary.contact_info,
+        needs: beneficiary.needs,
+        is_active: true,
+        created_at: new Date().toISOString()
+      })
+    
+    if (beneficiaryError) {
+      console.error('Error inserting beneficiary user:', beneficiaryError)
+      throw beneficiaryError
+    }
+  }
+  
+  return beneficiaryIds
+}
+
+async function createStaffUsers() {
+  console.log('Creating staff users...')
+  const staffIds = []
+  
+  for (const staffMember of staff) {
+    const id = crypto.randomUUID()
+    staffIds.push(id)
+    
+    // First insert into profiles table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id,
+        full_name: staffMember.full_name,
+        role: 'staff',
+        is_active: true,
+        contact_info: staffMember.contact_info,
+        additional_info: staffMember.additional_info || null,
+        created_at: new Date().toISOString()
+      })
+    
+    if (profileError) {
+      console.error('Error inserting staff profile:', profileError)
+      throw profileError
+    }
+    
+    // Then insert into role-specific table with the same ID
+    const { error: staffError } = await supabase
+      .from('staff_users')
+      .insert({
+        id,
+        full_name: staffMember.full_name,
+        email: staffMember.email,
+        contact_info: staffMember.contact_info,
+        position: staffMember.position,
+        department: staffMember.department,
+        is_active: true,
+        created_at: new Date().toISOString()
+      })
+    
+    if (staffError) {
+      console.error('Error inserting staff user:', staffError)
+      throw staffError
+    }
+  }
+  
+  return staffIds
+}
+
+async function createVolunteerUsers() {
+  console.log('Creating volunteer users...')
+  const volunteerIds = []
+  
+  for (const volunteer of volunteers) {
+    const id = crypto.randomUUID()
+    volunteerIds.push(id)
+    
+    // First insert into profiles table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id,
+        full_name: volunteer.full_name,
+        role: 'volunteer',
+        is_active: true,
+        contact_info: volunteer.contact_info,
+        additional_info: volunteer.additional_info || null,
+        created_at: new Date().toISOString()
+      })
+    
+    if (profileError) {
+      console.error('Error inserting volunteer profile:', profileError)
+      throw profileError
+    }
+    
+    // Then insert into role-specific table with the same ID
+    const { error: volunteerError } = await supabase
+      .from('volunteer_users')
+      .insert({
+        id,
+        full_name: volunteer.full_name,
+        email: volunteer.email,
+        contact_info: volunteer.contact_info,
+        availability: volunteer.availability,
+        skills: volunteer.skills,
+        is_active: true,
+        created_at: new Date().toISOString()
+      })
+    
+    if (volunteerError) {
+      console.error('Error inserting volunteer user:', volunteerError)
+      throw volunteerError
+    }
+  }
+  
+  return volunteerIds
+}
+
+async function createAdminUsers() {
+  console.log('Creating admin users...')
+  const adminIds = []
+  
+  for (const admin of admins) {
+    const id = crypto.randomUUID()
+    adminIds.push(id)
+    
+    // First insert into profiles table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id,
+        full_name: admin.full_name,
+        role: 'admin',
+        is_active: true,
+        contact_info: admin.contact_info,
+        additional_info: admin.additional_info || null,
+        created_at: new Date().toISOString()
+      })
+    
+    if (profileError) {
+      console.error('Error inserting admin profile:', profileError)
+      throw profileError
+    }
+    
+    // Then insert into role-specific table with the same ID
+    const { error: adminError } = await supabase
+      .from('admin_users')
+      .insert({
+        id,
+        full_name: admin.full_name,
+        email: admin.email,
+        contact_info: admin.contact_info,
+        is_active: true,
+        created_at: new Date().toISOString()
+      })
+    
+    if (adminError) {
+      console.error('Error inserting admin user:', adminError)
+      throw adminError
+    }
+  }
+  
+  return adminIds
+}
+
+async function createUserRelationships(beneficiaryIds, staffIds, adminIds) {
+  if (beneficiaryIds.length === 0 || staffIds.length === 0) {
+    console.log('Not enough users to create relationships')
+    return
+  }
+  
+  console.log('Creating user relationships...')
+  
+  // Create beneficiary needs
+  const needs = [
+    {
+      beneficiary_id: beneficiaryIds[0],
+      category: 'education',
+      description: 'School supplies and tuition support for two children (ages 8 and 10)',
+      priority: 'high',
+      status: 'pending',
+      assigned_to: staffIds[0]
+    },
+    {
+      beneficiary_id: beneficiaryIds[1],
+      category: 'healthcare',
+      description: 'Medical assistance for elderly parents (diabetes and hypertension medication)',
+      priority: 'high',
+      status: 'in-progress',
+      assigned_to: staffIds[1]
+    },
+    {
+      beneficiary_id: beneficiaryIds[2],
+      category: 'skill_development',
+      description: 'Tailoring training program for self-employment',
+      priority: 'medium',
+      status: 'pending'
+    }
+  ]
+  
+  if (beneficiaryIds.length > 3 && staffIds.length > 2) {
+    needs.push(
+      {
+        beneficiary_id: beneficiaryIds[3],
+        category: 'housing',
+        description: 'Temporary shelter support after displacement due to urban development',
+        priority: 'high',
+        status: 'in-progress',
+        assigned_to: staffIds[3]
+      },
+      {
+        beneficiary_id: beneficiaryIds[4],
+        category: 'food_security',
+        description: 'Monthly ration support for family of five',
+        priority: 'medium',
+        status: 'pending',
+        assigned_to: staffIds[2]
+      }
+    )
+  }
+  
+  // Add needs
+  for (const need of needs) {
+    const { error } = await supabase
+      .from('beneficiary_needs')
+      .insert(need)
+    
+    if (error) console.error('Error creating need:', error)
+  }
+  
+  // Create service requests
+  const serviceRequests = [
+    {
+      beneficiary_id: beneficiaryIds[0],
+      service_type: 'education',
+      description: 'School admission assistance for daughter in Class 6',
+      urgency: 'medium',
+      status: 'pending'
+    },
+    {
+      beneficiary_id: beneficiaryIds[1],
+      service_type: 'healthcare',
+      description: 'Hospital referral for father requiring cardiac treatment',
+      urgency: 'high',
+      status: 'in-progress',
+      assigned_staff: staffIds[1]
+    }
+  ]
+  
+  if (beneficiaryIds.length > 2 && staffIds.length > 2) {
+    serviceRequests.push(
+      {
+        beneficiary_id: beneficiaryIds[2],
+        service_type: 'legal',
+        description: 'Help with obtaining income certificate from local authorities',
+        urgency: 'low',
+        status: 'pending'
+      },
+      {
+        beneficiary_id: beneficiaryIds[3],
+        service_type: 'housing',
+        description: 'Assistance with rental housing after eviction',
+        urgency: 'high',
+        status: 'in-progress',
+        assigned_staff: staffIds[3]
+      }
+    )
+  }
+  
+  // Add service requests
+  for (const request of serviceRequests) {
+    const { error } = await supabase
+      .from('service_requests')
+      .insert(request)
+    
+    if (error) console.error('Error creating service request:', error)
+  }
+  
+  // Create staff tasks
+  if (staffIds.length > 0 && adminIds.length > 0) {
+    const tasks = [
+      {
+        title: 'Organize Education Workshop',
+        description: 'Plan and execute workshop on importance of education for slum community parents',
+        assigned_to: staffIds[0],
+        status: 'pending',
+        priority: 'medium',
+        due_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+        created_by: adminIds[0]
+      },
+      {
+        title: 'Medical Camp Coordination',
+        description: 'Coordinate with local doctors and volunteers for upcoming health camp in Dharavi',
+        assigned_to: staffIds[1],
+        status: 'in-progress',
+        priority: 'high',
+        due_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+        created_by: adminIds[0]
+      }
+    ]
+    
+    // Add tasks
+    for (const task of tasks) {
+      const { error } = await supabase
+        .from('staff_tasks')
+        .insert(task)
+      
+      if (error) console.error('Error creating staff task:', error)
+    }
   }
 }
 
@@ -700,8 +764,9 @@ Deno.serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Error in create-demo-users function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ success: false, error: error.message }),
       {
         headers: {
           'Content-Type': 'application/json',
