@@ -17,22 +17,23 @@ const LandingPage = () => {
       <header className="relative h-screen flex flex-col items-center justify-center text-center px-4 md:px-8">
         {/* Video Background */}
         <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute inset-0 bg-black/40 z-10"></div>
+          <div className="absolute inset-0 bg-black/60 z-10"></div>
           <video 
             className="absolute w-full h-full object-cover"
             autoPlay 
             muted 
             loop 
             playsInline
+            poster="https://images.unsplash.com/photo-1501435631935-a98b1f778522?q=80&w=2070&auto=format&fit=crop"
           >
             <source src="/idk.mp4" type="video/mp4" />
-            {/* Fallback image in case video doesn't load */}
-            <img 
-              src="https://images.unsplash.com/photo-1469571486292-b53601021a68?q=80&w=2070&auto=format&fit=crop"
-              alt="Fallback hero image"
-              className="w-full h-full object-cover"
-            />
           </video>
+          {/* Fallback image in case video doesn't load */}
+          <img 
+            src="https://images.unsplash.com/photo-1501435631935-a98b1f778522?q=80&w=2070&auto=format&fit=crop"
+            alt="Fallback hero image - Community support"
+            className="absolute w-full h-full object-cover"
+          />
         </div>
         
         <div className="max-w-4xl mx-auto z-10">
@@ -45,12 +46,12 @@ const LandingPage = () => {
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-4 drop-shadow-lg">NayeeUmeed</h1>
-          <p className="text-xl md:text-2xl text-white mb-8 drop-shadow-md">Empowering Communities, Transforming Lives</p>
+          <p className="text-xl md:text-2xl text-white mb-8 drop-shadow-md font-medium text-shadow">Empowering Communities, Transforming Lives</p>
           
           <Button 
             onClick={handleGetStarted} 
             size="lg" 
-            className="px-8 py-6 text-lg rounded-full group bg-white text-primary hover:bg-primary hover:text-white transition-colors"
+            className="px-8 py-6 text-lg rounded-full group bg-white text-primary hover:bg-primary hover:text-white transition-colors shadow-lg"
           >
             Get Started
             <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
