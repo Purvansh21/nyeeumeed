@@ -27,7 +27,11 @@ const LandingPage = () => {
           >
             <source src="/idk.mp4" type="video/mp4" />
             {/* Fallback image in case video doesn't load */}
-           
+            <img 
+              src="https://images.unsplash.com/photo-1469571486292-b53601021a68?q=80&w=2070&auto=format&fit=crop"
+              alt="Fallback hero image"
+              className="w-full h-full object-cover"
+            />
           </video>
         </div>
         
@@ -71,7 +75,7 @@ const LandingPage = () => {
               icon={<HelpingHand className="h-10 w-10 text-primary" />}
               title="Support Services"
               description="Providing essential support services to those in need, ensuring access to resources and care."
-              image="https://images.unsplash.com/photo-1501435631935-a98b1f778522?q=80&w=2070&auto=format&fit=crop"
+              image="/placeholder.svg"
             />
             <FeatureCard 
               icon={<Users className="h-10 w-10 text-primary" />}
