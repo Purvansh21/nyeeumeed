@@ -330,29 +330,31 @@ async function insertDemoData() {
       if (error) throw error
     }
     
-    // Create beneficiary users with correct references in the profiles table
+    // First, insert the user profiles with generated UUIDs
     console.log('Creating beneficiary users...')
     for (const beneficiary of beneficiaries) {
+      // Generate UUID
+      const id = crypto.randomUUID()
+      
       // Insert into profiles table first
-      const { data: profileData, error: profileError } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .insert({
+          id: id,
           full_name: beneficiary.full_name,
           role: 'beneficiary',
           is_active: true,
           contact_info: beneficiary.contact_info,
           additional_info: beneficiary.additional_info || null
         })
-        .select('id')
-        .single()
       
       if (profileError) throw profileError
       
-      // Use the ID from profiles to insert into beneficiary_users
+      // Use the same ID for beneficiary_users
       const { error: beneficiaryError } = await supabase
         .from('beneficiary_users')
         .insert({
-          id: profileData.id,
+          id: id,
           full_name: beneficiary.full_name,
           email: beneficiary.email,
           contact_info: beneficiary.contact_info,
@@ -362,29 +364,30 @@ async function insertDemoData() {
       if (beneficiaryError) throw beneficiaryError
     }
     
-    // Create staff users
+    // Create staff users with same approach
     console.log('Creating staff users...')
     for (const staffMember of staff) {
+      const id = crypto.randomUUID()
+      
       // Insert into profiles table first
-      const { data: profileData, error: profileError } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .insert({
+          id: id,
           full_name: staffMember.full_name,
           role: 'staff',
           is_active: true,
           contact_info: staffMember.contact_info,
           additional_info: staffMember.additional_info || null
         })
-        .select('id')
-        .single()
       
       if (profileError) throw profileError
       
-      // Use the ID from profiles to insert into staff_users
+      // Use the same ID for staff_users
       const { error: staffError } = await supabase
         .from('staff_users')
         .insert({
-          id: profileData.id,
+          id: id,
           full_name: staffMember.full_name,
           email: staffMember.email,
           contact_info: staffMember.contact_info,
@@ -395,29 +398,30 @@ async function insertDemoData() {
       if (staffError) throw staffError
     }
     
-    // Create volunteer users
+    // Create volunteer users with same approach
     console.log('Creating volunteer users...')
     for (const volunteer of volunteers) {
+      const id = crypto.randomUUID()
+      
       // Insert into profiles table first
-      const { data: profileData, error: profileError } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .insert({
+          id: id,
           full_name: volunteer.full_name,
           role: 'volunteer',
           is_active: true,
           contact_info: volunteer.contact_info,
           additional_info: volunteer.additional_info || null
         })
-        .select('id')
-        .single()
       
       if (profileError) throw profileError
       
-      // Use the ID from profiles to insert into volunteer_users
+      // Use the same ID for volunteer_users
       const { error: volunteerError } = await supabase
         .from('volunteer_users')
         .insert({
-          id: profileData.id,
+          id: id,
           full_name: volunteer.full_name,
           email: volunteer.email,
           contact_info: volunteer.contact_info,
@@ -428,29 +432,30 @@ async function insertDemoData() {
       if (volunteerError) throw volunteerError
     }
     
-    // Create admin users
+    // Create admin users with same approach
     console.log('Creating admin users...')
     for (const admin of admins) {
+      const id = crypto.randomUUID()
+      
       // Insert into profiles table first
-      const { data: profileData, error: profileError } = await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .insert({
+          id: id,
           full_name: admin.full_name,
           role: 'admin',
           is_active: true,
           contact_info: admin.contact_info,
           additional_info: admin.additional_info || null
         })
-        .select('id')
-        .single()
       
       if (profileError) throw profileError
       
-      // Use the ID from profiles to insert into admin_users
+      // Use the same ID for admin_users
       const { error: adminError } = await supabase
         .from('admin_users')
         .insert({
-          id: profileData.id,
+          id: id,
           full_name: admin.full_name,
           email: admin.email,
           contact_info: admin.contact_info
