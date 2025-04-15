@@ -1,31 +1,14 @@
-import React, { useState, useEffect } from "react";
+
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Shield, Heart, Users, HelpingHand, ArrowRight } from "lucide-react";
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const [videoError, setVideoError] = useState<string | null>(null);
-
-  useEffect(() => {
-    console.log("Video file path:", "/idk.mp4");
-    console.log("Initial video loaded state:", isVideoLoaded);
-  }, []);
 
   const handleGetStarted = () => {
     navigate("/login");
-  };
-
-  const handleVideoLoad = () => {
-    console.log("Video loaded successfully");
-    setIsVideoLoaded(true);
-  };
-
-  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
-    const error = e.currentTarget.error;
-    console.error("Video loading error:", error?.message || "Unknown error");
-    setVideoError(error?.message || "Failed to load video");
   };
 
   return (
@@ -33,37 +16,29 @@ const LandingPage = () => {
       {/* Hero Section with Video Background */}
       <header className="relative h-screen flex flex-col items-center justify-center text-center px-4 md:px-8">
         {/* Video Background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute inset-0 bg-black/50 z-[1]"></div>
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute inset-0 bg-black/40 z-10"></div>
           <video 
-            className="absolute w-full h-full object-cover z-0"
+            className="absolute w-full h-full object-cover"
             autoPlay 
             muted 
             loop 
             playsInline
-            preload="auto"
-            onLoadedData={handleVideoLoad}
-            onError={handleVideoError}
-            style={{ opacity: isVideoLoaded ? 1 : 0 }}
           >
-            <source src="/idk.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
+            <source 
+              src="https://cdn.coverr.co/videos/coverr-community-volunteers-planting-trees-5584/1080p.mp4" 
+              type="video/mp4" 
+            />
+            {/* Fallback image in case video doesn't load */}
+            <img 
+              src="https://images.unsplash.com/photo-1593113598332-cd59c5a3ca0e?q=80&w=2070&auto=format&fit=crop" 
+              alt="Community service" 
+              className="w-full h-full object-cover"
+            />
           </video>
-          {/* Fallback image in case video doesn't load */}
-          <img 
-            src="https://images.unsplash.com/photo-1501435631935-a98b1f778522?q=80&w=2070&auto=format&fit=crop"
-            alt="Fallback hero image - Community support"
-            className="absolute w-full h-full object-cover z-0"
-            style={{ opacity: isVideoLoaded ? 0 : 1 }}
-          />
-          {videoError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-white p-4 z-[2]">
-              <p>Video Error: {videoError}</p>
-            </div>
-          )}
         </div>
         
-        <div className="relative max-w-4xl mx-auto z-[2]">
+        <div className="max-w-4xl mx-auto z-10">
           {/* Logo & Name */}
           <div className="mb-8 flex items-center justify-center">
             <div className="relative bg-white/90 p-5 rounded-full shadow-lg">
@@ -73,12 +48,12 @@ const LandingPage = () => {
           </div>
 
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-4 drop-shadow-lg">NayeeUmeed</h1>
-          <p className="text-xl md:text-2xl text-white mb-8 drop-shadow-md font-medium text-shadow">Empowering Communities, Transforming Lives</p>
+          <p className="text-xl md:text-2xl text-white mb-8 drop-shadow-md">Empowering Communities, Transforming Lives</p>
           
           <Button 
             onClick={handleGetStarted} 
             size="lg" 
-            className="px-8 py-6 text-lg rounded-full group bg-white text-primary hover:bg-primary hover:text-white transition-colors shadow-lg"
+            className="px-8 py-6 text-lg rounded-full group bg-white text-primary hover:bg-primary hover:text-white transition-colors"
           >
             Get Started
             <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
@@ -103,7 +78,7 @@ const LandingPage = () => {
               icon={<HelpingHand className="h-10 w-10 text-primary" />}
               title="Support Services"
               description="Providing essential support services to those in need, ensuring access to resources and care."
-              image="https://images.unsplash.com/photo-1544027993-37dbfe43562a?q=80&w=2070&auto=format&fit=crop"
+              image="https://images.unsplash.com/photo-1501435631935-a98b1f778522?q=80&w=2070&auto=format&fit=crop"
             />
             <FeatureCard 
               icon={<Users className="h-10 w-10 text-primary" />}
